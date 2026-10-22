@@ -101,9 +101,10 @@
       <button type="button" 
               onclick="toggleExplanation()" 
               id="reveal-btn" 
+              data-view-label="View {% if question.subject.slug == 'mathematics' or question.subject.slug == 'maths' %}Step-by-Step Mathematical Solution{% elif question.subject.slug == 'english-language' or question.subject.slug == 'english' %}Grammar & Contextual Explanation{% elif question.subject.slug == 'biology' %}Biological Concept & Syllabus Guide{% elif question.subject.slug == 'chemistry' %}Chemical Principles & Mechanism{% elif question.subject.slug == 'physics' %}Physical Principles & Numerical Solution{% else %}Step-by-Step Solution{% endif %}"
               class="w-full btn-secondary py-3 text-sm flex items-center justify-center gap-2 border-brand-500/40 bg-white dark:bg-navy-800 text-brand-700 dark:text-brand-300 hover:bg-brand-50/50 dark:hover:bg-navy-700 font-bold shadow-sm active:scale-[0.99] transition-all">
         <i data-lucide="eye" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
-        <span>View Step-by-Step Mathematical Solution</span>
+        <span>View {% if question.subject.slug == 'mathematics' or question.subject.slug == 'maths' %}Step-by-Step Mathematical Solution{% elif question.subject.slug == 'english-language' or question.subject.slug == 'english' %}Grammar & Contextual Explanation{% elif question.subject.slug == 'biology' %}Biological Concept & Syllabus Guide{% elif question.subject.slug == 'chemistry' %}Chemical Principles & Mechanism{% elif question.subject.slug == 'physics' %}Physical Principles & Numerical Solution{% else %}Step-by-Step Solution{% endif %}</span>
       </button>
 
       <div id="explanation-box" class="hidden mt-6 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-navy-950 border-2 border-brand-500/30 dark:border-brand-500/40 space-y-4">
@@ -112,7 +113,21 @@
             <i data-lucide="check-circle-2" class="w-5 h-5 text-brand-600 dark:text-brand-400 shrink-0"></i>
             <span>Verified Correct Answer: <strong class="font-mono text-base text-slate-900 dark:text-white">{{ question.correct_option.tag }}.</strong></span>
           </div>
-          <span class="text-xs text-brand-700 dark:text-brand-400 font-semibold uppercase tracking-wider">Step-by-Step Mathematical Solution</span>
+          <span class="text-xs text-brand-700 dark:text-brand-400 font-semibold uppercase tracking-wider">
+            {% if question.subject.slug == 'mathematics' or question.subject.slug == 'maths' %}
+              Step-by-Step Mathematical Solution
+            {% elif question.subject.slug == 'english-language' or question.subject.slug == 'english' %}
+              Grammar & Contextual Explanation
+            {% elif question.subject.slug == 'biology' %}
+              Biological Concept & Syllabus Guide
+            {% elif question.subject.slug == 'chemistry' %}
+              Chemical Principles & Mechanism
+            {% elif question.subject.slug == 'physics' %}
+              Physical Principles & Numerical Solution
+            {% else %}
+              Step-by-Step Solution
+            {% endif %}
+          </span>
         </div>
 
         <div class="text-sm sm:text-base text-slate-900 dark:text-white font-sans leading-relaxed overflow-x-auto whitespace-pre-line katex-content">
@@ -195,8 +210,9 @@
     });
 
     if (btn) {
+      const viewLabel = btn.getAttribute('data-view-label') || 'View Solution';
       btn.innerHTML = isHidden 
-        ? '<i data-lucide="eye" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i><span class="text-brand-700 dark:text-brand-300 font-bold">View Step-by-Step Mathematical Solution</span>'
+        ? `<i data-lucide="eye" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i><span class="text-brand-700 dark:text-brand-300 font-bold">${viewLabel}</span>`
         : '<i data-lucide="eye-off" class="w-4 h-4 text-slate-500 dark:text-slate-300"></i><span class="text-slate-700 dark:text-slate-200 font-bold">Hide Explanation</span>';
       if (window.lucide) lucide.createIcons();
     }

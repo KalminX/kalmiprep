@@ -398,17 +398,8 @@
     const href = navLink.getAttribute('href');
     const key = normalizeUrl(href);
 
-    // Immediate physical feedback: move orb
-    const mobileContainer = document.getElementById('bottom-nav-container');
-    const mobileOrb = document.getElementById('bottom-nav-orb');
-    if (mobileContainer && mobileOrb && mobileContainer.contains(navLink)) {
-      moveOrb(mobileOrb, mobileContainer, navLink, '.orb-glow', false, true);
-    }
-    const desktopContainer = document.getElementById('desktop-nav');
-    const desktopOrb = document.getElementById('desktop-nav-orb');
-    if (desktopContainer && desktopOrb && desktopContainer.contains(navLink)) {
-      moveOrb(desktopOrb, desktopContainer, navLink, '.desktop-orb-glow', false, false);
-    }
+    // CRITICAL: The orb MUST NOT move while the status is pending!
+    // It remains in its current position until the request finishes / leaves pending.
 
     // Check if we have an instant cached copy
     if (key && pageCache.has(key)) {

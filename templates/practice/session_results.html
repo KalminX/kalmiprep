@@ -226,7 +226,23 @@
                     <i data-lucide="list-checks" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
                     Question-by-Question Review
                 </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Review your choices alongside verified step-by-step mathematical and scientific workings.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    {% if session.mode == 'JAMB_FULL_MOCK' %}
+                    Review your choices alongside verified step-by-step mathematical workings, grammar breakdowns, and scientific conceptual explanations.
+                    {% elif session.subject.slug == 'mathematics' or session.subject.slug == 'maths' %}
+                    Review your choices alongside verified step-by-step mathematical workings and derivations.
+                    {% elif session.subject.slug == 'english-language' or session.subject.slug == 'english' %}
+                    Review your choices alongside contextual grammar rules, comprehension analysis, and vocabulary guides.
+                    {% elif session.subject.slug == 'biology' %}
+                    Review your choices alongside biological diagrams, syllabus guidelines, and conceptual breakdowns.
+                    {% elif session.subject.slug == 'chemistry' %}
+                    Review your choices alongside chemical equations, reaction mechanisms, and principles.
+                    {% elif session.subject.slug == 'physics' %}
+                    Review your choices alongside physical laws, formulas, and step-by-step numerical solutions.
+                    {% else %}
+                    Review your choices alongside verified conceptual solutions and syllabus explanations.
+                    {% endif %}
+                </p>
             </div>
 
             <!-- Filter Buttons -->
@@ -250,48 +266,58 @@
                      data-correct="{{ resp.is_correct|yesno:'true,false' }}"
                      data-flagged="{{ resp.is_flagged|yesno:'true,false' }}">
                     
-                    <!-- Card Header -->
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-navy-800">
-                        <div class="flex items-center gap-3">
-                            <span class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm {% if resp.is_correct %}bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400{% else %}bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400{% endif %}">
-                                {{ forloop.counter }}
-                            </span>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-navy-700">
-                                        {{ resp.question.exam_type }} {{ resp.question.exam_year }}
-                                    </span>
-                                    {% if resp.question.topic %}
-                                        <span class="text-xs text-slate-500 dark:text-slate-400">
-                                            &bull; {{ resp.question.topic.name }}
-                                        </span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            {% if resp.is_flagged %}
-                                <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 font-medium">
-                                    <i data-lucide="flag" class="w-3.5 h-3.5"></i> Flagged
+                    <!-- Stacked Metadata & Badges Bar on Top (Never breaks question text) -->
+                    <div class="space-y-2.5 pb-3 border-b border-slate-100 dark:border-navy-800">
+                        <div class="flex flex-wrap items-center justify-between gap-2.5">
+                            <!-- Left: Number, Exam Type, Year, Topic -->
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs {% if resp.is_correct %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-800{% endif %}">
+                                    Q{{ forloop.counter }}
                                 </span>
-                            {% endif %}
-                            
-                            <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold {% if resp.is_correct %}bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300{% endif %}">
-                                {% if resp.is_correct %}
-                                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Correct
-                                {% else %}
-                                    <i data-lucide="x" class="w-3.5 h-3.5"></i> Incorrect
-                                {% endif %}
-                            </span>
+                                
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-navy-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-navy-700 font-mono">
+                                    <i data-lucide="award" class="w-3.5 h-3.5 text-brand-600 dark:text-brand-400"></i>
+                                    <span>{{ resp.question.exam_type }} {{ resp.question.exam_year|default:"" }}</span>
+                                </span>
 
-                            <!-- Bookmark toggle -->
-                            <form hx-post="{% url 'questions:toggle_bookmark' resp.question.id %}" hx-swap="outerHTML" class="inline">
-                                {% csrf_token %}
-                                <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Bookmark Question">
-                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
-                                </button>
-                            </form>
+                                {% if resp.question.subject and session.mode == 'JAMB_FULL_MOCK' %}
+                                <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-lg bg-brand-50 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800/60">
+                                    {{ resp.question.subject.name }}
+                                </span>
+                                {% endif %}
+
+                                {% if resp.question.topic %}
+                                <span class="inline-flex items-center text-xs font-medium px-2.5 py-0.5 rounded-lg bg-slate-50 dark:bg-navy-950 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-navy-800">
+                                    {{ resp.question.topic.name }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Right: Flag, Status, Bookmark Stacked Together -->
+                            <div class="flex items-center gap-2 shrink-0">
+                                {% if resp.is_flagged %}
+                                    <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-lg bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 font-medium border border-amber-300 dark:border-amber-800/60">
+                                        <i data-lucide="flag" class="w-3 h-3"></i> Flagged
+                                    </span>
+                                {% endif %}
+                                
+                                <span class="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-lg font-bold {% if resp.is_correct %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700{% else %}bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-300 border border-rose-300 dark:border-rose-700{% endif %}">
+                                    {% if resp.is_correct %}
+                                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Correct
+                                    {% else %}
+                                        <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Incorrect
+                                    {% endif %}
+                                </span>
+
+                                <!-- Bookmark Button -->
+                                <form hx-post="{% url 'questions:toggle_bookmark' resp.question.id %}" hx-swap="outerHTML" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-navy-700 hover:bg-slate-200 dark:hover:bg-navy-700" title="Bookmark Question">
+                                        <i data-lucide="bookmark" class="w-3.5 h-3.5 text-amber-500"></i>
+                                        <span class="hidden sm:inline">Bookmark</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
@@ -343,12 +369,29 @@
                         {% endfor %}
                     </div>
 
-                    <!-- Step-by-Step Explanation -->
+                    <!-- Subject-Specific Explanation Block -->
                     {% if resp.question.explanation %}
                         <div class="p-4 sm:p-5 rounded-xl bg-slate-50 dark:bg-navy-950 border border-brand-500/30 dark:border-brand-500/40 text-slate-900 dark:text-white space-y-2">
                             <div class="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400 flex items-center gap-1.5 pb-2 border-b border-slate-200 dark:border-navy-800">
-                                <i data-lucide="lightbulb" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
-                                <span>Step-by-Step Conceptual Solution</span>
+                                {% if resp.question.subject.slug == 'mathematics' or resp.question.subject.slug == 'maths' %}
+                                    <i data-lucide="calculator" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    <span>Step-by-Step Mathematical Solution</span>
+                                {% elif resp.question.subject.slug == 'english-language' or resp.question.subject.slug == 'english' %}
+                                    <i data-lucide="book-open" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    <span>Grammar, Context & Comprehension Breakdown</span>
+                                {% elif resp.question.subject.slug == 'biology' %}
+                                    <i data-lucide="dna" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    <span>Biological Concept & Syllabus Guide</span>
+                                {% elif resp.question.subject.slug == 'chemistry' %}
+                                    <i data-lucide="flask-conical" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    <span>Chemical Principles & Reaction Breakdown</span>
+                                {% elif resp.question.subject.slug == 'physics' %}
+                                    <i data-lucide="zap" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    <span>Physical Principles & Numerical Breakdown</span>
+                                {% else %}
+                                    <i data-lucide="lightbulb" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+                                    <span>Conceptual Solution & Explanation</span>
+                                {% endif %}
                             </div>
                             <div class="text-sm leading-relaxed text-slate-900 dark:text-white katex-content whitespace-pre-line">
                                 {{ resp.question.explanation|safe }}

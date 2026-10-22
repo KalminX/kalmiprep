@@ -25,19 +25,54 @@
           </div>
         </a>
 
-        <!-- Desktop Navigation Links with Crisp Blur Highlight (No Glitchy Orb) -->
-        <nav class="hidden md:flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/70 dark:bg-navy-950/70 border border-slate-200/60 dark:border-navy-800/60 backdrop-blur-md" 
+        <!-- Desktop Navigation Links with Glowing Nav Orb (Moves ONLY when status leaves pending) -->
+        <nav class="hidden md:flex relative items-center gap-1.5 p-1 rounded-xl bg-slate-100/70 dark:bg-navy-950/70 border border-slate-200/60 dark:border-navy-800/60 backdrop-blur-md" 
              id="desktop-nav">
-          <a href="{% url 'curriculum:subject_list' %}" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 {% if '/curriculum/' in request.path %}bg-white/95 dark:bg-navy-800/95 text-brand-600 dark:text-brand-400 shadow-sm backdrop-blur-md border border-slate-200/80 dark:border-navy-700{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-navy-800/60{% endif %}">
+          <!-- Desktop Nav Orb Indicator -->
+          <div id="desktop-nav-orb" 
+               class="absolute pointer-events-none z-0 opacity-0 -translate-y-1/2 top-1/2 h-8 rounded-lg transition-opacity duration-200"
+               style="will-change: transform, width, left, opacity;">
+            <div class="desktop-orb-glow w-full h-full rounded-lg bg-gradient-to-r from-brand-600/15 via-brand-500/20 to-emerald-400/15 dark:from-brand-400/25 dark:via-brand-500/30 dark:to-emerald-400/25 border border-brand-500/30 dark:border-brand-400/40 shadow-sm backdrop-blur-sm"></div>
+          </div>
+
+          <a href="{% url 'curriculum:subject_list' %}" 
+             data-nav="curriculum"
+             hx-boost="true" 
+             hx-target="#main-content" 
+             hx-select="#main-content" 
+             hx-swap="innerHTML show:window:top" 
+             hx-push-url="true"
+             class="desktop-nav-link relative z-10 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-150 {% if '/curriculum/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
             Subjects
           </a>
-          <a href="{% url 'questions:question_list' %}" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 {% if '/questions/' in request.path %}bg-white/95 dark:bg-navy-800/95 text-brand-600 dark:text-brand-400 shadow-sm backdrop-blur-md border border-slate-200/80 dark:border-navy-700{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-navy-800/60{% endif %}">
+          <a href="{% url 'questions:question_list' %}" 
+             data-nav="questions"
+             hx-boost="true" 
+             hx-target="#main-content" 
+             hx-select="#main-content" 
+             hx-swap="innerHTML show:window:top" 
+             hx-push-url="true"
+             class="desktop-nav-link relative z-10 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-150 {% if '/questions/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
             Question Library
           </a>
-          <a href="{% url 'practice:setup' %}" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 {% if '/practice/' in request.path %}bg-white/95 dark:bg-navy-800/95 text-brand-600 dark:text-brand-400 shadow-sm backdrop-blur-md border border-slate-200/80 dark:border-navy-700{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-navy-800/60{% endif %}">
+          <a href="{% url 'practice:setup' %}" 
+             data-nav="practice"
+             hx-boost="true" 
+             hx-target="#main-content" 
+             hx-select="#main-content" 
+             hx-swap="innerHTML show:window:top" 
+             hx-push-url="true"
+             class="desktop-nav-link relative z-10 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-150 {% if '/practice/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
             Practice & CBT
           </a>
-          <a href="{% url 'progress:dashboard' %}" class="px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 {% if '/progress/' in request.path %}bg-white/95 dark:bg-navy-800/95 text-brand-600 dark:text-brand-400 shadow-sm backdrop-blur-md border border-slate-200/80 dark:border-navy-700{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-navy-800/60{% endif %}">
+          <a href="{% url 'progress:dashboard' %}" 
+             data-nav="progress"
+             hx-boost="true" 
+             hx-target="#main-content" 
+             hx-select="#main-content" 
+             hx-swap="innerHTML show:window:top" 
+             hx-push-url="true"
+             class="desktop-nav-link relative z-10 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-150 {% if '/progress/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
             Dashboard
           </a>
         </nav>

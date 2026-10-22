@@ -42,7 +42,22 @@ class QuestionsTests(TestCase):
     def test_study_question_view(self):
         response = self.client.get(reverse("questions:study_question", args=[self.question.id]))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Step-by-Step Mathematical Solution")
+        # Physics questions display physical principles & solution (not mathematical solution)
+        self.assertContains(response, "Physical Principles & Numerical Solution")
+
+        # Mathematics question displays Step-by-Step Mathematical Solution
+        math_subject = Subject.objects.create(name="Mathematics", slug="mathematics", code="MTH")
+        math_q = Question.objects.create(
+            subject=math_subject,
+            exam_type=Question.ExamType.UTME,
+            exam_year=2024,
+            question_text="Find the derivative of x^2",
+            explanation="d/dx(x^2) = 2x",
+            is_published=True
+        )
+        math_resp = self.client.get(reverse("questions:study_question", args=[math_q.id]))
+        self.assertEqual(math_resp.status_code, 200)
+        self.assertContains(math_resp, "Step-by-Step Mathematical Solution")
 
     def test_bookmark_toggle_htmx(self):
         url = reverse("questions:toggle_bookmark", args=[self.question.id])

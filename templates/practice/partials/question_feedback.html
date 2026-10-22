@@ -18,8 +18,25 @@
   <div class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-brand-500/30 dark:border-brand-500/40 space-y-3">
     <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-navy-800 text-xs font-bold text-brand-700 dark:text-brand-400 uppercase tracking-wider">
       <div class="flex items-center gap-1.5">
-        <i data-lucide="lightbulb" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
-        <span>Step-by-Step Mathematical Solution</span>
+        {% if resp.question.subject.slug == 'mathematics' or resp.question.subject.slug == 'maths' %}
+          <i data-lucide="calculator" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+          <span>Step-by-Step Mathematical Solution</span>
+        {% elif resp.question.subject.slug == 'english-language' or resp.question.subject.slug == 'english' %}
+          <i data-lucide="book-open" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+          <span>Grammar & Contextual Explanation</span>
+        {% elif resp.question.subject.slug == 'biology' %}
+          <i data-lucide="dna" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+          <span>Biological Concept & Syllabus Guide</span>
+        {% elif resp.question.subject.slug == 'chemistry' %}
+          <i data-lucide="flask-conical" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+          <span>Chemical Principles & Mechanism</span>
+        {% elif resp.question.subject.slug == 'physics' %}
+          <i data-lucide="zap" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+          <span>Physical Principles & Solution</span>
+        {% else %}
+          <i data-lucide="lightbulb" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+          <span>Detailed Conceptual Solution</span>
+        {% endif %}
       </div>
       <span class="text-brand-700 dark:text-brand-300">Verified Answer: <strong class="text-slate-900 dark:text-white">{{ resp.question.correct_option.tag }}</strong></span>
     </div>
