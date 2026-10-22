@@ -291,9 +291,27 @@ def submit_answer(request, session_id, response_id):
 
     if option_id:
         selected_opt = Option.objects.filter(pk=option_id, question=resp.question).first()
-        resp.selected_option = selected_opt
-        resp.is_correct = selected_opt.is_correct if selected_opt else False
-        resp.answered_at = timezone.now()
+        if selected_opt:
+            resp.selected_option = selected_opt
+            resp.is_correct = selected_opt.is_correct
+            resp.answered_at = timezone.now()
+    elif not resp.selected_option and session.mode == PracticeSession.Mode.TOPIC_PRACTICE:
+        # User submitted without choosing an option in Instant Practice Mode
+        current_index = int(request.POST.get("current_index", 1))
+        total_count = session.total_questions
+        next_index = current_index + 1 if current_index < total_count else None
+        return render(
+            request,
+            "practice/partials/question_feedback.html",
+            {
+                "session": session,
+                "resp": resp,
+                "current_index": current_index,
+                "next_index": next_index,
+                "total_count": total_count,
+                "no_selection_warning": True,
+            },
+        )
 
     resp.is_flagged = is_flagged
     resp.time_spent_seconds += time_spent

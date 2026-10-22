@@ -29,13 +29,15 @@
   <!-- Active Question Card -->
   <div class="card-premium p-6 sm:p-8 bg-white dark:bg-navy-900 shadow-elevated mb-8" id="practice-card">
     
-    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-navy-800 mb-6 text-xs text-slate-500">
-      <div class="flex items-center gap-2">
-        <span class="badge-tag bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-mono font-bold">
-          {{ current_resp.question.exam_badge_label }}
+    <!-- Stacked Metadata & Badges Bar on Top -->
+    <div class="flex flex-wrap items-center justify-between gap-2.5 pb-3 border-b border-slate-100 dark:border-navy-800 mb-6 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-navy-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-navy-700 font-mono">
+          <i data-lucide="award" class="w-3.5 h-3.5 text-brand-600 dark:text-brand-400"></i>
+          <span>{{ current_resp.question.exam_badge_label }}</span>
         </span>
         {% if current_resp.question.topic %}
-        <span class="badge-tag bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300">
+        <span class="inline-flex items-center text-xs font-medium px-2.5 py-0.5 rounded-lg bg-slate-50 dark:bg-navy-950 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-navy-800">
           {{ current_resp.question.topic.name }}
         </span>
         {% endif %}
@@ -72,17 +74,21 @@
       <input type="hidden" name="current_index" value="{{ current_index }}">
 
       {% for opt in current_resp.question.options.all %}
-      <label class="flex items-center gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 hover:border-brand-500 bg-white dark:bg-navy-900 cursor-pointer transition-all practice-option-item">
+      <label for="practice-opt-{{ opt.id }}" 
+             id="practice-opt-card-{{ opt.id }}"
+             onclick="selectPracticeOptionCard('practice-opt-{{ opt.id }}')"
+             class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer transition-all practice-option-item {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}border-brand-500 bg-brand-50/70 dark:bg-brand-950/40 ring-2 ring-brand-500{% else %}border-slate-200 dark:border-navy-700 hover:border-brand-400 bg-white dark:bg-navy-900{% endif %}">
         <input type="radio" 
+               id="practice-opt-{{ opt.id }}"
                name="option_id" 
                value="{{ opt.id }}" 
-               class="text-brand-600 focus:ring-brand-500 w-4 h-4"
+               class="text-brand-600 focus:ring-brand-500 w-4 h-4 shrink-0"
                {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}checked{% endif %}
                onchange="onSelectPracticeOption(this)">
         <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-navy-800 text-slate-900 dark:text-slate-100 font-bold font-mono text-xs flex items-center justify-center shrink-0 border border-slate-200 dark:border-navy-700">
           {{ opt.tag }}
         </span>
-        <span class="text-sm sm:text-base text-slate-900 dark:text-white font-medium">
+        <span class="text-sm sm:text-base text-slate-900 dark:text-white font-medium flex-1">
           {{ opt.text|safe }}
         </span>
       </label>
@@ -113,11 +119,46 @@
 
 {% block extra_js %}
 <script>
+  function selectPracticeOptionCard(radioId) {
+    const radio = document.getElementById(radioId);
+    if (radio) {
+      radio.checked = true;
+      onSelectPracticeOption(radio);
+    }
+  }
+
   function onSelectPracticeOption(radio) {
     document.querySelectorAll('.practice-option-item').forEach(el => {
-      el.classList.remove('border-brand-500', 'bg-brand-50/30', 'dark:bg-brand-950/20');
+      el.classList.remove('border-brand-500', 'bg-brand-50/70', 'dark:bg-brand-950/40', 'ring-2', 'ring-brand-500');
+      el.classList.add('border-slate-200', 'dark:border-navy-700');
     });
-    radio.closest('.practice-option-item').classList.add('border-brand-500', 'bg-brand-50/30', 'dark:bg-brand-950/20');
+    const card = radio.closest('.practice-option-item');
+    if (card) {
+      card.classList.remove('border-slate-200', 'dark:border-navy-700');
+      card.classList.add('border-brand-500', 'bg-brand-50/70', 'dark:bg-brand-950/40', 'ring-2', 'ring-brand-500');
+    }
   }
+
+  // Pre-validate before submitting form
+  document.getElementById('practice-answer-form')?.addEventListener('submit', function(e) {
+    const selected = document.querySelector('input[name="option_id"]:checked');
+    if (!selected) {
+      e.preventDefault();
+      const feedback = document.getElementById('feedback-container');
+      if (feedback) {
+        feedback.innerHTML = `
+          <div class="mt-6 pt-6 border-t border-slate-200 dark:border-navy-800 space-y-4">
+            <div class="p-4 rounded-xl border flex items-center justify-between text-sm font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800 shadow-sm" role="alert">
+              <div class="flex items-center gap-2.5">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0"></i>
+                <span>Please select an option (A, B, C, or D) before checking your answer.</span>
+              </div>
+            </div>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons({ root: feedback });
+      }
+    }
+  });
 </script>
 {% endblock %}
