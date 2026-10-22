@@ -202,8 +202,12 @@
     }
   }
 
-  function updateActiveNav(animate = true) {
-    const activeSection = getActiveSection();
+  // --- STRICT DOM ORB ALIGNMENT ---
+  let lastDesktopSection = null;
+  let lastMobileSection = null;
+
+  function syncNavDOM(activeSection, animate = true) {
+    if (!activeSection) activeSection = getActiveSection();
 
     // 1. Mobile Bottom Bar
     const mobileContainer = document.getElementById('bottom-nav-container');
@@ -227,7 +231,9 @@
       });
 
       if (matchedItem) {
-        moveOrb(mobileOrb, mobileContainer, matchedItem, '.orb-glow', !animate, true);
+        const shouldAnimate = animate && lastMobileSection !== activeSection && lastMobileSection !== null;
+        moveOrb(mobileOrb, mobileContainer, matchedItem, '.orb-glow', !shouldAnimate, true);
+        lastMobileSection = activeSection;
       } else {
         mobileOrb.style.opacity = '0';
       }
@@ -246,21 +252,49 @@
 
         if (isMatch) {
           matchedItem = item;
-          item.classList.remove('text-slate-600', 'dark:text-slate-300', 'font-semibold');
+          item.classList.remove('text-slate-600', 'dark:text-slate-400', 'font-semibold');
           item.classList.add('text-brand-600', 'dark:text-brand-400', 'font-bold');
         } else {
           item.classList.remove('text-brand-600', 'dark:text-brand-400', 'font-bold');
-          item.classList.add('text-slate-600', 'dark:text-slate-300', 'font-semibold');
+          item.classList.add('text-slate-600', 'dark:text-slate-400', 'font-semibold');
         }
       });
 
       if (matchedItem) {
-        moveOrb(desktopOrb, desktopContainer, matchedItem, '.desktop-orb-glow', !animate, false);
+        const shouldAnimate = animate && lastDesktopSection !== activeSection && lastDesktopSection !== null;
+        moveOrb(desktopOrb, desktopContainer, matchedItem, '.desktop-orb-glow', !shouldAnimate, false);
+        lastDesktopSection = activeSection;
       } else {
         desktopOrb.style.opacity = '0';
       }
     }
   }
+
+  function updateActiveNav(animate = true) {
+    const activeSection = getActiveSection();
+    if (window.useKalmiStore) {
+      window.useKalmiStore.getState().finishNavTransition(activeSection, animate);
+    } else {
+      syncNavDOM(activeSection, animate);
+    }
+  }
+
+  // --- ZUSTAND STRICT STATE EVENT LISTENERS ---
+  window.addEventListener('kalmi:nav-pending-start', () => {
+    // Show top indicator beam, but KEEP ORB COMPLETELY STILL
+    startLoadingIndicator();
+  });
+
+  window.addEventListener('kalmi:nav-pending-finish', (e) => {
+    finishLoadingIndicator();
+    const activeSection = e.detail?.activeSection || getActiveSection();
+    const animate = e.detail?.animate ?? true;
+    syncNavDOM(activeSection, animate);
+  });
+
+  window.addEventListener('kalmi:nav-pending-cancel', () => {
+    finishLoadingIndicator();
+  });
 
   // --- OPTIMISTIC PREFETCH & CACHING ENGINE ---
   async function prefetchPage(url) {
@@ -398,31 +432,44 @@
     const href = navLink.getAttribute('href');
     const key = normalizeUrl(href);
 
-    // CRITICAL: The orb MUST NOT move while the status is pending!
-    // It remains in its current position until the request finishes / leaves pending.
+    // CRITICAL: The orb MUST NOT move while status is pending!
+    if (window.useKalmiStore) {
+      window.useKalmiStore.getState().startNavTransition(href);
+    } else {
+      startLoadingIndicator();
+    }
 
     // Check if we have an instant cached copy
     if (key && pageCache.has(key)) {
       e.preventDefault();
       e.stopPropagation();
       applyCachedPage(key, pageCache.get(key), true);
+      const targetSec = navLink.getAttribute('data-nav') || getActiveSection(key);
+      if (window.useKalmiStore) {
+        window.useKalmiStore.getState().finishNavTransition(targetSec, true);
+      }
       return;
     }
-
-    // Otherwise show subtle reloading indicator while HTMX fulfills request
-    startLoadingIndicator();
   });
 
-  // 3. HTMX Lifecycle Events
+  // 3. HTMX Lifecycle Events (Strictly Filtered to Top-Level Route Switches Only)
   document.addEventListener('htmx:beforeRequest', (e) => {
-    startLoadingIndicator();
+    const target = e.detail?.target;
+    // ONLY start pending state if the request targets the top-level #main-content
+    if (target && target.id === 'main-content') {
+      if (window.useKalmiStore) {
+        window.useKalmiStore.getState().startNavTransition(e.detail?.requestConfig?.path || '');
+      } else {
+        startLoadingIndicator();
+      }
+    }
   });
 
   document.addEventListener('htmx:afterSwap', (e) => {
-    finishLoadingIndicator();
-
+    // STRICT: Only handle top-level page content transitions!
     if (e.detail && e.detail.target && e.detail.target.id === 'main-content') {
       const currentUrl = normalizeUrl(window.location.href);
+      const newSection = getActiveSection(window.location.pathname);
       const mainEl = e.detail.target;
 
       // Cache newly swapped page in memory
@@ -433,8 +480,13 @@
       });
       persistCache();
 
-      // Synchronize active states and orb location
-      updateActiveNav(true);
+      // Complete navigation transition via strict state
+      if (window.useKalmiStore) {
+        window.useKalmiStore.getState().finishNavTransition(newSection, true);
+      } else {
+        finishLoadingIndicator();
+        syncNavDOM(newSection, true);
+      }
 
       // Re-attach hover/touchstart prefetch listeners
       attachPrefetchTriggers();
@@ -447,9 +499,25 @@
     }
   });
 
-  document.addEventListener('htmx:responseError', finishLoadingIndicator);
-  document.addEventListener('htmx:sendError', finishLoadingIndicator);
-  document.addEventListener('htmx:afterOnLoad', finishLoadingIndicator);
+  document.addEventListener('htmx:responseError', (e) => {
+    if (e.detail?.target?.id === 'main-content') {
+      if (window.useKalmiStore) {
+        window.useKalmiStore.getState().cancelNavTransition();
+      } else {
+        finishLoadingIndicator();
+      }
+    }
+  });
+
+  document.addEventListener('htmx:sendError', (e) => {
+    if (e.detail?.target?.id === 'main-content') {
+      if (window.useKalmiStore) {
+        window.useKalmiStore.getState().cancelNavTransition();
+      } else {
+        finishLoadingIndicator();
+      }
+    }
+  });
 
   // 4. Popstate (Browser Back/Forward)
   window.addEventListener('popstate', (e) => {

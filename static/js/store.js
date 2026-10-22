@@ -457,6 +457,56 @@
       get().renderCalcDOM();
     },
 
+    // ----------------------------------------------------
+    // 4. STRICT NAVIGATION & ORB SLICE
+    // ----------------------------------------------------
+    navigation: {
+      activeSection: 'core', // 'core' | 'curriculum' | 'questions' | 'practice' | 'progress'
+      isPending: false,      // STRICT: true ONLY when a top-level page route switch is in flight
+      pendingTarget: null,
+      isInitialized: false,
+    },
+
+    startNavTransition: (targetUrl) => {
+      set((state) => ({
+        navigation: {
+          ...state.navigation,
+          isPending: true,
+          pendingTarget: targetUrl
+        }
+      }));
+      window.dispatchEvent(new CustomEvent('kalmi:nav-pending-start', {
+        detail: { targetUrl }
+      }));
+    },
+
+    finishNavTransition: (newSection, animate = true) => {
+      const prevSection = get().navigation.activeSection;
+      set((state) => ({
+        navigation: {
+          ...state.navigation,
+          activeSection: newSection,
+          isPending: false,
+          pendingTarget: null,
+          isInitialized: true
+        }
+      }));
+      window.dispatchEvent(new CustomEvent('kalmi:nav-pending-finish', {
+        detail: { activeSection: newSection, prevSection, animate }
+      }));
+    },
+
+    cancelNavTransition: () => {
+      set((state) => ({
+        navigation: {
+          ...state.navigation,
+          isPending: false,
+          pendingTarget: null
+        }
+      }));
+      window.dispatchEvent(new CustomEvent('kalmi:nav-pending-cancel'));
+    },
+
     renderCalcDOM: () => {
       const { isOpen, expression, result, angleMode, memory } = get().calc;
       const modal = document.getElementById('scientific-calculator-modal');
