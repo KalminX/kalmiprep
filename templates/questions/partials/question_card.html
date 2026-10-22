@@ -1,8 +1,8 @@
-<div class="card-premium p-6 hover:border-slate-300 dark:hover:border-navy-700 transition-all flex flex-col justify-between" id="question-card-{{ question.id }}">
+<div class="card-premium p-4 sm:p-6 hover:border-slate-300 dark:hover:border-navy-700 transition-all flex flex-col justify-between" id="question-card-{{ question.id }}">
   <div>
     <!-- Badges Row -->
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-navy-800 text-xs">
-      <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b border-slate-100 dark:border-navy-800 text-xs">
+      <div class="flex items-center gap-1.5 sm:gap-2">
         <span class="badge-tag {% if question.subject.color_theme == 'math' %}bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300{% elif question.subject.color_theme == 'chem' %}bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300{% else %}bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300{% endif %} font-semibold">
           {{ question.subject.name }}
         </span>
@@ -17,16 +17,16 @@
       </div>
 
       <!-- Indicators: Diagram & Explanation -->
-      <div class="flex items-center gap-2 text-slate-400">
+      <div class="flex items-center gap-1.5 text-slate-400">
         {% if question.has_diagram %}
-        <span class="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800/60" title="Includes diagram or figure">
+        <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800/60" title="Includes diagram or figure">
           <i data-lucide="image" class="w-3.5 h-3.5"></i>
           <span>Diagram</span>
         </span>
         {% endif %}
 
         {% if question.has_solution %}
-        <span class="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60" title="Includes full step-by-step working">
+        <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60" title="Includes full step-by-step working">
           <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
           <span>Solution</span>
         </span>
@@ -36,13 +36,13 @@
 
     <!-- Question Text with KaTeX formulas -->
     <a href="{% url 'questions:study_question' question.id %}" class="block group">
-      <div class="text-sm sm:text-base font-medium text-slate-900 dark:text-white leading-relaxed mb-4 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+      <div class="text-sm sm:text-base font-medium text-slate-900 dark:text-white leading-relaxed mb-3 sm:mb-4 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors overflow-x-auto">
         {{ question.question_text|safe }}
       </div>
     </a>
 
     <!-- Options Preview -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 sm:mb-4">
       {% for opt in question.options.all %}
       <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/70 dark:bg-navy-800/40 border border-slate-200/60 dark:border-navy-800 text-xs text-slate-700 dark:text-slate-300">
         <span class="w-5 h-5 rounded bg-slate-200 dark:bg-navy-700 font-bold font-mono text-[10px] flex items-center justify-center shrink-0">
@@ -55,7 +55,7 @@
   </div>
 
   <!-- Footer Actions -->
-  <div class="mt-4 pt-3 border-t border-slate-100 dark:border-navy-800 flex items-center justify-between">
+  <div class="mt-3 pt-2.5 sm:mt-4 sm:pt-3 border-t border-slate-100 dark:border-navy-800 flex items-center justify-between">
     <div class="flex items-center gap-2">
       <!-- Bookmark Component -->
       {% if question.id in bookmarked_ids %}
@@ -65,8 +65,8 @@
       {% endif %}
     </div>
 
-    <a href="{% url 'questions:study_question' question.id %}" class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5">
-      <span>Study & View Solution</span>
+    <a href="{% url 'questions:study_question' question.id %}" class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 min-h-[38px]">
+      <span>Study<span class="hidden xs:inline"> Solution</span></span>
       <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
     </a>
   </div>

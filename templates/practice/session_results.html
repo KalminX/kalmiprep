@@ -46,14 +46,14 @@
                 </p>
 
                 <!-- Key Metrics row -->
-                <div class="grid grid-cols-3 sm:grid-cols-4 gap-4 pt-4 border-t border-white/10">
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 sm:gap-4 pt-4 border-t border-white/10">
                     <div>
-                        <div class="text-xs text-slate-400 font-medium">Score</div>
-                        <div class="text-2xl font-bold text-white">{{ session.score }} / {{ session.total_questions }}</div>
+                        <div class="text-[11px] sm:text-xs text-slate-400 font-medium">Score</div>
+                        <div class="text-xl sm:text-2xl font-bold text-white font-mono">{{ session.score }} / {{ session.total_questions }}</div>
                     </div>
                     <div>
-                        <div class="text-xs text-slate-400 font-medium">Accuracy</div>
-                        <div class="text-2xl font-bold 
+                        <div class="text-[11px] sm:text-xs text-slate-400 font-medium">Accuracy</div>
+                        <div class="text-xl sm:text-2xl font-bold font-mono
                             {% if session.percentage >= 70 %}text-emerald-400
                             {% elif session.percentage >= 50 %}text-amber-400
                             {% else %}text-rose-400{% endif %}">
@@ -61,8 +61,8 @@
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-slate-400 font-medium">Time Taken</div>
-                        <div class="text-2xl font-bold text-white">
+                        <div class="text-[11px] sm:text-xs text-slate-400 font-medium">Time Taken</div>
+                        <div class="text-xl sm:text-2xl font-bold text-white font-mono">
                             {% widthratio session.time_spent_seconds 60 1 %}m
                         </div>
                     </div>
@@ -90,11 +90,11 @@
                     <p class="text-xs text-slate-300 mt-1">Review your solutions below, then complete a targeted revision session.</p>
                 </div>
                 <div class="space-y-2">
-                    <a href="{% url 'practice:setup' %}?subject={{ session.subject.slug }}" class="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-md transition-colors">
+                    <a href="{% url 'practice:setup' %}?subject={{ session.subject.slug }}" class="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-md transition-colors min-h-[44px]">
                         <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
                         Start New Session
                     </a>
-                    <a href="{% url 'curriculum:subject_detail' session.subject.slug %}" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors">
+                    <a href="{% url 'curriculum:subject_detail' session.subject.slug %}" class="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors min-h-[44px]">
                         Explore Topics
                     </a>
                 </div>

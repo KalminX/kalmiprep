@@ -7,40 +7,40 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
   
   <!-- CBT Top Navigation & Timer Bar -->
-  <div class="card-premium p-4 sm:p-5 mb-6 bg-white dark:bg-navy-900 border-slate-200 dark:border-navy-800 flex flex-wrap items-center justify-between gap-4 sticky top-16 z-30 shadow-md">
+  <div class="card-premium p-3 sm:p-5 mb-4 sm:mb-6 bg-white dark:bg-navy-900 border-slate-200 dark:border-navy-800 flex items-center justify-between gap-2 sm:gap-4 sticky top-16 z-30 shadow-md">
     
     <!-- Title & Exam Type -->
-    <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-sm shrink-0">
-        <i data-lucide="monitor" class="w-5 h-5"></i>
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+      <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-xs sm:text-sm shrink-0">
+        <i data-lucide="monitor" class="w-4 h-4 sm:w-5 sm:h-5"></i>
       </div>
-      <div>
-        <h1 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-tight">
+      <div class="min-w-0">
+        <h1 class="text-xs sm:text-base font-bold text-slate-900 dark:text-white leading-tight truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">
           {{ session.title }}
         </h1>
-        <span class="text-xs text-slate-500 font-mono">
-          {{ session.get_mode_display }} &bull; {{ session.total_questions }} Questions
+        <span class="text-[10px] sm:text-xs text-slate-500 font-mono hidden xs:inline">
+          {{ session.get_mode_display }} &bull; {{ session.total_questions }} Qs
         </span>
       </div>
     </div>
 
     <!-- Center/Right: Countdown Timer & Submit -->
-    <div class="flex items-center gap-2 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
+    <div class="flex items-center gap-2 sm:gap-4 shrink-0">
       
       <!-- Countdown Clock -->
       {% if session.time_limit_seconds > 0 %}
-      <div class="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-navy-800 border border-slate-200 dark:border-navy-700">
-        <i data-lucide="clock" class="w-4 h-4 text-brand-600 dark:text-brand-400 animate-pulse"></i>
-        <div class="font-mono text-sm sm:text-lg font-bold text-slate-900 dark:text-white" id="countdown-timer">
+      <div class="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-100 dark:bg-navy-800 border border-slate-200 dark:border-navy-700">
+        <i data-lucide="clock" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-600 dark:text-brand-400 animate-pulse"></i>
+        <div class="font-mono text-xs sm:text-lg font-bold text-slate-900 dark:text-white" id="countdown-timer">
           --:--
         </div>
       </div>
       {% endif %}
 
       <!-- Finish & Submit Exam Trigger -->
-      <button type="button" onclick="openSubmitModal()" class="btn-primary py-2 px-3 sm:px-4 text-xs sm:text-sm bg-rose-600 hover:bg-rose-700 shadow-sm flex items-center gap-1.5 sm:gap-2">
+      <button type="button" onclick="openSubmitModal()" class="btn-primary py-1.5 sm:py-2 px-2.5 sm:px-4 text-xs sm:text-sm bg-rose-600 hover:bg-rose-700 shadow-sm flex items-center gap-1.5 min-h-[38px] sm:min-h-[44px]">
         <i data-lucide="send" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
-        <span>Submit Exam</span>
+        <span>Submit<span class="hidden xs:inline"> Exam</span></span>
       </button>
 
     </div>
@@ -142,9 +142,9 @@
         <div class="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-navy-800">
           <div>
             {% if prev_index %}
-            <a href="?q={{ prev_index }}" class="btn-secondary text-xs sm:text-sm py-2 px-4 flex items-center gap-2">
+            <a href="?q={{ prev_index }}" class="btn-secondary text-xs sm:text-sm py-2 px-3 sm:px-4 flex items-center gap-1.5 sm:gap-2">
               <i data-lucide="arrow-left" class="w-4 h-4"></i>
-              <span>Previous Question</span>
+              <span>Prev<span class="hidden sm:inline">ious Question</span></span>
             </a>
             {% endif %}
           </div>
@@ -155,12 +155,12 @@
 
           <div>
             {% if next_index %}
-            <a href="?q={{ next_index }}" class="btn-primary text-xs sm:text-sm py-2 px-5 flex items-center gap-2">
-              <span>Next Question</span>
+            <a href="?q={{ next_index }}" class="btn-primary text-xs sm:text-sm py-2 px-3.5 sm:px-5 flex items-center gap-1.5 sm:gap-2">
+              <span>Next<span class="hidden sm:inline"> Question</span></span>
               <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </a>
             {% else %}
-            <button type="button" onclick="openSubmitModal()" class="btn-primary py-2 px-5 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 flex items-center gap-2">
+            <button type="button" onclick="openSubmitModal()" class="btn-primary py-2 px-3.5 sm:px-5 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-700 flex items-center gap-1.5 sm:gap-2">
               <span>Review & Submit</span>
               <i data-lucide="check" class="w-4 h-4"></i>
             </button>
@@ -377,4 +377,37 @@
     });
   });
 </script>
+{% endblock %}
+
+{% block bottom_nav %}
+<!-- Dedicated CBT Mobile Bottom Navigation Dock (Distraction-Free) -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border-t border-slate-200 dark:border-navy-800 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-xl transition-colors">
+  <div class="flex items-center justify-between gap-2 max-w-lg mx-auto">
+    {% if prev_index %}
+    <a href="?q={{ prev_index }}" class="btn-secondary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px]">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      <span>Prev</span>
+    </a>
+    {% else %}
+    <div class="flex-1"></div>
+    {% endif %}
+
+    <button type="button" onclick="toggleFlagReview()" class="flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px] transition-colors {% if current_resp.is_flagged %}bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700{% else %}bg-slate-100 text-slate-700 dark:bg-navy-800 dark:text-slate-200 border-slate-200 dark:border-navy-700 hover:bg-slate-200{% endif %}">
+      <i data-lucide="flag" class="w-3.5 h-3.5 {% if current_resp.is_flagged %}fill-amber-500 text-amber-500{% endif %}"></i>
+      <span>{% if current_resp.is_flagged %}Flagged{% else %}Flag{% endif %}</span>
+    </button>
+
+    {% if next_index %}
+    <a href="?q={{ next_index }}" class="btn-primary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px]">
+      <span>Next</span>
+      <i data-lucide="arrow-right" class="w-4 h-4"></i>
+    </a>
+    {% else %}
+    <button type="button" onclick="openSubmitModal()" class="btn-primary flex-1 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center gap-1.5 min-h-[42px]">
+      <span>Submit</span>
+      <i data-lucide="check" class="w-4 h-4"></i>
+    </button>
+    {% endif %}
+  </div>
+</nav>
 {% endblock %}

@@ -120,18 +120,21 @@
           <label class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
             4. Number of Questions
           </label>
-          <div class="flex items-center gap-3">
-            <label class="flex-1 text-center p-3 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer font-bold text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <label class="flex-1 text-center p-2.5 sm:p-3 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card min-h-[50px] flex flex-col justify-center">
               <input type="radio" name="question_count" value="5" class="sr-only" onchange="highlightCount(this)">
-              <span>5 Questions</span>
+              <span class="block text-base sm:text-lg font-extrabold font-mono leading-none">5</span>
+              <span class="block text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">Questions</span>
             </label>
-            <label class="flex-1 text-center p-3 rounded-xl border border-brand-600 bg-brand-50/50 dark:bg-brand-950/20 ring-2 ring-brand-500 cursor-pointer font-bold text-sm text-slate-800 dark:text-slate-200 count-radio-card">
+            <label class="flex-1 text-center p-2.5 sm:p-3 rounded-xl border border-brand-600 bg-brand-50/50 dark:bg-brand-950/20 ring-2 ring-brand-500 cursor-pointer text-slate-800 dark:text-slate-200 count-radio-card min-h-[50px] flex flex-col justify-center">
               <input type="radio" name="question_count" value="10" class="sr-only" onchange="highlightCount(this)" checked>
-              <span>10 Questions</span>
+              <span class="block text-base sm:text-lg font-extrabold font-mono leading-none text-brand-700 dark:text-brand-300">10</span>
+              <span class="block text-[10px] sm:text-xs text-brand-600 dark:text-brand-400 font-bold mt-0.5">Questions</span>
             </label>
-            <label class="flex-1 text-center p-3 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer font-bold text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card">
+            <label class="flex-1 text-center p-2.5 sm:p-3 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card min-h-[50px] flex flex-col justify-center">
               <input type="radio" name="question_count" value="20" class="sr-only" onchange="highlightCount(this)">
-              <span>20 Questions</span>
+              <span class="block text-base sm:text-lg font-extrabold font-mono leading-none">20</span>
+              <span class="block text-[10px] sm:text-xs text-slate-500 font-medium mt-0.5">Questions</span>
             </label>
           </div>
         </div>

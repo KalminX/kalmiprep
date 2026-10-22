@@ -61,7 +61,9 @@
   {% include 'components/footer.html' %}
 
   <!-- Mobile Fixed Bottom Navigation Bar -->
-  {% include 'components/bottom_nav.html' %}
+  {% block bottom_nav %}
+    {% include 'components/bottom_nav.html' %}
+  {% endblock %}
 
   <!-- Local Vendor Scripts -->
   <script src="{% static 'vendor/katex/katex.min.js' %}"></script>
