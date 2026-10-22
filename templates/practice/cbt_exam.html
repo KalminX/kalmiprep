@@ -121,17 +121,17 @@
           <input type="hidden" name="is_flagged" id="input-is-flagged" value="{{ current_resp.is_flagged|yesno:'true,false' }}">
 
           {% for opt in current_resp.question.options.all %}
-          <label class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer transition-all cbt-option-item {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}border-brand-500 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% else %}border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-850 hover:bg-slate-50 dark:hover:bg-navy-800{% endif %}">
+          <label class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer transition-all cbt-option-item {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}border-brand-500 bg-brand-50/70 dark:bg-brand-950/40 ring-2 ring-brand-500{% else %}border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 hover:bg-slate-50 dark:hover:bg-navy-800{% endif %}">
             <input type="radio" 
                    name="option_id" 
                    value="{{ opt.id }}" 
                    class="text-brand-600 focus:ring-brand-500 w-4 h-4 sr-only"
                    {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}checked{% endif %}
                    onchange="onSelectCBTOption(this, '{{ opt.tag }}')">
-            <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-navy-700 text-slate-800 dark:text-slate-200 font-bold font-mono text-xs flex items-center justify-center shrink-0 border border-slate-200 dark:border-navy-600">
+            <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-navy-800 text-slate-900 dark:text-slate-100 font-bold font-mono text-xs flex items-center justify-center shrink-0 border border-slate-200 dark:border-navy-700">
               {{ opt.tag }}
             </span>
-            <span class="text-sm sm:text-base text-slate-900 dark:text-slate-100 font-medium">
+            <span class="text-sm sm:text-base text-slate-900 dark:text-white font-medium">
               {{ opt.text|safe }}
             </span>
           </label>

@@ -80,15 +80,15 @@
     <!-- Options List (Touch Friendly & Generous Padding) -->
     <div class="space-y-3 mb-6 sm:mb-8" id="options-container">
       {% for opt in options %}
-      <div class="flex items-start sm:items-center gap-3.5 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-850 hover:bg-slate-50 dark:hover:bg-navy-800/80 active:scale-[0.99] transition-all cursor-pointer option-item min-h-[52px]" onclick="highlightOption(this, '{{ opt.tag }}')">
-        <span class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-navy-800 text-slate-800 dark:text-slate-200 font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-slate-200 dark:border-navy-700 mt-0.5 sm:mt-0">
+      <div class="flex items-start sm:items-center gap-3.5 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 hover:bg-slate-50 dark:hover:bg-navy-800 active:scale-[0.99] transition-all cursor-pointer option-item min-h-[52px]" onclick="highlightOption(this, '{{ opt.tag }}')">
+        <span class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-navy-800 text-slate-900 dark:text-slate-100 font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-slate-200 dark:border-navy-700 mt-0.5 sm:mt-0">
           {{ opt.tag }}
         </span>
-        <div class="text-sm sm:text-base text-slate-900 dark:text-slate-100 font-medium overflow-x-auto flex-1">
+        <div class="text-sm sm:text-base text-slate-900 dark:text-white font-medium overflow-x-auto flex-1">
           {{ opt.text|safe }}
         </div>
         {% if opt.is_correct %}
-        <span class="ml-2 hidden answer-key-indicator text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-800 shrink-0">
+        <span class="ml-2 hidden answer-key-indicator text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-md border border-emerald-300 dark:border-emerald-700 shrink-0">
           Correct
         </span>
         {% endif %}

@@ -41,6 +41,28 @@
   max-width: 100%;
 }
 
+/* High contrast KaTeX in dark mode */
+.dark .katex,
+.dark .katex-display,
+.dark .katex .base {
+  color: #f8fafc !important;
+}
+
+/* Ensure native select options have dark background and readable light text in dark mode */
+.dark select option,
+.dark select optgroup {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+/* High-contrast fallback for muted text in dark mode */
+.dark .text-slate-500 {
+  color: #94a3b8;
+}
+.dark .text-slate-600 {
+  color: #cbd5e1;
+}
+
 /* Hide scrollbar for clean horizontal swipe ribbons */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

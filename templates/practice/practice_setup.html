@@ -57,7 +57,7 @@
           2. Select Topic Focus (Optional)
         </label>
         <p class="text-xs text-slate-500 mb-2">Leave as "All Syllabus Topics" for a mixed comprehensive session.</p>
-        <select name="topic" id="topic-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-850 text-slate-900 dark:text-white text-sm focus:ring-brand-500">
+        <select name="topic" id="topic-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white text-sm focus:ring-brand-500">
           <option value="">&mdash; All Syllabus Topics (Comprehensive Mixed) &mdash;</option>
           {% for subj in subjects %}
             <optgroup label="{{ subj.name }}" id="optgroup-{{ subj.id }}">
@@ -143,7 +143,7 @@
           <label class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
             5. Target Exam Format
           </label>
-          <select name="exam_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-850 text-slate-900 dark:text-white text-sm focus:ring-brand-500">
+          <select name="exam_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white text-sm focus:ring-brand-500">
             <option value="">All Formats (UTME & WAEC Combined)</option>
             <option value="UTME">UTME / JAMB CBT (4 Options standard)</option>
             <option value="WAEC">WAEC WASSCE (5 Options standard)</option>

@@ -114,7 +114,7 @@
     <!-- Auth Buttons inside Mobile Hamburger Menu -->
     <div class="pt-3 mt-3 border-t border-slate-200 dark:border-navy-800 space-y-2">
       {% if user.is_authenticated %}
-      <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-850 border border-slate-200 dark:border-navy-750">
+      <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-navy-700">
         <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
           <i data-lucide="user" class="w-4 h-4 text-brand-600"></i>
           <span>{{ user.username }}</span>
