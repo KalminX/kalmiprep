@@ -60,20 +60,6 @@
     <div id="page-loading-bar-inner" class="h-full bg-gradient-to-r from-brand-600 via-emerald-400 to-teal-300 shadow-[0_0_12px_rgba(34,197,94,0.85)] w-0"></div>
   </div>
 
-  <!-- Subtle Floating KalmiPrep Micro-Loader Capsule -->
-  <div id="page-loading-pill" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 scale-90 transition-all duration-200">
-    <div class="px-3.5 py-1.5 rounded-full bg-slate-900/95 dark:bg-navy-900/95 text-white backdrop-blur-md border border-brand-500/40 shadow-xl flex items-center gap-2">
-      <span class="relative flex h-2 w-2">
-        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-        <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-      </span>
-      <span class="text-[11px] font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
-        <span>Kalmi<span class="text-brand-400">Prep</span></span>
-        <span class="text-slate-400 font-normal text-[10px]">&bull; Switching...</span>
-      </span>
-    </div>
-  </div>
-
   <!-- Global Navigation Header -->
   {% include 'components/navbar.html' %}
 
@@ -107,8 +93,8 @@
     {% include 'components/bottom_nav.html' %}
   {% endblock %}
 
-  <!-- On-Screen Scientific Calculator Modal -->
-  {% include 'components/calculator_modal.html' %}
+  <!-- Optional On-Screen Scientific Calculator Modal (Rendered only on Test & Practice Pages) -->
+  {% block calculator_modal %}{% endblock %}
 
   <!-- Local Vendor Scripts -->
   <script src="{% static 'vendor/katex/katex.min.js' %}"></script>

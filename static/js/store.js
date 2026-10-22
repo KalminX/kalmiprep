@@ -63,7 +63,7 @@
   function saveCalcMemento(state) {
     try {
       const memento = {
-        isOpen: Boolean(state.isOpen),
+        isOpen: false, // Never auto-pop open across page refreshes or navigation
         angleMode: state.angleMode || 'DEG',
         expression: state.expression || '',
         result: state.result || '0',
@@ -358,7 +358,7 @@
     calc: (() => {
       const saved = loadCalcMemento() || {};
       return {
-        isOpen: saved.isOpen || false,
+        isOpen: false, // Always initialize closed so calculator only appears when explicitly invoked in a test
         angleMode: saved.angleMode || 'DEG',
         expression: saved.expression || '',
         result: saved.result || '0',
@@ -369,6 +369,8 @@
     })(),
 
     toggleCalc: () => {
+      const widget = document.getElementById('scientific-calculator-modal');
+      if (!widget) return;
       set((state) => ({
         calc: { ...state.calc, isOpen: !state.calc.isOpen }
       }));
@@ -376,6 +378,8 @@
     },
 
     openCalc: () => {
+      const widget = document.getElementById('scientific-calculator-modal');
+      if (!widget) return;
       set((state) => ({
         calc: { ...state.calc, isOpen: true }
       }));
@@ -642,17 +646,19 @@
 
   // Global keyboard shortcuts and direct calculator numeric typing
   document.addEventListener('keydown', (e) => {
+    // Calculator shortcuts only apply if the calculator widget exists on the current page (tests/exams)
+    const widget = document.getElementById('scientific-calculator-modal');
+    if (!widget) return;
+
     // If user is actively typing in a form input, textarea, or contentEditable element, skip
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) {
       return;
     }
 
     const calcState = useKalmiStore.getState().calc;
-    const hasCBTOptions = !!document.querySelector('.cbt-option-item');
     const isAltC = (e.key === 'c' || e.key === 'C') && e.altKey;
-    const isPlainC = (e.key === 'c' || e.key === 'C') && !e.altKey && !e.ctrlKey && !e.metaKey;
 
-    if (isAltC || (isPlainC && !hasCBTOptions && !calcState.isOpen)) {
+    if (isAltC) {
       e.preventDefault();
       useKalmiStore.getState().toggleCalc();
       return;
@@ -706,7 +712,14 @@
   // Self-initializing lifecycle: restore persistent state on direct load, DOMContentLoaded, and HTMX swaps
   function bootstrapCalculator() {
     if (window.useKalmiStore) {
-      useKalmiStore.getState().renderCalcDOM();
+      const widget = document.getElementById('scientific-calculator-modal');
+      if (widget) {
+        useKalmiStore.getState().renderCalcDOM();
+      } else {
+        useKalmiStore.setState((state) => ({
+          calc: { ...state.calc, isOpen: false }
+        }));
+      }
     }
   }
 

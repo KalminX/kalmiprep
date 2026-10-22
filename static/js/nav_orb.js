@@ -9,8 +9,6 @@
 (function () {
   'use strict';
 
-  let loadingPillTimer = null;
-
   function getActiveSection(pathname) {
     if (!pathname) pathname = window.location.pathname;
     if (pathname === '/' || pathname === '') return 'core';
@@ -21,11 +19,10 @@
     return '';
   }
 
-  // --- SUBTLE KALMIPREP LOADING BEAM & PILL ---
+  // --- SUBTLE KALMIPREP TOP LOADING BEAM ---
   function startLoadingIndicator() {
     const bar = document.getElementById('page-loading-bar');
     const barInner = document.getElementById('page-loading-bar-inner');
-    const pill = document.getElementById('page-loading-pill');
 
     if (bar && barInner) {
       bar.classList.remove('opacity-0');
@@ -37,41 +34,11 @@
         barInner.style.width = '70%';
       }
     }
-
-    clearTimeout(loadingPillTimer);
-    loadingPillTimer = setTimeout(() => {
-      if (pill) {
-        pill.classList.remove('opacity-0', 'scale-90');
-        pill.classList.add('opacity-100', 'scale-100');
-        if (window.gsap) {
-          gsap.fromTo(pill, { scale: 0.9, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: 'back.out(1.5)' });
-        }
-      }
-    }, 70);
   }
 
   function finishLoadingIndicator() {
-    clearTimeout(loadingPillTimer);
     const bar = document.getElementById('page-loading-bar');
     const barInner = document.getElementById('page-loading-bar-inner');
-    const pill = document.getElementById('page-loading-pill');
-
-    if (pill) {
-      if (window.gsap) {
-        gsap.to(pill, {
-          opacity: 0,
-          scale: 0.9,
-          duration: 0.15,
-          ease: 'power2.in',
-          onComplete: () => {
-            pill.classList.remove('opacity-100', 'scale-100');
-            pill.classList.add('opacity-0', 'scale-90');
-          }
-        });
-      } else {
-        pill.classList.add('opacity-0', 'scale-90');
-      }
-    }
 
     if (bar && barInner) {
       if (window.gsap) {
