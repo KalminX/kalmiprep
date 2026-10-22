@@ -10,8 +10,8 @@ class QuestionFilter(django_filters.FilterSet):
         method="filter_search",
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Search formulas, equations, or concepts...",
-                "class": "w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm",
+                "placeholder": "Search questions, topics...",
+                "class": "w-full max-w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 shadow-sm box-border",
             }
         ),
     )
@@ -20,7 +20,7 @@ class QuestionFilter(django_filters.FilterSet):
         empty_label="All Subjects",
         widget=forms.Select(
             attrs={
-                "class": "w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 shadow-sm",
+                "class": "w-full max-w-full truncate px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 shadow-sm",
             }
         ),
     )
@@ -29,7 +29,7 @@ class QuestionFilter(django_filters.FilterSet):
         empty_label="All Exam Types",
         widget=forms.Select(
             attrs={
-                "class": "w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 shadow-sm",
+                "class": "w-full max-w-full truncate px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 shadow-sm",
             }
         ),
     )
@@ -38,7 +38,7 @@ class QuestionFilter(django_filters.FilterSet):
         empty_label="All Topics",
         widget=forms.Select(
             attrs={
-                "class": "w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 shadow-sm",
+                "class": "w-full max-w-full truncate px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 shadow-sm",
             }
         ),
     )
