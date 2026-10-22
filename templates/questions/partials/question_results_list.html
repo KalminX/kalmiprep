@@ -1,0 +1,74 @@
+<!-- Results Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+  <div class="text-sm text-slate-600 dark:text-slate-400">
+    Showing <strong class="text-slate-900 dark:text-white font-mono">{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> of <strong class="text-slate-900 dark:text-white font-mono">{{ total_results }}</strong> verified questions
+  </div>
+
+  <!-- Sorting Dropdown -->
+  <div class="flex items-center gap-2 text-xs">
+    <span class="text-slate-500 font-medium">Sort by:</span>
+    <select name="sort" 
+            hx-get="{% url 'questions:question_list' %}" 
+            hx-target="#question-results-container" 
+            hx-include="#filter-form"
+            class="px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white font-medium text-xs focus:ring-brand-500">
+      <option value="-exam_year" {% if sort == '-exam_year' %}selected{% endif %}>Newest Exam Year</option>
+      <option value="exam_year" {% if sort == 'exam_year' %}selected{% endif %}>Oldest Exam Year</option>
+      <option value="-id" {% if sort == '-id' %}selected{% endif %}>Recently Added</option>
+    </select>
+  </div>
+</div>
+
+<!-- Questions Cards Grid -->
+<div class="space-y-4 mb-8">
+  {% for question in page_obj %}
+    {% include 'questions/partials/question_card.html' %}
+  {% empty %}
+  <div class="card-premium p-12 text-center space-y-4">
+    <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-400 flex items-center justify-center mx-auto">
+      <i data-lucide="search-x" class="w-6 h-6"></i>
+    </div>
+    <h3 class="text-lg font-bold text-slate-900 dark:text-white">No questions match your filter criteria</h3>
+    <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+      Try adjusting your search keywords, switching the subject, or clearing the exam type filter to explore more questions.
+    </p>
+    <a href="{% url 'questions:question_list' %}" class="btn-secondary text-xs py-2 px-4 inline-flex items-center gap-2">
+      <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+      <span>Reset All Filters</span>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Server-Side Pagination Controls -->
+{% if page_obj.has_other_pages %}
+<div class="flex items-center justify-between border-t border-slate-200 dark:border-navy-800 pt-6">
+  <div>
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" 
+       hx-get="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"
+       hx-target="#question-results-container"
+       class="btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5">
+      <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+      <span>Previous</span>
+    </a>
+    {% endif %}
+  </div>
+
+  <div class="text-xs text-slate-500 font-medium">
+    Page <span class="font-bold text-slate-900 dark:text-white font-mono">{{ page_obj.number }}</span> of <span class="font-bold text-slate-900 dark:text-white font-mono">{{ page_obj.paginator.num_pages }}</span>
+  </div>
+
+  <div>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" 
+       hx-get="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}"
+       hx-target="#question-results-container"
+       class="btn-secondary text-xs py-2 px-3.5 flex items-center gap-1.5">
+      <span>Next</span>
+      <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}

@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Study: {{ question.subject.name }} {{ question.exam_badge_label }} — KalmiPrep{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+  
+  <!-- Breadcrumb & Top Bar -->
+  <div class="flex items-center justify-between mb-4 sm:mb-6">
+    <nav class="flex items-center gap-1.5 sm:gap-2 text-xs text-slate-500 overflow-x-auto whitespace-nowrap py-1">
+      <a href="{% url 'core:landing' %}" class="hover:text-slate-800 dark:hover:text-slate-200">Home</a>
+      <i data-lucide="chevron-right" class="w-3.5 h-3.5 shrink-0"></i>
+      <a href="{% url 'questions:question_list' %}" class="hover:text-slate-800 dark:hover:text-slate-200">Library</a>
+      <i data-lucide="chevron-right" class="w-3.5 h-3.5 shrink-0"></i>
+      <span class="text-slate-800 dark:text-slate-200 font-medium truncate">Question #{{ question.id }}</span>
+    </nav>
+
+    <!-- Contextual Prev / Next Desktop Buttons -->
+    <div class="hidden sm:flex items-center gap-2">
+      {% if prev_question %}
+      <a href="{% url 'questions:study_question' prev_question.id %}" class="btn-secondary text-xs p-2 rounded-lg" title="Previous Question">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      </a>
+      {% endif %}
+      
+      {% if next_question %}
+      <a href="{% url 'questions:study_question' next_question.id %}" class="btn-secondary text-xs p-2 rounded-lg" title="Next Question">
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Study Mode Main Card -->
+  <div class="card-premium p-5 sm:p-10 mb-6 sm:mb-8 bg-white dark:bg-navy-900 shadow-elevated">
+    
+    <!-- Meta Header -->
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-navy-800 mb-6">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="badge-tag {% if question.subject.color_theme == 'math' %}bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300{% elif question.subject.color_theme == 'chem' %}bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300{% else %}bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300{% endif %} font-bold">
+          {{ question.subject.name }}
+        </span>
+        <span class="badge-tag bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 font-mono font-bold">
+          {{ question.exam_badge_label }}
+        </span>
+        {% if question.topic %}
+        <a href="{% url 'curriculum:topic_detail' question.subject.slug question.topic.slug %}" class="badge-tag bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 hover:text-brand-600 font-medium">
+          {{ question.topic.name }}
+        </a>
+        {% endif %}
+      </div>
+
+      <!-- Actions: Bookmark & Share -->
+      <div class="flex items-center gap-2">
+        {% include 'questions/partials/bookmark_button.html' with is_bookmarked=is_bookmarked %}
+        <button type="button" onclick="navigator.clipboard.writeText(window.location.href); alert('Question link copied to clipboard!');" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-navy-800 min-h-[40px] min-w-[40px] flex items-center justify-center" title="Copy shareable link">
+          <i data-lucide="share-2" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Question Text with KaTeX formulas (Scroll guarded) -->
+    <div class="text-base sm:text-lg font-medium text-slate-900 dark:text-white leading-relaxed mb-6 font-sans overflow-x-auto">
+      {{ question.question_text|safe }}
+    </div>
+
+    <!-- Question Diagram (if present) -->
+    {% if question.has_diagram %}
+    <div class="mb-6 p-3 sm:p-4 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200 dark:border-navy-800 text-center">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Attached Figure / Diagram</div>
+      {% if question.image %}
+      <img src="{{ question.image.url }}" alt="Question diagram" class="max-h-60 sm:max-h-72 mx-auto rounded-lg shadow-sm object-contain w-auto">
+      {% elif question.image_url %}
+      <img src="{{ question.image_url }}" alt="Question diagram" class="max-h-60 sm:max-h-72 mx-auto rounded-lg shadow-sm object-contain w-auto">
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Options List (Touch Friendly & Generous Padding) -->
+    <div class="space-y-3 mb-6 sm:mb-8" id="options-container">
+      {% for opt in options %}
+      <div class="flex items-start sm:items-center gap-3.5 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-850 hover:bg-slate-50 dark:hover:bg-navy-800/80 active:scale-[0.99] transition-all cursor-pointer option-item min-h-[52px]" onclick="highlightOption(this, '{{ opt.tag }}')">
+        <span class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-navy-800 text-slate-800 dark:text-slate-200 font-bold font-mono text-sm flex items-center justify-center shrink-0 border border-slate-200 dark:border-navy-700 mt-0.5 sm:mt-0">
+          {{ opt.tag }}
+        </span>
+        <div class="text-sm sm:text-base text-slate-900 dark:text-slate-100 font-medium overflow-x-auto flex-1">
+          {{ opt.text|safe }}
+        </div>
+        {% if opt.is_correct %}
+        <span class="ml-2 hidden answer-key-indicator text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-md border border-emerald-200 dark:border-emerald-800 shrink-0">
+          Correct
+        </span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Reveal Explanation Section -->
+    <div class="pt-6 border-t border-slate-100 dark:border-navy-800">
+      <button type="button" 
+              onclick="toggleExplanation()" 
+              id="reveal-btn" 
+              class="w-full btn-secondary py-3 text-sm flex items-center justify-center gap-2 border-brand-500/30 text-brand-700 dark:text-brand-300 font-semibold shadow-sm active:scale-[0.99]">
+        <i data-lucide="eye" class="w-4 h-4"></i>
+        <span>Reveal Answer & Step-by-Step Mathematical Solution</span>
+      </button>
+
+      <div id="explanation-box" class="hidden mt-6 p-4 sm:p-6 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-emerald-200/60 dark:border-emerald-800/60">
+          <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
+            <i data-lucide="check-circle-2" class="w-5 h-5 shrink-0"></i>
+            <span>Verified Correct Answer: <strong class="font-mono text-base">{{ question.correct_option.tag }}.</strong></span>
+          </div>
+          <span class="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">Step-by-Step</span>
+        </div>
+
+        <div class="text-sm sm:text-base text-slate-800 dark:text-slate-100 font-sans leading-relaxed overflow-x-auto whitespace-pre-line">
+          {% if question.has_solution %}
+            {{ question.explanation|safe }}
+          {% else %}
+            <p class="text-slate-500 italic">No expanded working has been attached for this question yet. The verified answer is Option {{ question.correct_option.tag }}.</p>
+          {% endif %}
+        </div>
+
+        {% if question.source_platform %}
+        <div class="pt-2 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+          Source: {{ question.source_platform }} {% if question.source_id %}(Record #{{ question.source_id }}){% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mobile Bottom Swipe & Navigation Dock -->
+  <div class="flex sm:hidden items-center justify-between gap-3 mb-6">
+    {% if prev_question %}
+    <a href="{% url 'questions:study_question' prev_question.id %}" class="flex-1 btn-secondary text-xs py-3 flex items-center justify-center gap-1.5 font-bold">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      <span>Previous</span>
+    </a>
+    {% else %}
+    <div class="flex-1"></div>
+    {% endif %}
+
+    <a href="{% url 'questions:question_list' %}" class="btn-secondary text-xs py-3 px-3">
+      <i data-lucide="grid" class="w-4 h-4"></i>
+    </a>
+
+    {% if next_question %}
+    <a href="{% url 'questions:study_question' next_question.id %}" class="flex-1 btn-primary text-xs py-3 flex items-center justify-center gap-1.5 font-bold">
+      <span>Next Question</span>
+      <i data-lucide="arrow-right" class="w-4 h-4"></i>
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- Desktop Bottom Navigation Buttons -->
+  <div class="hidden sm:flex items-center justify-between">
+    {% if prev_question %}
+    <a href="{% url 'questions:study_question' prev_question.id %}" class="btn-secondary text-xs py-2 px-3 flex items-center gap-2">
+      <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+      <span>Previous Question</span>
+    </a>
+    {% else %}
+    <div></div>
+    {% endif %}
+
+    <a href="{% url 'questions:question_list' %}" class="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
+      Back to Question Library
+    </a>
+
+    {% if next_question %}
+    <a href="{% url 'questions:study_question' next_question.id %}" class="btn-primary text-xs py-2 px-3 flex items-center gap-2">
+      <span>Next Question</span>
+      <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+    </a>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function toggleExplanation() {
+    const box = document.getElementById('explanation-box');
+    const isHidden = box.classList.toggle('hidden');
+    const btn = document.getElementById('reveal-btn');
+    
+    // Also reveal answer key indicator on options
+    document.querySelectorAll('.answer-key-indicator').forEach(el => {
+      el.classList.toggle('hidden', isHidden);
+    });
+
+    if (btn) {
+      btn.innerHTML = isHidden 
+        ? '<i data-lucide="eye" class="w-4 h-4 mr-2"></i><span>Reveal Answer & Step-by-Step Mathematical Solution</span>'
+        : '<i data-lucide="eye-off" class="w-4 h-4 mr-2"></i><span>Hide Explanation</span>';
+      if (window.lucide) lucide.createIcons();
+    }
+    if (!isHidden && window.renderMathInElement) {
+      renderMathInElement(box, katexRenderOptions);
+    }
+  }
+
+  function highlightOption(el, tag) {
+    document.querySelectorAll('.option-item').forEach(item => {
+      item.classList.remove('ring-2', 'ring-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/20');
+    });
+    el.classList.add('ring-2', 'ring-brand-500', 'bg-brand-50/50', 'dark:bg-brand-950/20');
+  }
+</script>
+{% endblock %}

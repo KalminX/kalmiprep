@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Practising: {{ session.title }} — Question {{ current_index }} of {{ total_count }} — KalmiPrep{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  
+  <!-- Top Progress Bar & Header -->
+  <div class="card-premium p-4 sm:p-5 mb-8 bg-white dark:bg-navy-900">
+    <div class="flex items-center justify-between mb-3 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-900 dark:text-white text-sm">{{ session.title }}</span>
+        <span class="badge-tag bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-semibold">
+          Instant Practice Mode
+        </span>
+      </div>
+      <div class="text-slate-500 font-medium">
+        Question <strong class="text-slate-900 dark:text-white font-mono">{{ current_index }}</strong> of <strong class="text-slate-900 dark:text-white font-mono">{{ total_count }}</strong>
+      </div>
+    </div>
+
+    <!-- Progress Meter -->
+    <div class="w-full h-2 rounded-full bg-slate-100 dark:bg-navy-800 overflow-hidden">
+      <div class="h-full bg-brand-500 rounded-full transition-all duration-300" style="width: {% widthratio current_index total_count 100 %}%;"></div>
+    </div>
+  </div>
+
+  <!-- Active Question Card -->
+  <div class="card-premium p-6 sm:p-8 bg-white dark:bg-navy-900 shadow-elevated mb-8" id="practice-card">
+    
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-navy-800 mb-6 text-xs text-slate-500">
+      <div class="flex items-center gap-2">
+        <span class="badge-tag bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-mono font-bold">
+          {{ current_resp.question.exam_badge_label }}
+        </span>
+        {% if current_resp.question.topic %}
+        <span class="badge-tag bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300">
+          {{ current_resp.question.topic.name }}
+        </span>
+        {% endif %}
+      </div>
+
+      <div class="flex items-center gap-2">
+        {% include 'questions/partials/bookmark_button.html' with question=current_resp.question is_bookmarked=False %}
+      </div>
+    </div>
+
+    <!-- Question Text -->
+    <div class="text-base sm:text-lg font-medium text-slate-900 dark:text-white leading-relaxed mb-6">
+      {{ current_resp.question.question_text|safe }}
+    </div>
+
+    <!-- Diagram if attached -->
+    {% if current_resp.question.has_diagram %}
+    <div class="mb-6 p-4 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200 dark:border-navy-800 text-center">
+      {% if current_resp.question.image %}
+      <img src="{{ current_resp.question.image.url }}" alt="Diagram" class="max-h-64 mx-auto rounded-lg">
+      {% elif current_resp.question.image_url %}
+      <img src="{{ current_resp.question.image_url }}" alt="Diagram" class="max-h-64 mx-auto rounded-lg">
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Options Form -->
+    <form hx-post="{% url 'practice:submit_answer' session.id current_resp.id %}" 
+          hx-target="#feedback-container" 
+          hx-swap="innerHTML" 
+          id="practice-answer-form" 
+          class="space-y-3 mb-6">
+      {% csrf_token %}
+      <input type="hidden" name="current_index" value="{{ current_index }}">
+
+      {% for opt in current_resp.question.options.all %}
+      <label class="flex items-center gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 hover:border-brand-500 bg-white dark:bg-navy-850 cursor-pointer transition-all practice-option-item">
+        <input type="radio" 
+               name="option_id" 
+               value="{{ opt.id }}" 
+               class="text-brand-600 focus:ring-brand-500 w-4 h-4"
+               {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}checked{% endif %}
+               onchange="onSelectPracticeOption(this)">
+        <span class="w-6 h-6 rounded bg-slate-100 dark:bg-navy-700 text-slate-800 dark:text-slate-200 font-bold font-mono text-xs flex items-center justify-center shrink-0">
+          {{ opt.tag }}
+        </span>
+        <span class="text-sm sm:text-base text-slate-900 dark:text-slate-100 font-medium">
+          {{ opt.text|safe }}
+        </span>
+      </label>
+      {% endfor %}
+
+      <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3" id="action-bar">
+        <button type="submit" id="submit-answer-btn" class="w-full sm:w-auto btn-primary py-3 px-6 text-sm flex items-center justify-center gap-2 font-bold shadow-md active:scale-[0.99]">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span>Check Answer & View Working</span>
+        </button>
+
+        <!-- Skip Button -->
+        {% if next_index %}
+        <a href="?q={{ next_index }}" class="w-full sm:w-auto text-center text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 py-2">
+          Skip Question &rarr;
+        </a>
+        {% endif %}
+      </div>
+    </form>
+
+    <!-- HTMX Feedback Container for Inline Solution -->
+    <div id="feedback-container"></div>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function onSelectPracticeOption(radio) {
+    document.querySelectorAll('.practice-option-item').forEach(el => {
+      el.classList.remove('border-brand-500', 'bg-brand-50/30', 'dark:bg-brand-950/20');
+    });
+    radio.closest('.practice-option-item').classList.add('border-brand-500', 'bg-brand-50/30', 'dark:bg-brand-950/20');
+  }
+</script>
+{% endblock %}

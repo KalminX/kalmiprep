@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    container_name: kalmiprep-app
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://kalmiprep_user:kalmiprep_secure_pass_2026@postgres-db:5432/kalmiprep_db
+      - DEBUG=False
+      - ALLOWED_HOSTS=kalmiprep.kalmitech.app,localhost,127.0.0.1,kalmiprep-app
+      - CSRF_TRUSTED_ORIGINS=https://kalmiprep.kalmitech.app
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+      - ./templates:/app/templates
+      - ./core:/app/core
+      - ./curriculum:/app/curriculum
+      - ./questions:/app/questions
+      - ./practice:/app/practice
+      - ./progress:/app/progress
+      - ./accounts:/app/accounts
+    networks:
+      - webproxy
+
+networks:
+  webproxy:
+    external: true

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile & Goals | KalmiPrep{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
+    
+    <div class="space-y-1">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <i data-lucide="user-check" class="w-6 h-6 text-primary-600 dark:text-primary-400"></i>
+            Student Profile & Goals
+        </h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400">
+            Set your target exams and aspirational scores to calibrate your diagnostic assessments.
+        </p>
+    </div>
+
+    {% if messages %}
+        <div class="space-y-2">
+            {% for msg in messages %}
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    <span>{{ msg }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+        <form method="POST" action="{% url 'accounts:profile' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-3">
+                    Personal Information
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
+                        {{ form.email }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-b border-slate-100 dark:border-slate-800 pb-4">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white mb-3">
+                    Examination Goals
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Target Examination</label>
+                        {{ form.target_exam }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Target Exam Year</label>
+                        {{ form.target_year }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Target Score (e.g. 300+)</label>
+                        {{ form.target_score }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Intended Course / Major</label>
+                        {{ form.target_course }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <a href="{% url 'progress:dashboard' %}" class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold shadow-md shadow-primary-900/30 transition-colors">
+                    Save Profile Goals
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment Results & Diagnostics | {{ session.subject.name }} | KalmiPrep{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
+    
+    <!-- Breadcrumb -->
+    <nav class="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-400">
+        <a href="{% url 'core:landing' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <a href="{% url 'curriculum:subject_detail' session.subject.slug %}" class="hover:text-primary-600 dark:hover:text-primary-400">{{ session.subject.name }}</a>
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <span class="text-slate-900 dark:text-white font-medium">Assessment Results</span>
+    </nav>
+
+    <!-- Score Header & Diagnostic Summary -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-primary-950 to-slate-900 border border-primary-500/20 p-6 md:p-10 text-white shadow-xl">
+        <div class="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+            
+            <!-- Left: Score & Grade -->
+            <div class="md:col-span-2 space-y-4">
+                <div class="flex items-center space-x-3">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider
+                        {% if grade_color == 'emerald' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                        {% elif grade_color == 'blue' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                        {% elif grade_color == 'amber' %}bg-amber-500/20 text-amber-400 border border-amber-500/30
+                        {% else %}bg-rose-500/20 text-rose-400 border border-rose-500/30{% endif %}">
+                        {{ grade }}
+                    </span>
+                    <span class="text-xs text-slate-400">{{ session.mode_display }} &bull; {{ session.subject.name }}</span>
+                </div>
+
+                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                    Assessment Performance Report
+                </h1>
+                
+                <p class="text-slate-300 text-sm max-w-xl">
+                    {% if session.percentage >= 80 %}
+                        Outstanding work! You have demonstrated strong conceptual understanding across the tested topics. Continue to sharpen edge cases.
+                    {% elif session.percentage >= 60 %}
+                        Solid performance! You have a good grasp of the foundational concepts, with a few specific areas to revise below.
+                    {% else %}
+                        Great effort. Deliberate practice is about identifying where your understanding breaks down. Review the step-by-step solutions below to master these concepts.
+                    {% endif %}
+                </p>
+
+                <!-- Key Metrics row -->
+                <div class="grid grid-cols-3 sm:grid-cols-4 gap-4 pt-4 border-t border-white/10">
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">Score</div>
+                        <div class="text-2xl font-bold text-white">{{ session.score }} / {{ session.total_questions }}</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">Accuracy</div>
+                        <div class="text-2xl font-bold 
+                            {% if session.percentage >= 70 %}text-emerald-400
+                            {% elif session.percentage >= 50 %}text-amber-400
+                            {% else %}text-rose-400{% endif %}">
+                            {{ session.percentage }}%
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">Time Taken</div>
+                        <div class="text-2xl font-bold text-white">
+                            {% widthratio session.time_spent_seconds 60 1 %}m
+                        </div>
+                    </div>
+                    <div class="hidden sm:block">
+                        <div class="text-xs text-slate-400 font-medium">Avg per Q</div>
+                        <div class="text-2xl font-bold text-white">
+                            {% if session.total_questions %}
+                                {% widthratio session.time_spent_seconds session.total_questions 1 %}s
+                            {% else %}0s{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Action Card -->
+            <div class="bg-white/5 border border-white/10 backdrop-blur-sm rounded-xl p-6 flex flex-col justify-center space-y-4 text-center">
+                <div class="mx-auto w-16 h-16 rounded-full flex items-center justify-center
+                    {% if session.percentage >= 70 %}bg-emerald-500/20 text-emerald-400
+                    {% elif session.percentage >= 50 %}bg-amber-500/20 text-amber-400
+                    {% else %}bg-rose-500/20 text-rose-400{% endif %}">
+                    <i data-lucide="{% if session.percentage >= 70 %}trophy{% elif session.percentage >= 50 %}trending-up{% else %}target{% endif %}" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h2 class="text-base font-semibold text-white">Next Learning Step</h2>
+                    <p class="text-xs text-slate-300 mt-1">Review your solutions below, then complete a targeted revision session.</p>
+                </div>
+                <div class="space-y-2">
+                    <a href="{% url 'practice:setup' %}?subject={{ session.subject.slug }}" class="w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold shadow-md transition-colors">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i>
+                        Start New Session
+                    </a>
+                    <a href="{% url 'curriculum:subject_detail' session.subject.slug %}" class="w-full inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors">
+                        Explore Topics
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Diagnostic Topic Breakdown Section -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-5 h-5 text-primary-600 dark:text-primary-400"></i>
+                    Diagnostic Topic Breakdown
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Concepts evaluated during this assessment. Topics below 60% are flagged for revision.</p>
+            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {{ topic_scores|length }} Topic{% if topic_scores|length != 1 %}s{% endif %} Tested
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for tname, stats in topic_scores.items %}
+                <div class="p-4 rounded-xl border {% if stats.is_weak %}border-rose-200 dark:border-rose-900/40 bg-rose-50/50 dark:bg-rose-950/10{% else %}border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30{% endif %} transition-all">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="font-semibold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                            {% if stats.is_weak %}
+                                <i data-lucide="alert-circle" class="w-4 h-4 text-rose-500 flex-shrink-0"></i>
+                            {% else %}
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500 flex-shrink-0"></i>
+                            {% endif %}
+                            <span>{{ tname }}</span>
+                        </div>
+                        <span class="text-xs font-bold {% if stats.is_weak %}text-rose-600 dark:text-rose-400{% else %}text-emerald-600 dark:text-emerald-400{% endif %}">
+                            {{ stats.correct }}/{{ stats.attempted }} ({{ stats.percentage }}%)
+                        </span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
+                        <div class="h-full rounded-full transition-all duration-500 {% if stats.is_weak %}bg-rose-500{% else %}bg-emerald-500{% endif %}" style="width: {{ stats.percentage }}%"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-xs pt-1">
+                        {% if stats.is_weak %}
+                            <span class="text-rose-600 dark:text-rose-400 font-medium">Recommended for revision</span>
+                        {% else %}
+                            <span class="text-emerald-600 dark:text-emerald-400 font-medium">Good understanding</span>
+                        {% endif %}
+
+                        {% if stats.topic %}
+                            <a href="{% url 'practice:setup' %}?subject={{ session.subject.slug }}&topic={{ stats.topic.id }}" class="inline-flex items-center gap-1 font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+                                Practise Topic <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-sm text-slate-500 italic">No topic breakdown available for this session.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Detailed Question-by-Question Review -->
+    <div class="space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="list-checks" class="w-5 h-5 text-primary-600 dark:text-primary-400"></i>
+                    Question-by-Question Review
+                </h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Review your choices alongside verified step-by-step mathematical and scientific workings.</p>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" id="filter-buttons">
+                <button type="button" onclick="filterReview('all')" class="filter-btn active px-3.5 py-2 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm shrink-0 min-h-[36px]" data-filter="all">
+                    All ({{ responses|length }})
+                </button>
+                <button type="button" onclick="filterReview('incorrect')" class="filter-btn px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 min-h-[36px]" data-filter="incorrect">
+                    Incorrect Only
+                </button>
+                <button type="button" onclick="filterReview('flagged')" class="filter-btn px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 min-h-[36px]" data-filter="flagged">
+                    Flagged
+                </button>
+            </div>
+        </div>
+
+        <!-- Question Review Cards -->
+        <div class="space-y-6" id="review-cards-container">
+            {% for resp in responses %}
+                <div class="review-card bg-white dark:bg-slate-900 border {% if resp.is_correct %}border-emerald-200 dark:border-emerald-900/30{% else %}border-rose-200 dark:border-rose-900/30{% endif %} rounded-2xl p-6 shadow-sm space-y-5"
+                     data-correct="{{ resp.is_correct|yesno:'true,false' }}"
+                     data-flagged="{{ resp.is_flagged|yesno:'true,false' }}">
+                    
+                    <!-- Card Header -->
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm {% if resp.is_correct %}bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400{% else %}bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400{% endif %}">
+                                {{ forloop.counter }}
+                            </span>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                        {{ resp.question.exam_type }} {{ resp.question.exam_year }}
+                                    </span>
+                                    {% if resp.question.topic %}
+                                        <span class="text-xs text-slate-500 dark:text-slate-400">
+                                            &bull; {{ resp.question.topic.name }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            {% if resp.is_flagged %}
+                                <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400 font-medium">
+                                    <i data-lucide="flag" class="w-3.5 h-3.5"></i> Flagged
+                                </span>
+                            {% endif %}
+                            
+                            <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold {% if resp.is_correct %}bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300{% else %}bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300{% endif %}">
+                                {% if resp.is_correct %}
+                                    <i data-lucide="check" class="w-3.5 h-3.5"></i> Correct
+                                {% else %}
+                                    <i data-lucide="x" class="w-3.5 h-3.5"></i> Incorrect
+                                {% endif %}
+                            </span>
+
+                            <!-- Bookmark toggle -->
+                            <form hx-post="{% url 'questions:toggle_bookmark' resp.question.id %}" hx-swap="outerHTML" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Bookmark Question">
+                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Question Content -->
+                    <div class="text-slate-900 dark:text-slate-100 leading-relaxed font-medium text-base katex-content">
+                        {{ resp.question.question_text|safe }}
+                    </div>
+
+                    <!-- Question Diagram if present -->
+                    {% if resp.question.has_image and resp.question.image %}
+                        <div class="my-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 inline-block">
+                            <img src="{{ resp.question.image.url }}" alt="Question Diagram" class="max-h-64 rounded-lg object-contain">
+                        </div>
+                    {% endif %}
+
+                    <!-- Options list -->
+                    <div class="space-y-2">
+                        {% for opt in resp.question.options.all %}
+                            <div class="p-3.5 rounded-xl border text-sm flex items-start gap-3 transition-colors
+                                {% if opt.is_correct %}
+                                    border-emerald-500/60 bg-emerald-50/70 dark:bg-emerald-950/20 text-slate-900 dark:text-white font-medium
+                                {% elif resp.selected_option.id == opt.id and not opt.is_correct %}
+                                    border-rose-400 bg-rose-50/70 dark:bg-rose-950/20 text-slate-900 dark:text-white font-medium
+                                {% else %}
+                                    border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 opacity-80
+                                {% endif %}">
+                                
+                                <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
+                                    {% if opt.is_correct %}bg-emerald-600 text-white
+                                    {% elif resp.selected_option.id == opt.id and not opt.is_correct %}bg-rose-600 text-white
+                                    {% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400{% endif %}">
+                                    {{ opt.label }}
+                                </span>
+
+                                <div class="flex-1 katex-content">
+                                    {{ opt.text|safe }}
+                                </div>
+
+                                {% if opt.is_correct %}
+                                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 flex-shrink-0">
+                                        <i data-lucide="check" class="w-4 h-4"></i> Correct Answer
+                                    </span>
+                                {% elif resp.selected_option.id == opt.id %}
+                                    <span class="text-xs font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1 flex-shrink-0">
+                                        <i data-lucide="x" class="w-4 h-4"></i> Your Choice
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Step-by-Step Explanation -->
+                    {% if resp.question.explanation %}
+                        <div class="p-4 rounded-xl bg-primary-50/50 dark:bg-primary-950/20 border border-primary-200 dark:border-primary-900/40 text-slate-800 dark:text-slate-200 space-y-2">
+                            <div class="text-xs font-bold uppercase tracking-wider text-primary-700 dark:text-primary-300 flex items-center gap-1.5">
+                                <i data-lucide="lightbulb" class="w-4 h-4"></i> Step-by-Step Conceptual Solution
+                            </div>
+                            <div class="text-sm leading-relaxed katex-content">
+                                {{ resp.question.explanation|safe }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function filterReview(mode) {
+        const cards = document.querySelectorAll('.review-card');
+        const buttons = document.querySelectorAll('.filter-btn');
+
+        buttons.forEach(btn => {
+            if (btn.getAttribute('data-filter') === mode) {
+                btn.className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 text-white shadow-sm";
+            } else {
+                btn.className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700";
+            }
+        });
+
+        cards.forEach(card => {
+            const isCorrect = card.getAttribute('data-correct') === 'true';
+            const isFlagged = card.getAttribute('data-flagged') === 'true';
+
+            if (mode === 'all') {
+                card.style.display = 'block';
+            } else if (mode === 'incorrect') {
+                card.style.display = (!isCorrect) ? 'block' : 'none';
+            } else if (mode === 'flagged') {
+                card.style.display = (isFlagged) ? 'block' : 'none';
+            }
+        });
+
+        if (window.renderKaTeX) {
+            window.renderKaTeX();
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,114 @@
+{% load static %}
+<header class="sticky top-0 z-40 w-full backdrop-blur-md bg-white/90 dark:bg-navy-900/90 border-b border-slate-200/80 dark:border-navy-800 transition-colors">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Left: Brand Logo & Identifier -->
+      <div class="flex items-center gap-8">
+        <a href="{% url 'core:landing' %}" class="flex items-center gap-2.5 group">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div class="flex flex-col">
+            <div class="flex items-center gap-1.5">
+              <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white font-sans">Kalmi<span class="text-brand-600 dark:text-brand-400">Prep</span></span>
+              <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-navy-700">BY KALMITECH</span>
+            </div>
+            <span class="text-[10px] text-slate-500 dark:text-slate-400 hidden sm:inline -mt-0.5">Deliberate Exam Preparation</span>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden md:flex items-center gap-1">
+          <a href="{% url 'curriculum:subject_list' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-navy-800 transition-colors">
+            Subjects
+          </a>
+          <a href="{% url 'questions:question_list' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-navy-800 transition-colors">
+            Question Library
+          </a>
+          <a href="{% url 'practice:setup' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-navy-800 transition-colors">
+            Practice & CBT
+          </a>
+          <a href="{% url 'progress:dashboard' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-navy-800 transition-colors">
+            Dashboard
+          </a>
+        </nav>
+      </div>
+
+      <!-- Right: Search, Bookmarks, Theme, Auth -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        
+        <!-- Bookmarks Button -->
+        <a href="{% url 'progress:bookmarks' %}" class="relative p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors" title="My Bookmarked Questions">
+          <i data-lucide="bookmark" class="w-5 h-5"></i>
+          {% if global_bookmark_count > 0 %}
+          <span class="absolute top-1 right-1 w-4 h-4 bg-brand-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+            {{ global_bookmark_count }}
+          </span>
+          {% endif %}
+        </a>
+
+        <!-- Dark Mode Toggle Button -->
+        <button type="button" onclick="toggleTheme()" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors" title="Toggle theme">
+          <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+          <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
+        </button>
+
+        <!-- Divider -->
+        <div class="h-6 w-px bg-slate-200 dark:bg-navy-800 hidden sm:block"></div>
+
+        <!-- Auth Controls -->
+        {% if user.is_authenticated %}
+        <div class="flex items-center gap-2">
+          <a href="{% url 'accounts:profile' %}" class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800 border border-slate-200 dark:border-navy-700">
+            <i data-lucide="user" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+            <span class="hidden sm:inline">{{ user.username }}</span>
+          </a>
+          <a href="{% url 'accounts:logout' %}" class="p-2 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400" title="Logout">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+          </a>
+        </div>
+        {% else %}
+        <div class="flex items-center gap-2">
+          <a href="{% url 'accounts:login' %}" class="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white">
+            Log in
+          </a>
+          <a href="{% url 'accounts:register' %}" class="btn-primary text-xs sm:text-sm px-3.5 py-1.5 sm:py-2">
+            Get Started
+          </a>
+        </div>
+        {% endif %}
+
+        <!-- Mobile Menu Toggle Button -->
+        <button type="button" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Mobile Dropdown Menu -->
+  <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900 px-4 pt-2 pb-4 space-y-1 shadow-lg">
+    <a href="{% url 'curriculum:subject_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800">
+      <i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i>
+      Subjects Explorer
+    </a>
+    <a href="{% url 'questions:question_list' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800">
+      <i data-lucide="layers" class="w-5 h-5 text-brand-600"></i>
+      Question Library
+    </a>
+    <a href="{% url 'practice:setup' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800">
+      <i data-lucide="timer" class="w-5 h-5 text-brand-600"></i>
+      Practice & CBT Mock
+    </a>
+    <a href="{% url 'progress:dashboard' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800">
+      <i data-lucide="bar-chart-3" class="w-5 h-5 text-brand-600"></i>
+      Student Dashboard
+    </a>
+    <a href="{% url 'progress:bookmarks' %}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800">
+      <i data-lucide="bookmark" class="w-5 h-5 text-brand-600"></i>
+      Bookmarked Questions ({{ global_bookmark_count }})
+    </a>
+  </div>
+</header>

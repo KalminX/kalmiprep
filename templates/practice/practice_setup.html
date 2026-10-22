@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+{% block title %}Start Practice Session — KalmiPrep by Kalmitech{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs text-slate-500 mb-6">
+    <a href="{% url 'core:landing' %}" class="hover:text-slate-800 dark:hover:text-slate-200">Home</a>
+    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+    <span class="text-slate-800 dark:text-slate-200 font-medium">Practice Setup</span>
+  </nav>
+
+  <!-- Card Container -->
+  <div class="card-premium p-6 sm:p-10 bg-white dark:bg-navy-900 shadow-elevated">
+    
+    <div class="mb-8">
+      <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Session Configuration</span>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+        Configure Your Learning Session
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2">
+        Choose your subject, target topic, and learning mode. You can practice deliberately with instant explanations or simulate an authentic timed CBT test.
+      </p>
+    </div>
+
+    <form method="post" action="{% url 'practice:setup' %}" class="space-y-8">
+      {% csrf_token %}
+
+      <!-- Step 1: Choose Subject -->
+      <div>
+        <label class="block text-sm font-bold text-slate-900 dark:text-white mb-3">
+          1. Select Subject
+        </label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {% for subj in subjects %}
+          <label class="relative flex flex-col p-4 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer hover:border-brand-500 dark:hover:border-brand-500 transition-all subject-radio-card {% if pre_subject == subj.slug or forloop.first and not pre_subject %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
+            <input type="radio" name="subject" value="{{ subj.id }}" class="sr-only" onchange="onSubjectChange('{{ subj.id }}', '{{ subj.slug }}')" {% if pre_subject == subj.slug or forloop.first and not pre_subject %}checked{% endif %}>
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 {% if subj.color_theme == 'math' %}bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400{% elif subj.color_theme == 'chem' %}bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400{% else %}bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400{% endif %}">
+                <i data-lucide="{{ subj.icon_name }}" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <span class="block text-sm font-bold text-slate-900 dark:text-white">{{ subj.name }}</span>
+                <span class="text-[11px] text-slate-500 font-mono">{{ subj.question_count }} Qs</span>
+              </div>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Step 2: Choose Topic -->
+      <div>
+        <label class="block text-sm font-bold text-slate-900 dark:text-white mb-1.5">
+          2. Select Topic Focus (Optional)
+        </label>
+        <p class="text-xs text-slate-500 mb-2">Leave as "All Syllabus Topics" for a mixed comprehensive session.</p>
+        <select name="topic" id="topic-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-850 text-slate-900 dark:text-white text-sm focus:ring-brand-500">
+          <option value="">&mdash; All Syllabus Topics (Comprehensive Mixed) &mdash;</option>
+          {% for subj in subjects %}
+            <optgroup label="{{ subj.name }}" id="optgroup-{{ subj.id }}">
+              {% for topic in subj.topics.all %}
+              <option value="{{ topic.id }}" {% if pre_topic == topic.slug %}selected{% endif %}>
+                {{ topic.name }} ({{ topic.question_count }} questions)
+              </option>
+              {% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Step 3: Choose Learning Mode -->
+      <div>
+        <label class="block text-sm font-bold text-slate-900 dark:text-white mb-3">
+          3. Learning & Assessment Mode
+        </label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          
+          <label class="relative flex flex-col p-4 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'TOPIC_PRACTICE' %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
+            <input type="radio" name="mode" value="TOPIC_PRACTICE" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'TOPIC_PRACTICE' %}checked{% endif %}>
+            <div class="flex items-center gap-2 mb-2 text-brand-600 dark:text-brand-400">
+              <i data-lucide="zap" class="w-5 h-5"></i>
+              <span class="font-bold text-sm text-slate-900 dark:text-white">Instant Practice</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Step-by-step feedback immediately after submitting each answer. Recommended for daily learning.
+            </p>
+          </label>
+
+          <label class="relative flex flex-col p-4 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'TIMED_TEST' %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
+            <input type="radio" name="mode" value="TIMED_TEST" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'TIMED_TEST' %}checked{% endif %}>
+            <div class="flex items-center gap-2 mb-2 text-blue-600 dark:text-blue-400">
+              <i data-lucide="timer" class="w-5 h-5"></i>
+              <span class="font-bold text-sm text-slate-900 dark:text-white">Timed Test</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Timed topic assessment with countdown timer. Solutions withheld until final submission.
+            </p>
+          </label>
+
+          <label class="relative flex flex-col p-4 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'CBT_MOCK' %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
+            <input type="radio" name="mode" value="CBT_MOCK" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'CBT_MOCK' %}checked{% endif %}>
+            <div class="flex items-center gap-2 mb-2 text-purple-600 dark:text-purple-400">
+              <i data-lucide="monitor" class="w-5 h-5"></i>
+              <span class="font-bold text-sm text-slate-900 dark:text-white">CBT Exam Mock</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              Full examination simulation with question grid, flag for review, and keyboard shortcuts.
+            </p>
+          </label>
+
+        </div>
+      </div>
+
+      <!-- Step 4: Questions Count & Exam Format -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+        <div>
+          <label class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
+            4. Number of Questions
+          </label>
+          <div class="flex items-center gap-3">
+            <label class="flex-1 text-center p-3 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer font-bold text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card">
+              <input type="radio" name="question_count" value="5" class="sr-only" onchange="highlightCount(this)">
+              <span>5 Questions</span>
+            </label>
+            <label class="flex-1 text-center p-3 rounded-xl border border-brand-600 bg-brand-50/50 dark:bg-brand-950/20 ring-2 ring-brand-500 cursor-pointer font-bold text-sm text-slate-800 dark:text-slate-200 count-radio-card">
+              <input type="radio" name="question_count" value="10" class="sr-only" onchange="highlightCount(this)" checked>
+              <span>10 Questions</span>
+            </label>
+            <label class="flex-1 text-center p-3 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer font-bold text-sm text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card">
+              <input type="radio" name="question_count" value="20" class="sr-only" onchange="highlightCount(this)">
+              <span>20 Questions</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
+            5. Target Exam Format
+          </label>
+          <select name="exam_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-850 text-slate-900 dark:text-white text-sm focus:ring-brand-500">
+            <option value="">All Formats (UTME & WAEC Combined)</option>
+            <option value="UTME">UTME / JAMB CBT (4 Options standard)</option>
+            <option value="WAEC">WAEC WASSCE (5 Options standard)</option>
+            <option value="NECO">NECO SSCE</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Submit Launch Button -->
+      <div class="pt-6 border-t border-slate-200 dark:border-navy-800">
+        <button type="submit" class="w-full btn-primary py-3.5 text-base font-bold flex items-center justify-center gap-2 shadow-lg shadow-brand-600/25">
+          <i data-lucide="play" class="w-5 h-5"></i>
+          <span>Launch Practice Session</span>
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function onSubjectChange(subjId, subjSlug) {
+    document.querySelectorAll('.subject-radio-card').forEach(el => {
+      el.classList.remove('border-brand-600', 'bg-brand-50/40', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
+    });
+    event.currentTarget.closest('.subject-radio-card').classList.add('border-brand-600', 'bg-brand-50/40', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
+  }
+
+  function highlightMode(radio) {
+    document.querySelectorAll('.mode-radio-card').forEach(el => {
+      el.classList.remove('border-brand-600', 'bg-brand-50/40', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
+    });
+    radio.closest('.mode-radio-card').classList.add('border-brand-600', 'bg-brand-50/40', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
+  }
+
+  function highlightCount(radio) {
+    document.querySelectorAll('.count-radio-card').forEach(el => {
+      el.classList.remove('border-brand-600', 'bg-brand-50/50', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
+    });
+    radio.closest('.count-radio-card').classList.add('border-brand-600', 'bg-brand-50/50', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
+  }
+</script>
+{% endblock %}

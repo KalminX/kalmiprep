@@ -1,0 +1,9 @@
+<button 
+  type="button"
+  hx-post="{% url 'questions:toggle_bookmark' question.id %}"
+  hx-swap="outerHTML"
+  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {% if is_bookmarked %}bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700{% else %}bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-navy-700 hover:bg-slate-200 dark:hover:bg-navy-700{% endif %}"
+  title="{% if is_bookmarked %}Remove bookmark{% else %}Bookmark for revision{% endif %}">
+  <i data-lucide="bookmark" class="w-3.5 h-3.5 {% if is_bookmarked %}fill-amber-500 text-amber-500{% endif %}"></i>
+  <span>{% if is_bookmarked %}Bookmarked{% else %}Bookmark{% endif %}</span>
+</button>

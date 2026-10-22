@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased selection:bg-brand-500 selection:text-white dark:bg-navy-950 dark:text-slate-100;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px];
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 border border-slate-300 dark:border-navy-700 hover:bg-slate-50 dark:hover:bg-navy-700 active:bg-slate-100 rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 min-h-[44px];
+  }
+  .card-premium {
+    @apply bg-white dark:bg-navy-900 border border-slate-200/80 dark:border-navy-800 rounded-xl shadow-card hover:shadow-elevated transition-shadow duration-200;
+  }
+  .badge-tag {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+}
+
+/* KaTeX custom sizing & overflow guard on narrow screens */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+.katex {
+  font-size: 1.05em;
+  text-rendering: auto;
+  max-width: 100%;
+}
+.katex-html {
+  max-width: 100%;
+}
+
+/* Hide scrollbar for clean horizontal swipe ribbons */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Touch feedback ripple and smooth tap */
+.touch-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.touch-card:active {
+  transform: scale(0.985);
+}
