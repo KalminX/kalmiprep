@@ -25,16 +25,9 @@
           </div>
         </a>
 
-        <!-- Desktop Navigation Links with Glowing Nav Orb (Moves ONLY when status leaves pending) -->
-        <nav class="hidden md:flex relative items-center gap-1.5 p-1 rounded-xl bg-slate-100/70 dark:bg-navy-950/70 border border-slate-200/60 dark:border-navy-800/60 backdrop-blur-md" 
+        <!-- Desktop Navigation Links with Clean Highlight (Border & Background) -->
+        <nav class="hidden md:flex items-center gap-1.5 p-1 rounded-xl bg-slate-100/80 dark:bg-navy-950/80 border border-slate-200/80 dark:border-navy-800" 
              id="desktop-nav">
-          <!-- Desktop Nav Orb Indicator -->
-          <div id="desktop-nav-orb" 
-               class="absolute pointer-events-none z-0 opacity-0 -translate-y-1/2 top-1/2 h-8 rounded-lg transition-opacity duration-200"
-               style="will-change: transform, width, left, opacity;">
-            <div class="desktop-orb-glow w-full h-full rounded-lg bg-gradient-to-r from-brand-600/15 via-brand-500/20 to-emerald-400/15 dark:from-brand-400/25 dark:via-brand-500/30 dark:to-emerald-400/25 border border-brand-500/30 dark:border-brand-400/40 shadow-sm backdrop-blur-sm"></div>
-          </div>
-
           <a href="{% url 'curriculum:subject_list' %}" 
              data-nav="curriculum"
              hx-boost="true" 
@@ -42,7 +35,7 @@
              hx-select="#main-content" 
              hx-swap="innerHTML show:window:top" 
              hx-push-url="true"
-             class="desktop-nav-link relative z-10 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-150 {% if '/curriculum/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
+             class="desktop-nav-link px-3.5 py-1.5 rounded-lg text-sm transition-all duration-150 {% if '/curriculum/' in request.path %}bg-white dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-slate-200 dark:border-navy-700 shadow-sm{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium border border-transparent{% endif %}">
             Subjects
           </a>
           <a href="{% url 'questions:question_list' %}" 
@@ -52,7 +45,7 @@
              hx-select="#main-content" 
              hx-swap="innerHTML show:window:top" 
              hx-push-url="true"
-             class="desktop-nav-link relative z-10 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-150 {% if '/questions/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
+             class="desktop-nav-link px-3.5 py-1.5 rounded-lg text-sm transition-all duration-150 {% if '/questions/' in request.path %}bg-white dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-slate-200 dark:border-navy-700 shadow-sm{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium border border-transparent{% endif %}">
             Question Library
           </a>
           <a href="{% url 'practice:setup' %}" 
@@ -62,7 +55,7 @@
              hx-select="#main-content" 
              hx-swap="innerHTML show:window:top" 
              hx-push-url="true"
-             class="desktop-nav-link relative z-10 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-150 {% if '/practice/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
+             class="desktop-nav-link px-3.5 py-1.5 rounded-lg text-sm transition-all duration-150 {% if '/practice/' in request.path %}bg-white dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-slate-200 dark:border-navy-700 shadow-sm{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium border border-transparent{% endif %}">
             Practice & CBT
           </a>
           <a href="{% url 'progress:dashboard' %}" 
@@ -72,7 +65,7 @@
              hx-select="#main-content" 
              hx-swap="innerHTML show:window:top" 
              hx-push-url="true"
-             class="desktop-nav-link relative z-10 px-3.5 py-1.5 rounded-lg text-sm font-semibold transition-colors duration-150 {% if '/progress/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
+             class="desktop-nav-link px-3.5 py-1.5 rounded-lg text-sm transition-all duration-150 {% if '/progress/' in request.path %}bg-white dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-slate-200 dark:border-navy-700 shadow-sm{% else %}text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium border border-transparent{% endif %}">
             Dashboard
           </a>
         </nav>
@@ -166,6 +159,16 @@
     <a href="{% url 'progress:bookmarks' %}" data-nav="progress" onclick="document.getElementById('mobile-menu').classList.add('hidden')" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800">
       <i data-lucide="bookmark" class="w-5 h-5 text-brand-600"></i>
       <span>Bookmarked Questions ({{ global_bookmark_count }})</span>
+    </a>
+    <a href="{% url 'progress:extractor_status' %}" data-nav="progress" onclick="document.getElementById('mobile-menu').classList.add('hidden')" class="flex items-center justify-between px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800">
+      <div class="flex items-center gap-3">
+        <i data-lucide="activity" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
+        <span>Extractor Status</span>
+      </div>
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        LIVE
+      </span>
     </a>
 
     <!-- Auth Buttons inside Mobile Hamburger Menu -->

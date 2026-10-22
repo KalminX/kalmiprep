@@ -69,6 +69,11 @@ class Question(models.Model):
 
     @property
     def correct_option(self):
+        if hasattr(self, "_prefetched_objects_cache") and "options" in self._prefetched_objects_cache:
+            for opt in self._prefetched_objects_cache["options"]:
+                if opt.is_correct:
+                    return opt
+            return None
         return self.options.filter(is_correct=True).first()
 
     @property

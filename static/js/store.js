@@ -49,54 +49,106 @@
     return res;
   }
 
+  // --- GoF Memento Pattern for Calculator State Persistence ---
+  const CALC_MEMENTO_KEY = 'kalmiprep_calc_memento';
+
+  function loadCalcMemento() {
+    try {
+      const saved = localStorage.getItem(CALC_MEMENTO_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return null;
+  }
+
+  function saveCalcMemento(state) {
+    try {
+      const memento = {
+        isOpen: Boolean(state.isOpen),
+        angleMode: state.angleMode || 'DEG',
+        expression: state.expression || '',
+        result: state.result || '0',
+        lastAns: state.lastAns || '0',
+        memory: typeof state.memory === 'number' ? state.memory : 0,
+        isEvaluated: Boolean(state.isEvaluated),
+      };
+      localStorage.setItem(CALC_MEMENTO_KEY, JSON.stringify(memento));
+    } catch (e) {}
+  }
+
   // --- Scientific Expression Evaluator (Powered by Math.js with native fallback) ---
-  function safeEvalScientific(expr, angleMode = 'DEG') {
+  function safeEvalScientific(expr, angleMode = 'DEG', lastAns = 0) {
     if (!expr || !expr.trim()) return '0';
+
+    // Auto-balance unclosed parentheses
+    const openCount = (expr.match(/\(/g) || []).length;
+    const closeCount = (expr.match(/\)/g) || []).length;
+    let balanced = expr;
+    if (openCount > closeCount) {
+      balanced = expr + ')'.repeat(openCount - closeCount);
+    }
+
+    const numericAns = parseFloat(lastAns) || 0;
 
     // 1. Math.js Industry Standard Engine
     if (typeof window !== 'undefined' && window.math && typeof window.math.evaluate === 'function') {
       try {
-        let cleaned = expr
+        let cleaned = balanced
           .replace(/×/g, '*')
           .replace(/÷/g, '/')
-          .replace(/π/g, 'pi');
+          .replace(/π/g, 'pi')
+          .replace(/Ans/gi, `(${numericAns})`)
+          .replace(/EXP/g, '*10^')
+          .replace(/(\d+(\.\d+)?)%/g, '($1 * 0.01)');
 
         const scope = angleMode === 'DEG' ? {
+          Ans: numericAns,
+          ans: numericAns,
           sin: (x) => window.math.sin(window.math.unit(x, 'deg')),
           cos: (x) => {
-            const rad = x * Math.PI / 180;
+            const rad = (x * Math.PI) / 180;
             return Math.abs(Math.cos(rad)) < 1e-15 ? 0 : Math.cos(rad);
           },
           tan: (x) => {
             if (Math.abs((x - 90) % 180) < 1e-10) return Infinity;
             return window.math.tan(window.math.unit(x, 'deg'));
           },
-          asin: (x) => (window.math.asin(x) * 180 / Math.PI),
-          acos: (x) => (window.math.acos(x) * 180 / Math.PI),
-          atan: (x) => (window.math.atan(x) * 180 / Math.PI),
+          asin: (x) => (window.math.asin(x) * 180) / Math.PI,
+          acos: (x) => (window.math.acos(x) * 180) / Math.PI,
+          atan: (x) => (window.math.atan(x) * 180) / Math.PI,
           ln: (x) => window.math.log(x),
-          log: (x) => window.math.log10(x)
+          log: (x) => window.math.log10(x),
+          cbrt: (x) => window.math.cbrt(x),
         } : {
+          Ans: numericAns,
+          ans: numericAns,
           ln: (x) => window.math.log(x),
-          log: (x) => window.math.log10(x)
+          log: (x) => window.math.log10(x),
+          cbrt: (x) => window.math.cbrt(x),
         };
 
         const result = window.math.evaluate(cleaned, scope);
         if (typeof result === 'function') return 'Error';
+        if (typeof result === 'number') {
+          if (!isFinite(result)) return result > 0 ? 'Infinity' : '-Infinity';
+          if (Math.abs(result) < 1e-12 && Math.abs(result) > 0) return '0';
+          return parseFloat(result.toPrecision(12)).toString();
+        }
         return window.math.format(result, { precision: 12 });
       } catch (err) {
-        // Syntax error while typing incomplete expression
-        return 'Error';
+        // Fall back to native evaluator
       }
     }
 
-    // 2. Safe Fallback Evaluator (in case external bundle is blocked or slow)
+    // 2. Safe Fallback Evaluator
     try {
-      let sanitized = expr
+      let sanitized = balanced
         .replace(/×/g, '*')
         .replace(/÷/g, '/')
         .replace(/π/g, 'Math.PI')
-        .replace(/\be\b/g, 'Math.E');
+        .replace(/\be\b/g, 'Math.E')
+        .replace(/Ans/gi, `(${numericAns})`)
+        .replace(/EXP/g, '*10**')
+        .replace(/(\d+(\.\d+)?)%/g, '($1 * 0.01)');
 
       sanitized = sanitized.replace(/(\d+)!/g, 'factorial($1)');
 
@@ -122,6 +174,7 @@
         .replace(/log\(/g, 'Math.log10(')
         .replace(/ln\(/g, 'Math.log(')
         .replace(/sqrt\(/g, 'Math.sqrt(')
+        .replace(/cbrt\(/g, 'Math.cbrt(')
         .replace(/\^/g, '**');
 
       if (!/^[0-9+\-*/().,MathPIEfactorial\s*]+$/.test(sanitized)) {
@@ -300,21 +353,24 @@
     },
 
     // ----------------------------------------------------
-    // 3. SCIENTIFIC CALCULATOR SLICE
+    // 3. SCIENTIFIC CALCULATOR SLICE (GoF Command & Memento Pattern)
     // ----------------------------------------------------
-    calc: {
-      isOpen: false,
-      angleMode: 'DEG', // 'DEG' or 'RAD'
-      expression: '',
-      result: '0',
-      memory: 0,
-      isEvaluated: false
-    },
+    calc: (() => {
+      const saved = loadCalcMemento() || {};
+      return {
+        isOpen: saved.isOpen || false,
+        angleMode: saved.angleMode || 'DEG',
+        expression: saved.expression || '',
+        result: saved.result || '0',
+        lastAns: saved.lastAns || '0',
+        memory: typeof saved.memory === 'number' ? saved.memory : 0,
+        isEvaluated: saved.isEvaluated || false,
+      };
+    })(),
 
     toggleCalc: () => {
-      const nextOpen = !get().calc.isOpen;
       set((state) => ({
-        calc: { ...state.calc, isOpen: nextOpen }
+        calc: { ...state.calc, isOpen: !state.calc.isOpen }
       }));
       get().renderCalcDOM();
     },
@@ -337,19 +393,33 @@
       set((state) => ({
         calc: { ...state.calc, angleMode: mode }
       }));
-      // Re-evaluate live result in new angle mode
       get().evaluateCalc(false);
       get().renderCalcDOM();
     },
 
     appendCalc: (token) => {
-      const { expression, isEvaluated } = get().calc;
+      const { expression, isEvaluated, lastAns } = get().calc;
       let nextExpr = expression;
+      let tok = token;
 
-      if (isEvaluated && /[0-9.]/.test(token)) {
-        nextExpr = token;
+      if (tok === '(-)') {
+        tok = '-';
+      }
+
+      const isOperator = ['+', '-', '*', '/', '^', '%'].includes(tok);
+
+      if (isEvaluated) {
+        if (isOperator) {
+          nextExpr = 'Ans' + tok;
+        } else {
+          nextExpr = tok;
+        }
       } else {
-        nextExpr += token;
+        if (!nextExpr && isOperator && lastAns && lastAns !== '0') {
+          nextExpr = 'Ans' + tok;
+        } else {
+          nextExpr += tok;
+        }
       }
 
       set((state) => ({
@@ -368,9 +438,11 @@
       const { expression } = get().calc;
       if (!expression) return;
 
-      // Handle function tokens like sin(, cos(, sqrt(, etc.
       let nextExpr = expression;
-      const funcTokens = ['asin(', 'acos(', 'atan(', 'sin(', 'cos(', 'tan(', 'log(', 'sqrt(', 'ln('];
+      const funcTokens = [
+        'asin(', 'acos(', 'atan(', 'sin(', 'cos(', 'tan(',
+        'log(', 'sqrt(', 'cbrt(', 'ln(', '10^(', 'e^('
+      ];
       let matched = false;
 
       for (const tok of funcTokens) {
@@ -382,7 +454,13 @@
       }
 
       if (!matched) {
-        nextExpr = nextExpr.slice(0, -1);
+        if (nextExpr.endsWith('Ans')) {
+          nextExpr = nextExpr.slice(0, -3);
+        } else if (nextExpr.endsWith('EXP')) {
+          nextExpr = nextExpr.slice(0, -3);
+        } else {
+          nextExpr = nextExpr.slice(0, -1);
+        }
       }
 
       set((state) => ({
@@ -401,19 +479,21 @@
     },
 
     evaluateCalc: (isFinal = true) => {
-      const { expression, angleMode } = get().calc;
+      const { expression, angleMode, lastAns } = get().calc;
       if (!expression || !expression.trim()) {
         set((state) => ({
           calc: { ...state.calc, result: '0', isEvaluated: isFinal }
         }));
+        if (isFinal) get().renderCalcDOM();
         return;
       }
 
-      const res = safeEvalScientific(expression, angleMode);
+      const res = safeEvalScientific(expression, angleMode, lastAns);
       set((state) => ({
         calc: {
           ...state.calc,
           result: res,
+          lastAns: isFinal && res !== 'Error' ? res : state.calc.lastAns,
           isEvaluated: isFinal && res !== 'Error'
         }
       }));
@@ -458,11 +538,11 @@
     },
 
     // ----------------------------------------------------
-    // 4. STRICT NAVIGATION & ORB SLICE
+    // 4. STRICT NAVIGATION HIGHLIGHT SLICE
     // ----------------------------------------------------
     navigation: {
-      activeSection: 'core', // 'core' | 'curriculum' | 'questions' | 'practice' | 'progress'
-      isPending: false,      // STRICT: true ONLY when a top-level page route switch is in flight
+      activeSection: 'core',
+      isPending: false,
       pendingTarget: null,
       isInitialized: false,
     },
@@ -508,28 +588,44 @@
     },
 
     renderCalcDOM: () => {
-      const { isOpen, expression, result, angleMode, memory } = get().calc;
-      const modal = document.getElementById('scientific-calculator-modal');
+      const widget = document.getElementById('scientific-calculator-modal');
+      if (!widget) return;
+
+      const {
+        isOpen,
+        expression,
+        result,
+        lastAns,
+        angleMode,
+        memory
+      } = get().calc;
+
+      // Visibility state
+      if (isOpen) {
+        widget.classList.remove('hidden');
+      } else {
+        widget.classList.add('hidden');
+      }
+
       const exprEl = document.getElementById('calc-expression-display');
       const resultEl = document.getElementById('calc-result-display');
       const angleBtn = document.getElementById('calc-angle-mode-btn');
       const memIndicator = document.getElementById('calc-memory-indicator');
+      const ansIndicator = document.getElementById('calc-ans-indicator');
 
-      if (modal) {
-        if (isOpen) {
-          modal.classList.remove('hidden');
-          if (window.gsap) {
-            gsap.fromTo(modal.querySelector('.calc-window'), { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: 'back.out(1.5)' });
-          }
-        } else {
-          modal.classList.add('hidden');
-        }
-      }
-
+      // Display text
       if (exprEl) exprEl.innerText = expression || '0';
       if (resultEl) resultEl.innerText = result || '0';
       if (angleBtn) angleBtn.innerText = angleMode;
-      if (memIndicator) memIndicator.style.display = memory !== 0 ? 'inline-block' : 'none';
+
+      // Badges
+      if (memIndicator) memIndicator.classList.toggle('hidden', memory === 0);
+      if (ansIndicator) ansIndicator.classList.toggle('hidden', !lastAns || lastAns === '0');
+
+      if (window.lucide) lucide.createIcons();
+
+      // Persist to Memento storage
+      saveCalcMemento(get().calc);
     }
   }));
 
@@ -544,22 +640,78 @@
     }
   });
 
-  // Global hotkey: Press 'Alt+C' (or 'C' when outside CBT examination options) to toggle calculator
+  // Global keyboard shortcuts and direct calculator numeric typing
   document.addEventListener('keydown', (e) => {
-    // Only if not actively typing in an input or textarea
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
+    // If user is actively typing in a form input, textarea, or contentEditable element, skip
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) {
       return;
     }
+
+    const calcState = useKalmiStore.getState().calc;
     const hasCBTOptions = !!document.querySelector('.cbt-option-item');
     const isAltC = (e.key === 'c' || e.key === 'C') && e.altKey;
     const isPlainC = (e.key === 'c' || e.key === 'C') && !e.altKey && !e.ctrlKey && !e.metaKey;
 
-    if (isAltC || (isPlainC && !hasCBTOptions)) {
+    if (isAltC || (isPlainC && !hasCBTOptions && !calcState.isOpen)) {
       e.preventDefault();
       useKalmiStore.getState().toggleCalc();
-    } else if (e.key === 'Escape' && useKalmiStore.getState().calc.isOpen) {
-      useKalmiStore.getState().closeCalc();
+      return;
+    }
+
+    // Direct Keypad typing when calculator is active & visible
+    if (calcState.isOpen) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        useKalmiStore.getState().closeCalc();
+      } else if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc(e.key);
+      } else if (e.key === '.') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc('.');
+      } else if (e.key === '+') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc('+');
+      } else if (e.key === '-') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc('-');
+      } else if (e.key === '*' || e.key === 'x' || e.key === 'X') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc('*');
+      } else if (e.key === '/') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc('/');
+      } else if (e.key === '(' || e.key === ')') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc(e.key);
+      } else if (e.key === '^') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc('^');
+      } else if (e.key === '%') {
+        e.preventDefault();
+        useKalmiStore.getState().appendCalc('%');
+      } else if (e.key === 'Enter' || e.key === '=') {
+        e.preventDefault();
+        useKalmiStore.getState().evaluateCalc(true);
+      } else if (e.key === 'Backspace') {
+        e.preventDefault();
+        useKalmiStore.getState().backspaceCalc();
+      } else if (e.key === 'Delete') {
+        e.preventDefault();
+        useKalmiStore.getState().clearCalc();
+      }
     }
   });
+
+  // Self-initializing lifecycle: restore persistent state on direct load, DOMContentLoaded, and HTMX swaps
+  function bootstrapCalculator() {
+    if (window.useKalmiStore) {
+      useKalmiStore.getState().renderCalcDOM();
+    }
+  }
+
+  bootstrapCalculator();
+  document.addEventListener('DOMContentLoaded', bootstrapCalculator);
+  document.addEventListener('htmx:load', bootstrapCalculator);
 
 })();

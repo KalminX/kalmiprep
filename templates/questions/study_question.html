@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load kalmi_tags %}
 
 {% block title %}Study: {{ question.subject.name }} {{ question.exam_badge_label }} — KalmiPrep{% endblock %}
 
@@ -62,7 +63,7 @@
 
     <!-- Question Text with KaTeX formulas (Scroll guarded) -->
     <div class="text-base sm:text-lg font-medium text-slate-900 dark:text-white leading-relaxed mb-6 font-sans overflow-x-auto">
-      {{ question.question_text|safe }}
+      {{ question.question_text|highlight_search:search_query|safe }}
     </div>
 
     <!-- Question Diagram (if present) -->
@@ -85,7 +86,7 @@
           {{ opt.tag }}
         </span>
         <div class="text-sm sm:text-base text-slate-900 dark:text-white font-medium overflow-x-auto flex-1">
-          {{ opt.text|safe }}
+          {{ opt.text|highlight_search:search_query|safe }}
         </div>
         {% if opt.is_correct %}
         <span class="ml-2 hidden answer-key-indicator text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2.5 py-1 rounded-md border border-emerald-300 dark:border-emerald-700 shrink-0">
@@ -132,7 +133,7 @@
 
         <div class="text-sm sm:text-base text-slate-900 dark:text-white font-sans leading-relaxed overflow-x-auto whitespace-pre-line katex-content">
           {% if question.has_solution %}
-            {{ question.explanation|safe }}
+            {{ question.explanation|highlight_search:search_query|safe }}
           {% else %}
             <p class="text-slate-500 dark:text-slate-400 italic">No expanded working has been attached for this question yet. The verified answer is Option {{ question.correct_option.tag }}.</p>
           {% endif %}

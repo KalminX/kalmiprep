@@ -1,3 +1,6 @@
+{% load kalmi_tags %}
+{% with active_search=search_query|default:"" %}
+{% with has_search_in_exp=question.explanation|has_search_term:active_search %}
 <div class="card-premium p-4 sm:p-6 hover:border-slate-300 dark:hover:border-navy-700 transition-all flex flex-col justify-between cv-auto" id="question-card-{{ question.id }}">
   <div>
     <!-- Stacked Badges Row on Top (Subject, UTME, Year, Topic, Bookmark) -->
@@ -11,7 +14,7 @@
         </span>
         {% if question.topic %}
         <span class="badge-tag bg-slate-50 dark:bg-navy-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-navy-800">
-          {{ question.topic.name }}
+          {{ question.topic.name|highlight_search:active_search }}
         </span>
         {% endif %}
       </div>
@@ -41,21 +44,38 @@
       </div>
     </div>
 
-    <!-- Question Text with KaTeX formulas -->
-    <a href="{% url 'questions:study_question' question.id %}" class="block group">
-      <div class="text-sm sm:text-base font-medium text-slate-900 dark:text-white leading-relaxed mb-3 sm:mb-4 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors overflow-x-auto">
-        {{ question.question_text|safe }}
-      </div>
-    </a>
+    <!-- Question Text with KaTeX formulas and highlighted search keywords -->
+    <div class="text-sm sm:text-base font-medium text-slate-900 dark:text-white leading-relaxed mb-3 sm:mb-4 overflow-x-auto">
+      {{ question.question_text|highlight_search:active_search|safe }}
+    </div>
 
-    <!-- Options Preview -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 sm:mb-4">
+    <!-- Question Diagram (if present) -->
+    {% if question.has_diagram %}
+      {% if question.image or question.image_url %}
+      <div class="mb-3 sm:mb-4 p-2.5 sm:p-3 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200 dark:border-navy-800 text-center">
+        <div class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Attached Figure / Diagram</div>
+        <img src="{% if question.image %}{{ question.image.url }}{% else %}{{ question.image_url }}{% endif %}" alt="Question diagram" loading="lazy" decoding="async" class="max-h-52 mx-auto rounded-lg shadow-xs object-contain w-auto">
+      </div>
+      {% endif %}
+    {% endif %}
+
+    <!-- Options Preview with highlighted search keywords -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3 sm:mb-4" id="options-grid-{{ question.id }}">
       {% for opt in question.options.all %}
-      <div class="flex items-center gap-2 p-2 rounded-lg bg-slate-50/70 dark:bg-navy-800/40 border border-slate-200/60 dark:border-navy-800 text-xs text-slate-700 dark:text-slate-300">
-        <span class="w-5 h-5 rounded bg-slate-200 dark:bg-navy-700 font-bold font-mono text-[10px] flex items-center justify-center shrink-0">
+      <div class="option-preview-item flex items-start gap-2.5 p-2 sm:p-2.5 rounded-lg {% if has_search_in_exp and opt.is_correct %}border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 font-semibold{% else %}bg-slate-50/70 dark:bg-navy-800/40 border-slate-200/60 dark:border-navy-800 text-slate-700 dark:text-slate-300{% endif %} border text-xs transition-all cursor-pointer hover:border-slate-300 dark:hover:border-navy-700" 
+           data-correct="{{ opt.is_correct|yesno:'true,false' }}"
+           title="Click to expand/view complete text">
+        <span class="w-5 h-5 rounded bg-slate-200 dark:bg-navy-700 font-bold font-mono text-[10px] flex items-center justify-center shrink-0 mt-0.5">
           {{ opt.tag }}
         </span>
-        <span class="truncate">{{ opt.text|safe }}</span>
+        <div class="option-text flex-1 text-xs break-words leading-relaxed overflow-x-auto select-text">
+          {{ opt.text|highlight_search:active_search|safe }}
+        </div>
+        {% if opt.is_correct %}
+        <span class="option-correct-badge {% if not has_search_in_exp %}hidden{% endif %} ml-auto text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-700 shrink-0 self-center">
+          Correct
+        </span>
+        {% endif %}
       </div>
       {% endfor %}
     </div>
@@ -69,9 +89,59 @@
       {% endif %}
     </div>
 
-    <a href="{% url 'questions:study_question' question.id %}" class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 min-h-[38px]">
-      <span>Study {% if question.subject.slug == 'mathematics' or question.subject.slug == 'maths' %}Solution{% else %}Explanation{% endif %}</span>
-      <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-    </a>
+    <!-- View Solution Toggle Button (In-Page Accordion) -->
+    <button type="button" 
+            onclick="toggleCardSolution({{ question.id }})" 
+            id="toggle-btn-{{ question.id }}"
+            aria-expanded="{% if has_search_in_exp %}true{% else %}false{% endif %}"
+            class="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5 min-h-[38px] font-semibold border-slate-200 dark:border-navy-700 hover:border-brand-500/40 {% if has_search_in_exp %}bg-brand-50 dark:bg-navy-800 border-brand-500 text-brand-700 dark:text-brand-300{% else %}text-brand-600 dark:text-brand-400 bg-brand-50/40 dark:bg-brand-950/20 hover:bg-brand-50 dark:hover:bg-brand-950/40{% endif %} active:scale-[0.98] transition-all cursor-pointer">
+      <i data-lucide="{% if has_search_in_exp %}eye-off{% else %}eye{% endif %}" class="w-3.5 h-3.5 toggle-icon"></i>
+      <span class="toggle-text">{% if has_search_in_exp %}Hide Solution{% else %}View Solution{% endif %}</span>
+    </button>
+  </div>
+
+  <!-- Expandable In-Page Solution Drawer (Automatically opened if search keyword is present in explanation) -->
+  <div id="solution-drawer-{{ question.id }}" class="{% if not has_search_in_exp %}hidden{% endif %} mt-3 sm:mt-4 pt-3.5 sm:pt-4 border-t border-slate-100 dark:border-navy-800 transition-all">
+    <div class="p-3.5 sm:p-5 rounded-xl bg-slate-50/90 dark:bg-navy-950/80 border border-brand-500/30 dark:border-brand-500/40 space-y-3">
+      <!-- Solution Header -->
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200/80 dark:border-navy-800">
+        <div class="flex items-center gap-2 text-brand-800 dark:text-brand-300 font-bold text-xs sm:text-sm">
+          <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+          <span>Verified Correct Answer: <strong class="font-mono text-sm sm:text-base text-slate-900 dark:text-white">Option {{ question.correct_option.tag }}</strong></span>
+        </div>
+        <span class="text-[10px] sm:text-[11px] text-brand-700 dark:text-brand-400 font-semibold uppercase tracking-wider">
+          {% if question.subject.slug == 'mathematics' or question.subject.slug == 'maths' %}
+            Step-by-Step Mathematical Solution
+          {% elif question.subject.slug == 'english-language' or question.subject.slug == 'english' %}
+            Grammar & Contextual Explanation
+          {% elif question.subject.slug == 'biology' %}
+            Biological Concept & Syllabus Guide
+          {% elif question.subject.slug == 'chemistry' %}
+            Chemical Principles & Mechanism
+          {% elif question.subject.slug == 'physics' %}
+            Physical Principles & Numerical Solution
+          {% else %}
+            Step-by-Step Solution
+          {% endif %}
+        </span>
+      </div>
+
+      <!-- Solution Working Body with KaTeX formulas and highlighted search keywords -->
+      <div class="text-xs sm:text-sm text-slate-900 dark:text-slate-100 font-sans leading-relaxed overflow-x-auto whitespace-pre-line katex-content">
+        {% if question.has_solution %}
+          {{ question.explanation|highlight_search:active_search|safe }}
+        {% else %}
+          <p class="text-slate-500 dark:text-slate-400 italic">No expanded working has been attached for this question yet. The verified answer is Option {{ question.correct_option.tag }}.</p>
+        {% endif %}
+      </div>
+
+      {% if question.source_platform %}
+      <div class="pt-1 text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+        Source: {{ question.source_platform }} {% if question.source_id %}(Record #{{ question.source_id }}){% endif %}
+      </div>
+      {% endif %}
+    </div>
   </div>
 </div>
+{% endwith %}
+{% endwith %}

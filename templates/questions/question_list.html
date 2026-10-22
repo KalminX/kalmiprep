@@ -33,17 +33,22 @@
   <div class="lg:hidden mb-4 space-y-2.5">
     <!-- Immediate Mobile Search Input -->
     <div class="relative w-full">
-      <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none"></i>
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+        <i data-lucide="search" class="w-4 h-4"></i>
+      </div>
       <input type="text" 
-             placeholder="Search questions, topics..." 
-             value="{{ request.GET.search|default:'' }}"
+             placeholder="Search questions, topics, formulas..." 
+             value="{{ search_query|default:'' }}"
              hx-get="{% url 'questions:question_list' %}"
              hx-target="#question-results-container"
-             hx-trigger="keyup changed delay:400ms"
+             hx-trigger="keyup changed delay:450ms"
              hx-include="#filter-form"
              name="search"
              oninput="const f = document.querySelector('#filter-sidebar input[name=search]'); if(f) f.value = this.value"
-             class="w-full max-w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white shadow-sm focus:ring-2 focus:ring-brand-500 box-border">
+             class="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white shadow-xs focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all box-border">
+      <div class="search-loading-spinner absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none opacity-0 transition-opacity duration-150">
+        <span class="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></span>
+      </div>
     </div>
 
     <button type="button" 
@@ -76,14 +81,19 @@
           </a>
         </div>
 
-        <form id="filter-form" method="get" action="{% url 'questions:question_list' %}" hx-get="{% url 'questions:question_list' %}" hx-target="#question-results-container" hx-trigger="change from:select, keyup changed delay:400ms from:input" class="space-y-4">
+        <form id="filter-form" method="get" action="{% url 'questions:question_list' %}" hx-get="{% url 'questions:question_list' %}" hx-target="#question-results-container" hx-trigger="change from:select, keyup changed delay:450ms from:input" class="space-y-4">
           
           <!-- Search Input -->
           <div>
             <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Search Text / Formula</label>
-            <div class="relative w-full max-w-full">
-              <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3 pointer-events-none"></i>
+            <div class="relative w-full">
+              <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </div>
               {{ filter.form.search }}
+              <div class="search-loading-spinner absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none opacity-0 transition-opacity duration-150">
+                <span class="w-4 h-4 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></span>
+              </div>
             </div>
           </div>
 
@@ -102,7 +112,9 @@
           <!-- Topic Filter -->
           <div>
             <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Syllabus Topic</label>
-            {{ filter.form.topic }}
+            <div id="topic-select-container">
+              {{ filter.form.topic }}
+            </div>
           </div>
 
           <!-- Diagrams Filter -->
@@ -124,9 +136,25 @@
       </div>
     </div>
 
-    <!-- Right 3 Cols: Question Results Container (HTMX Target) -->
-    <div class="lg:col-span-3" id="question-results-container">
-      {% include 'questions/partials/question_results_list.html' %}
+    <!-- Right 3 Cols: Question Results Area with Loading Screen Overlay -->
+    <div class="lg:col-span-3 relative min-h-[440px]">
+      
+      <!-- Sifting Database Loading Overlay Screen -->
+      <div id="results-loading-overlay" class="absolute inset-0 bg-white/75 dark:bg-navy-950/75 backdrop-blur-xs flex flex-col items-center justify-start pt-20 z-20 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="px-5 py-3.5 rounded-2xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-700 shadow-2xl flex items-center gap-3.5 animate-pulse">
+          <span class="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin shrink-0"></span>
+          <div class="flex flex-col">
+            <span class="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">Searching 18,000+ Questions...</span>
+            <span class="text-[10px] text-slate-500 font-mono">Sifting topics, KaTeX formulas & verified solutions</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Results Container (HTMX Target) -->
+      <div id="question-results-container" class="transition-opacity duration-150">
+        {% include 'questions/partials/question_results_list.html' %}
+      </div>
+
     </div>
 
   </div>
@@ -150,5 +178,265 @@
       text.innerText = 'Show Filters';
     }
   }
+
+  // Preloaded topics grouped by subject slug / ID from server cache
+  window.topicsBySubject = {{ topics_by_subject_json|safe|default:'{}' }};
+
+  window.syncTopicOptions = function(subjectValue, preselectTopic = '') {
+    const topicSelect = document.querySelector('select[name="topic"]');
+    if (!topicSelect) return;
+
+    const currentVal = preselectTopic || topicSelect.value;
+    const topicsMap = window.topicsBySubject || {};
+    const topics = topicsMap[subjectValue] || [];
+
+    // Clear current options
+    topicSelect.innerHTML = '';
+
+    // Determine subject name for default label
+    let subjectName = '';
+    const subjectSelect = document.querySelector('select[name="subject"]');
+    if (subjectSelect && subjectSelect.selectedIndex >= 0) {
+      const selectedOpt = subjectSelect.options[subjectSelect.selectedIndex];
+      if (selectedOpt && selectedOpt.value) {
+        subjectName = selectedOpt.text;
+      }
+    }
+
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = subjectName ? `All ${subjectName} Topics` : 'All Topics';
+    topicSelect.appendChild(defaultOpt);
+
+    if (subjectValue && topics.length > 0) {
+      topics.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.slug;
+        opt.textContent = t.name;
+        if (currentVal && (String(currentVal) === String(t.slug) || String(currentVal) === String(t.id))) {
+          opt.selected = true;
+        }
+        topicSelect.appendChild(opt);
+      });
+    } else if (!subjectValue) {
+      // If no subject is chosen, show all unique topics across all subjects
+      const allSeen = new Set();
+      Object.values(topicsMap).forEach(tList => {
+        if (Array.isArray(tList)) {
+          tList.forEach(t => {
+            if (t && t.slug && !allSeen.has(t.slug)) {
+              allSeen.add(t.slug);
+              const opt = document.createElement('option');
+              opt.value = t.slug;
+              opt.textContent = t.name;
+              if (currentVal && (String(currentVal) === String(t.slug) || String(currentVal) === String(t.id))) {
+                opt.selected = true;
+              }
+              topicSelect.appendChild(opt);
+            }
+          });
+        }
+      });
+    }
+  };
+
+  function initSubjectTopicSync() {
+    const subjectSelect = document.querySelector('select[name="subject"]');
+    const topicSelect = document.querySelector('select[name="topic"]');
+    if (subjectSelect && topicSelect) {
+      // If subject is selected, synchronize topics immediately
+      if (subjectSelect.value) {
+        window.syncTopicOptions(subjectSelect.value, topicSelect.value);
+      }
+      if (!subjectSelect.dataset.syncAttached) {
+        subjectSelect.dataset.syncAttached = 'true';
+        subjectSelect.addEventListener('change', (e) => {
+          window.syncTopicOptions(e.target.value, '');
+        });
+      }
+    }
+  }
+
+  // Run on initial execution, DOMContentLoaded, and HTMX load
+  initSubjectTopicSync();
+  document.addEventListener('DOMContentLoaded', initSubjectTopicSync);
+  document.addEventListener('htmx:load', initSubjectTopicSync);
+
+  // Handle Loading Screen when search / filter queries are in flight
+  document.addEventListener('htmx:beforeRequest', function (e) {
+    const target = e.detail?.target;
+    if (target && target.id === 'question-results-container') {
+      // 1. Show search spinner in search bars
+      document.querySelectorAll('.search-loading-spinner').forEach(el => {
+        el.classList.remove('opacity-0');
+        el.classList.add('opacity-100');
+      });
+
+      // 2. Show centered results loading overlay screen
+      const overlay = document.getElementById('results-loading-overlay');
+      if (overlay) {
+        overlay.classList.remove('opacity-0', 'pointer-events-none');
+        overlay.classList.add('opacity-100');
+      }
+
+      // 3. Dim current results container to indicate waiting state
+      const resultsCont = document.getElementById('question-results-container');
+      if (resultsCont) {
+        resultsCont.classList.add('opacity-40');
+      }
+
+      // 4. Subtle top progress beam
+      const bar = document.getElementById('page-loading-bar');
+      const barInner = document.getElementById('page-loading-bar-inner');
+      if (bar && barInner) {
+        bar.classList.remove('opacity-0');
+        bar.classList.add('opacity-100');
+        if (window.gsap) {
+          gsap.killTweensOf(barInner);
+          gsap.fromTo(barInner, { width: '0%' }, { width: '75%', duration: 0.5, ease: 'power1.out' });
+        } else {
+          barInner.style.width = '75%';
+        }
+      }
+    }
+  });
+
+  document.addEventListener('htmx:afterRequest', function (e) {
+    const target = e.detail?.target;
+    if (target && target.id === 'question-results-container') {
+      // 1. Hide search spinner in search bars
+      document.querySelectorAll('.search-loading-spinner').forEach(el => {
+        el.classList.remove('opacity-100');
+        el.classList.add('opacity-0');
+      });
+
+      // 2. Hide results loading overlay screen
+      const overlay = document.getElementById('results-loading-overlay');
+      if (overlay) {
+        overlay.classList.remove('opacity-100');
+        overlay.classList.add('opacity-0', 'pointer-events-none');
+      }
+
+      // 3. Restore results opacity
+      const resultsCont = document.getElementById('question-results-container');
+      if (resultsCont) {
+        resultsCont.classList.remove('opacity-40');
+      }
+
+      // 4. Complete top progress beam
+      const bar = document.getElementById('page-loading-bar');
+      const barInner = document.getElementById('page-loading-bar-inner');
+      if (bar && barInner) {
+        if (window.gsap) {
+          gsap.to(barInner, {
+            width: '100%',
+            duration: 0.15,
+            ease: 'power2.out',
+            onComplete: () => {
+              gsap.to(bar, {
+                opacity: 0,
+                duration: 0.15,
+                onComplete: () => { barInner.style.width = '0%'; }
+              });
+            }
+          });
+        } else {
+          bar.classList.add('opacity-0');
+          barInner.style.width = '0%';
+        }
+      }
+    }
+  });
+
+  // Re-initialize Lucide icons and KaTeX math rendering after HTMX swaps
+  document.addEventListener('htmx:afterSwap', function (e) {
+    if (window.lucide) {
+      lucide.createIcons();
+    }
+    if (window.renderMathInElement) {
+      const container = document.getElementById('question-results-container');
+      if (container) {
+        renderMathInElement(container, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+  });
+
+  // In-Page Interactive View / Hide Solution Drawer
+  window.toggleCardSolution = function (questionId) {
+    const drawer = document.getElementById('solution-drawer-' + questionId);
+    const btn = document.getElementById('toggle-btn-' + questionId);
+    const optionsGrid = document.getElementById('options-grid-' + questionId);
+    if (!drawer || !btn) return;
+
+    const isHidden = drawer.classList.contains('hidden');
+    const toggleText = btn.querySelector('.toggle-text');
+    const toggleIcon = btn.querySelector('.toggle-icon');
+
+    if (isHidden) {
+      drawer.classList.remove('hidden');
+      btn.setAttribute('aria-expanded', 'true');
+      btn.classList.add('bg-brand-50', 'dark:bg-navy-800', 'border-brand-500', 'text-brand-700', 'dark:text-brand-300');
+      if (toggleText) toggleText.textContent = 'Hide Solution';
+      if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'eye-off');
+
+      // Highlight the verified correct option in the options grid
+      if (optionsGrid) {
+        const items = optionsGrid.querySelectorAll('.option-preview-item');
+        items.forEach(item => {
+          if (item.getAttribute('data-correct') === 'true') {
+            item.classList.add('border-emerald-500', 'bg-emerald-50/80', 'dark:bg-emerald-950/40', 'text-emerald-900', 'dark:text-emerald-200', 'font-semibold');
+            const pill = item.querySelector('.option-correct-badge');
+            if (pill) pill.classList.remove('hidden');
+          }
+        });
+      }
+
+      // Re-render KaTeX math and icons for the opened drawer
+      if (window.renderMathInElement) {
+        renderMathInElement(drawer, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true }
+          ],
+          throwOnError: false
+        });
+      }
+      if (window.lucide) {
+        lucide.createIcons({ root: drawer });
+        lucide.createIcons({ root: btn });
+      }
+    } else {
+      drawer.classList.add('hidden');
+      btn.setAttribute('aria-expanded', 'false');
+      btn.classList.remove('bg-brand-50', 'dark:bg-navy-800', 'border-brand-500', 'text-brand-700', 'dark:text-brand-300');
+      if (toggleText) toggleText.textContent = 'View Solution';
+      if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'eye');
+
+      // Restore option items
+      if (optionsGrid) {
+        const items = optionsGrid.querySelectorAll('.option-preview-item');
+        items.forEach(item => {
+          if (item.getAttribute('data-correct') === 'true') {
+            item.classList.remove('border-emerald-500', 'bg-emerald-50/80', 'dark:bg-emerald-950/40', 'text-emerald-900', 'dark:text-emerald-200', 'font-semibold');
+            const pill = item.querySelector('.option-correct-badge');
+            if (pill) pill.classList.add('hidden');
+          }
+        });
+      }
+      if (window.lucide) {
+        lucide.createIcons({ root: btn });
+      }
+    }
+  };
 </script>
 {% endblock %}

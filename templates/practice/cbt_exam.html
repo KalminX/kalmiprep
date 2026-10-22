@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load kalmi_tags %}
 
 {% block title %}CBT Mock Examination: {{ session.title }} — KalmiPrep{% endblock %}
 
@@ -19,7 +20,7 @@
           {{ session.title }}
         </h1>
         <span class="text-[10px] sm:text-xs text-slate-500 font-mono hidden xs:inline">
-          {{ session.get_mode_display }} &bull; {{ session.total_questions }} Qs
+          {{ session.get_mode_display|smart_ellipsis:22 }} &bull; {{ session.total_questions }} Qs
         </span>
       </div>
     </div>
@@ -42,7 +43,7 @@
       <div class="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-100 dark:bg-navy-800 border border-slate-200 dark:border-navy-700">
         <i data-lucide="clock" class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brand-600 dark:text-brand-400 animate-pulse"></i>
         <div class="font-mono text-xs sm:text-lg font-bold text-slate-900 dark:text-white" id="countdown-timer">
-          --:--
+          {{ initial_timer_display|default:"--:--" }}
         </div>
       </div>
       {% endif %}
@@ -83,11 +84,12 @@
         <i data-lucide="compass" class="w-3.5 h-3.5 text-brand-600"></i>
         <span>Question Palette</span>
       </span>
-      <span class="text-slate-500 font-mono text-[11px]">{{ session.answered_count }}/{{ total_count }} answered</span>
+      <span class="cbt-answered-counter text-slate-500 font-mono text-[11px]">{{ session.answered_count }}/{{ total_count }} answered</span>
     </div>
     <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
       {% for r in responses %}
       <a href="?q={{ r.order }}" 
+         id="mobile-grid-item-{{ r.order }}"
          class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center font-mono text-xs font-bold transition-all relative
          {% if r.order == current_index %}ring-2 ring-blue-500 bg-blue-600 text-white shadow-sm
          {% elif r.is_flagged %}bg-amber-500 text-white
@@ -206,7 +208,7 @@
         
         <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-navy-800">
           <span class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Question Grid</span>
-          <span class="text-xs text-slate-500 font-mono">{{ session.answered_count }}/{{ total_count }} answered</span>
+          <span class="cbt-answered-counter text-xs text-slate-500 font-mono">{{ session.answered_count }}/{{ total_count }} answered</span>
         </div>
 
         <!-- Legend -->
@@ -305,15 +307,55 @@
 {% block extra_js %}
 <script>
   // Server-synced countdown timer managed by central Zustand store
-  {% if session.time_limit_seconds > 0 %}
-  if (window.useKalmiStore) {
-    useKalmiStore.getState().initTimer(
-      {{ session.id }},
-      {{ time_remaining_seconds|default:session.time_limit_seconds }},
-      "{% url 'practice:time_sync' session.id %}"
-    );
+  function initExamTimer() {
+    {% if session.time_limit_seconds > 0 %}
+    const remainingSecs = {{ time_remaining_seconds|default:session.time_limit_seconds }};
+    const syncUrl = "{% url 'practice:time_sync' session.id %}";
+    const sessionId = {{ session.id }};
+
+    if (window.useKalmiStore && typeof window.useKalmiStore.getState === 'function') {
+      window.useKalmiStore.getState().initTimer(sessionId, remainingSecs, syncUrl);
+    } else {
+      let sec = remainingSecs;
+      const el = document.getElementById('countdown-timer');
+      const updateDisplay = () => {
+        if (!el) return;
+        const mins = Math.floor(sec / 60);
+        const s = sec % 60;
+        el.innerText = `${mins.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        if (sec < 120) {
+          el.classList.add('text-rose-600', 'animate-pulse');
+        } else if (sec < 300) {
+          el.classList.add('text-amber-500');
+        }
+      };
+      updateDisplay();
+      const interval = setInterval(() => {
+        sec = Math.max(0, sec - 1);
+        updateDisplay();
+        if (sec <= 0) {
+          clearInterval(interval);
+          const form = document.getElementById('final-submit-form');
+          if (form) form.submit();
+        }
+      }, 1000);
+
+      // If Zustand store initializes shortly, hand off seamlessly
+      const pollStore = setInterval(() => {
+        if (window.useKalmiStore && typeof window.useKalmiStore.getState === 'function') {
+          clearInterval(interval);
+          clearInterval(pollStore);
+          window.useKalmiStore.getState().initTimer(sessionId, sec, syncUrl);
+        }
+      }, 100);
+    }
+    {% endif %}
   }
-  {% endif %}
+
+  // Execute immediately, on DOMContentLoaded, and on HTMX load
+  initExamTimer();
+  document.addEventListener('DOMContentLoaded', initExamTimer);
+  document.addEventListener('htmx:load', initExamTimer);
 
   function onSelectCBTOption(radio, tag) {
     document.querySelectorAll('.cbt-option-item').forEach(el => {
@@ -329,14 +371,28 @@
       body: formData,
       headers: {
         'X-CSRFToken': '{{ csrf_token }}',
+        'Accept': 'application/json',
       }
+    }).then(res => res.json()).then(data => {
+      if (data && data.answered_count !== undefined) {
+        document.querySelectorAll('.cbt-answered-counter').forEach(el => {
+          el.innerText = `${data.answered_count}/{{ total_count }} answered`;
+        });
+      }
+    }).catch(err => {
+      console.error('Failed to auto-save answer:', err);
     });
 
-    // Update grid item visually
+    // Update grid items visually
     const gridItem = document.getElementById('grid-item-{{ current_index }}');
     if (gridItem) {
       gridItem.classList.remove('bg-slate-100', 'dark:bg-navy-800');
       gridItem.classList.add('bg-emerald-600', 'text-white');
+    }
+    const mobileGridItem = document.getElementById('mobile-grid-item-{{ current_index }}');
+    if (mobileGridItem) {
+      mobileGridItem.classList.remove('bg-slate-100', 'dark:bg-navy-800');
+      mobileGridItem.classList.add('bg-emerald-600', 'text-white');
     }
   }
 
@@ -354,7 +410,33 @@
     // Submit update
     const form = document.getElementById('cbt-question-form');
     const formData = new FormData(form);
-    fetch(form.action, { method: 'POST', body: formData });
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Accept': 'application/json',
+      }
+    }).catch(err => {
+      console.error('Failed to update flag:', err);
+    });
+
+    const gridItem = document.getElementById('grid-item-{{ current_index }}');
+    if (gridItem) {
+      if (isNowFlagged) {
+        gridItem.classList.add('bg-amber-500', 'text-white');
+      } else {
+        gridItem.classList.remove('bg-amber-500');
+      }
+    }
+    const mobileGridItem = document.getElementById('mobile-grid-item-{{ current_index }}');
+    if (mobileGridItem) {
+      if (isNowFlagged) {
+        mobileGridItem.classList.add('bg-amber-500', 'text-white');
+      } else {
+        mobileGridItem.classList.remove('bg-amber-500');
+      }
+    }
   }
 
   function openSubmitModal() {

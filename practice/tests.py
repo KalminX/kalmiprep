@@ -182,3 +182,45 @@ class PracticeTests(TestCase):
         self.assertIsInstance(session.score_out_of_400, int)
         self.assertGreaterEqual(session.score_out_of_400, 0)
         self.assertLessEqual(session.score_out_of_400, 400)
+
+    def test_cbt_submit_answer_json_and_htmx(self):
+        """Verify CBT answer submissions succeed via JSON fetch and HTMX without 500 error."""
+        session = PracticeSession.objects.create(
+            subject=self.subject,
+            mode=PracticeSession.Mode.CBT_MOCK,
+            total_questions=1,
+        )
+        resp = PracticeQuestionResponse.objects.create(
+            session=session,
+            question=self.q1,
+            order=1,
+        )
+        url = reverse("practice:submit_answer", args=[session.id, resp.id])
+
+        # Test JSON fetch request
+        response = self.client.post(
+            url,
+            {"option_id": self.q1_opt_c.id, "is_flagged": "false"},
+            HTTP_ACCEPT="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["saved"])
+        self.assertTrue(data["is_answered"])
+
+        resp.refresh_from_db()
+        self.assertEqual(resp.selected_option, self.q1_opt_c)
+        self.assertTrue(resp.is_correct)
+
+        # Test HTMX partial request
+        response_htmx = self.client.post(
+            url,
+            {"option_id": self.q1_opt_a.id, "is_flagged": "true"},
+            HTTP_HX_REQUEST="true",
+        )
+        self.assertEqual(response_htmx.status_code, 200)
+        self.assertContains(response_htmx, "grid-item-1")
+
+        resp.refresh_from_db()
+        self.assertEqual(resp.selected_option, self.q1_opt_a)
+        self.assertTrue(resp.is_flagged)

@@ -79,14 +79,17 @@ def get_cached_landing_metrics():
 def get_cached_subject_list():
     """
     Returns subjects annotated with topic_count and question_count for the curriculum subject catalog.
-    Cached in Redis for 1 hour.
+    Cached in Redis.
     """
     subjects = cache.get(CACHE_KEY_SUBJECT_LIST)
     if subjects is None:
         from curriculum.models import Subject
         subjects = list(
             Subject.objects.filter(is_active=True)
-            .prefetch_related("topics", "questions")
+            .annotate(
+                num_topics=Count("topics", distinct=True),
+                pub_question_count=Count("questions", filter=Q(questions__is_published=True), distinct=True)
+            )
             .order_by("order", "name")
         )
         cache.set(CACHE_KEY_SUBJECT_LIST, subjects, TTL_LONG)
@@ -168,15 +171,26 @@ def get_cached_filter_choices():
     """
     Caches the list of active subjects and topics for QuestionFilter dropdowns.
     Avoids expensive full-table queries during search and pagination.
+    Returns (id, slug, name) tuples for subjects,
+    and (id, slug, name, subject_id, subject_slug) tuples for topics.
+    Also builds a pre-grouped topics_by_subject dictionary.
     """
     data = cache.get(CACHE_KEY_FILTER_CHOICES)
     if data is None:
         from curriculum.models import Subject, Topic
-        subjects = list(Subject.objects.filter(is_active=True).values_list("id", "name"))
-        topics = list(Topic.objects.all().order_by("subject__name", "name").values_list("id", "name"))
+        subjects = list(Subject.objects.filter(is_active=True).order_by("order", "name").values_list("id", "slug", "name"))
+        raw_topics = list(Topic.objects.all().order_by("subject__name", "name").values_list("id", "slug", "name", "subject_id", "subject__slug"))
+
+        topics_by_subject = {}
+        for tid, tslug, tname, sid, sslug in raw_topics:
+            entry = {"id": tid, "slug": tslug, "name": tname}
+            topics_by_subject.setdefault(sslug, []).append(entry)
+            topics_by_subject.setdefault(str(sid), []).append(entry)
+
         data = {
             "subjects": subjects,
-            "topics": topics,
+            "topics": raw_topics,
+            "topics_by_subject": topics_by_subject,
         }
         cache.set(CACHE_KEY_FILTER_CHOICES, data, TTL_LONG)
     return data

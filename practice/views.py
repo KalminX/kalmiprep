@@ -239,6 +239,13 @@ def session_view(request, session_id):
             subject_tabs.append(subj_tab)
         seen_subjects[sid]["count"] += 1
 
+    remaining_secs = session.time_remaining_seconds
+    initial_timer_display = "--:--"
+    if session.time_limit_seconds > 0:
+        mins = max(0, remaining_secs) // 60
+        secs = max(0, remaining_secs) % 60
+        initial_timer_display = f"{mins:02d}:{secs:02d}"
+
     context = {
         "session": session,
         "responses": responses,
@@ -248,6 +255,7 @@ def session_view(request, session_id):
         "prev_index": q_index - 1 if q_index > 1 else None,
         "next_index": q_index + 1 if q_index < responses.count() else None,
         "time_remaining_seconds": session.time_remaining_seconds,
+        "initial_timer_display": initial_timer_display,
         "expires_at_iso": session.expires_at.isoformat() if session.expires_at else "",
         "subject_tabs": subject_tabs,
     }
@@ -287,7 +295,10 @@ def submit_answer(request, session_id, response_id):
 
     option_id = request.POST.get("option_id")
     is_flagged = request.POST.get("is_flagged") == "true"
-    time_spent = int(request.POST.get("time_spent", 0))
+    try:
+        time_spent = int(request.POST.get("time_spent") or 0)
+    except (ValueError, TypeError):
+        time_spent = 0
 
     if option_id:
         selected_opt = Option.objects.filter(pk=option_id, question=resp.question).first()
@@ -335,16 +346,28 @@ def submit_answer(request, session_id, response_id):
             },
         )
 
-    # For CBT Mock, return JSON or small status badge
-    return render(
-        request,
-        "practice/partials/cbt_grid_item.html",
-        {
-            "resp": resp,
-            "order": resp.order,
-            "is_current": True,
-        },
-    )
+    # For CBT Mock, return HTMX partial if requested via HTMX, otherwise JsonResponse
+    if request.headers.get("HX-Request"):
+        return render(
+            request,
+            "practice/partials/cbt_grid_item.html",
+            {
+                "resp": resp,
+                "order": resp.order,
+                "is_current": True,
+            },
+        )
+
+    return JsonResponse({
+        "status": "success",
+        "saved": True,
+        "response_id": resp.id,
+        "order": resp.order,
+        "is_answered": resp.selected_option_id is not None,
+        "is_flagged": resp.is_flagged,
+        "answered_count": session.answered_count,
+        "unanswered_count": session.unanswered_count,
+    })
 
 
 @require_POST

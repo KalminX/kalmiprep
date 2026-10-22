@@ -1,0 +1,9 @@
+<a href="?q={{ resp.order }}" 
+   id="grid-item-{{ resp.order }}"
+   class="w-full aspect-square rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-all relative {% if is_current %}ring-2 ring-blue-500 bg-blue-600 text-white shadow-sm{% elif resp.is_flagged %}bg-amber-500 text-white{% elif resp.selected_option %}bg-emerald-600 text-white{% else %}bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700{% endif %}"
+   title="Question #{{ resp.order }}">
+  {{ resp.order }}
+  {% if resp.is_flagged and not is_current %}
+  <span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-amber-300 rounded-full"></span>
+  {% endif %}
+</a>

@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import get_object_or_404, render
 from django.core.cache import cache
 from django.core.paginator import Paginator
@@ -5,6 +6,7 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_POST
 
+from core.cache_utils import get_cached_filter_choices
 from questions.models import Question
 from questions.filters import QuestionFilter
 from progress.models import Bookmark
@@ -26,8 +28,12 @@ def question_list(request):
     if sort in ["-exam_year", "exam_year", "-id", "id"]:
         queryset = queryset.order_by(sort, "id")
 
-    # Apply Filters
-    filterset = QuestionFilter(request.GET, queryset=queryset)
+    # Apply Filters (mapping 'exam' alias to 'exam_type' if needed)
+    filter_data = request.GET.copy()
+    if "exam" in filter_data and not filter_data.get("exam_type"):
+        filter_data["exam_type"] = filter_data["exam"]
+
+    filterset = QuestionFilter(filter_data, queryset=queryset)
     filtered_qs = filterset.qs
 
     # Pagination: 15 questions per page
@@ -42,16 +48,28 @@ def question_list(request):
     elif request.session.session_key:
         bookmarked_ids = set(Bookmark.objects.filter(session_key=request.session.session_key).values_list("question_id", flat=True))
 
+    choices_data = get_cached_filter_choices()
+    topics_by_subject = choices_data.get("topics_by_subject", {})
+
+    search_query = request.GET.get("search", "")
+
+    is_htmx_results = bool(
+        request.headers.get("HX-Request") and request.headers.get("HX-Target") == "question-results-container"
+    )
+
     context = {
         "filter": filterset,
         "page_obj": page_obj,
         "total_results": paginator.count,
         "bookmarked_ids": bookmarked_ids,
         "sort": sort,
+        "topics_by_subject_json": json.dumps(topics_by_subject),
+        "search_query": search_query,
+        "is_htmx_results": is_htmx_results,
     }
 
     # If request is an HTMX query targeting the internal results container, return only the results partial
-    if request.headers.get("HX-Request") and request.headers.get("HX-Target") == "question-results-container":
+    if is_htmx_results:
         return render(request, "questions/partials/question_results_list.html", context)
 
     return render(request, "questions/question_list.html", context)
@@ -106,12 +124,15 @@ def study_question(request, pk):
     elif request.session.session_key:
         is_bookmarked = Bookmark.objects.filter(session_key=request.session.session_key, question_id=pk).exists()
 
+    search_query = request.GET.get("search", "")
+
     context = {
         "question": question,
         "options": options,
         "prev_question": {"id": prev_question_id} if prev_question_id else None,
         "next_question": {"id": next_question_id} if next_question_id else None,
         "is_bookmarked": is_bookmarked,
+        "search_query": search_query,
     }
     return render(request, "questions/study_question.html", context)
 

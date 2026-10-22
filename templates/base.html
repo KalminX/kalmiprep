@@ -34,7 +34,7 @@
     "prefetch": [
       {
         "source": "list",
-        "urls": ["{% url 'core:landing' %}", "{% url 'curriculum:subject_list' %}", "{% url 'practice:setup' %}", "{% url 'questions:question_list' %}", "{% url 'progress:dashboard' %}"]
+        "urls": ["{% url 'core:landing' %}", "{% url 'curriculum:subject_list' %}", "{% url 'practice:setup' %}", "{% url 'questions:question_list' %}", "{% url 'progress:dashboard' %}", "{% url 'progress:extractor_status' %}"]
       },
       {
         "where": {
@@ -97,7 +97,6 @@
   <!-- Main Content Page Block -->
   <main id="main-content" class="flex-grow pb-20 md:pb-0">
     {% block content %}{% endblock %}
-    {% block extra_js %}{% endblock %}
   </main>
 
   <!-- Global Footer -->
@@ -121,6 +120,7 @@
   <script src="{% static 'js/store.js' %}"></script>
   <script src="{% static 'js/prefetch.js' %}"></script>
   <script src="{% static 'js/nav_orb.js' %}"></script>
+  <script src="{% static 'js/ellipsis.js' %}"></script>
 
   <!-- Global KalmiPrep Runtime & KaTeX Auto-Render Engine -->
   <script>
@@ -157,13 +157,16 @@
       // GSAP Page Entrance Enhancements (respects prefers-reduced-motion)
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (!prefersReducedMotion && window.gsap) {
-        gsap.from('.gsap-fade-in', {
-          opacity: 0,
-          y: 12,
-          duration: 0.5,
-          stagger: 0.08,
-          ease: 'power2.out'
-        });
+        const fadeEls = document.querySelectorAll('.gsap-fade-in');
+        if (fadeEls.length > 0) {
+          gsap.from(fadeEls, {
+            opacity: 0,
+            y: 12,
+            duration: 0.5,
+            stagger: 0.08,
+            ease: 'power2.out'
+          });
+        }
       }
     });
 
@@ -183,5 +186,6 @@
       }
     }
   </script>
+  {% block extra_js %}{% endblock %}
 </body>
 </html>

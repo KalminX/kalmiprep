@@ -22,7 +22,7 @@
 <!-- Questions Cards Grid -->
 <div class="space-y-4 mb-8">
   {% for question in page_obj %}
-    {% include 'questions/partials/question_card.html' %}
+    {% include 'questions/partials/question_card.html' with search_query=search_query %}
   {% empty %}
   <div class="card-premium p-12 text-center space-y-4">
     <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-navy-800 text-slate-400 flex items-center justify-center mx-auto">
@@ -70,5 +70,12 @@
     </a>
     {% endif %}
   </div>
+</div>
+{% endif %}
+
+{% if is_htmx_results %}
+<!-- Synchronize Syllabus Topic choices out-of-band on HTMX partial updates -->
+<div id="topic-select-container" hx-swap-oob="outerHTML">
+  {{ filter.form.topic }}
 </div>
 {% endif %}

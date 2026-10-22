@@ -1,16 +1,9 @@
 {% load static %}
-<!-- Mobile Fixed Bottom Navigation Bar with Glowing Nav Orb (Moves ONLY when status leaves pending) -->
+<!-- Mobile Fixed Bottom Navigation Bar with Clean Highlight (Border & Background) -->
 <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border-t border-slate-200 dark:border-navy-800 transition-colors shadow-lg pb-[max(0.25rem,env(safe-area-inset-bottom))]"
      id="mobile-bottom-nav">
   <div class="max-w-lg mx-auto h-16 px-2 flex items-center justify-around relative" id="bottom-nav-container">
     
-    <!-- Mobile Nav Orb (Only moves when status leaves pending) -->
-    <div id="bottom-nav-orb" 
-         class="absolute pointer-events-none z-0 opacity-0 -translate-y-1/2 top-1/2 h-12 w-14 rounded-2xl transition-opacity duration-200"
-         style="will-change: transform, left, opacity;">
-      <div class="orb-glow w-full h-full rounded-2xl bg-gradient-to-tr from-brand-500/15 via-brand-400/20 to-emerald-400/15 dark:from-brand-500/25 dark:via-brand-400/30 dark:to-emerald-400/25 border border-brand-500/30 dark:border-brand-400/40 shadow-sm backdrop-blur-sm"></div>
-    </div>
-
     <!-- 1. Home -->
     <a href="{% url 'core:landing' %}" 
        data-nav="core"
@@ -19,7 +12,7 @@
        hx-select="#main-content" 
        hx-swap="innerHTML show:window:top" 
        hx-push-url="true"
-       class="mobile-nav-item relative z-10 flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-colors duration-150 {% if request.path == '/' %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white{% endif %}">
+       class="mobile-nav-item flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 {% if request.path == '/' %}bg-brand-50/80 dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-brand-200/90 dark:border-navy-700 shadow-sm{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white border border-transparent{% endif %}">
       <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
       <span class="text-[10px] tracking-tight">Home</span>
     </a>
@@ -32,7 +25,7 @@
        hx-select="#main-content" 
        hx-swap="innerHTML show:window:top" 
        hx-push-url="true"
-       class="mobile-nav-item relative z-10 flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-colors duration-150 {% if '/curriculum/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white{% endif %}">
+       class="mobile-nav-item flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 {% if '/curriculum/' in request.path %}bg-brand-50/80 dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-brand-200/90 dark:border-navy-700 shadow-sm{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white border border-transparent{% endif %}">
       <i data-lucide="book-open" class="w-5 h-5 mb-0.5"></i>
       <span class="text-[10px] tracking-tight">Syllabus</span>
     </a>
@@ -45,11 +38,11 @@
        hx-select="#main-content" 
        hx-swap="innerHTML show:window:top" 
        hx-push-url="true"
-       class="mobile-nav-item relative z-10 flex flex-col items-center justify-center py-1 transition-transform active:scale-95 -mt-3">
-      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-700 via-brand-600 to-emerald-400 text-white flex items-center justify-center shadow-md shadow-brand-600/30">
-        <i data-lucide="zap" class="w-6 h-6"></i>
+       class="mobile-nav-item flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all duration-150 active:scale-95 -mt-3 {% if '/practice/' in request.path %}border border-brand-300 dark:border-brand-500/50 bg-brand-50/70 dark:bg-navy-800 ring-2 ring-brand-500/20{% else %}border border-transparent{% endif %}">
+      <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-700 via-brand-600 to-emerald-400 text-white flex items-center justify-center shadow-md shadow-brand-600/30">
+        <i data-lucide="zap" class="w-5 h-5"></i>
       </div>
-      <span class="text-[10px] tracking-tight font-bold text-slate-800 dark:text-slate-200 mt-1">Practise</span>
+      <span class="text-[10px] tracking-tight font-bold text-slate-800 dark:text-slate-200 mt-0.5">Practise</span>
     </a>
 
     <!-- 4. Questions Library -->
@@ -60,7 +53,7 @@
        hx-select="#main-content" 
        hx-swap="innerHTML show:window:top" 
        hx-push-url="true"
-       class="mobile-nav-item relative z-10 flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-colors duration-150 {% if '/questions/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white{% endif %}">
+       class="mobile-nav-item flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 {% if '/questions/' in request.path %}bg-brand-50/80 dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-brand-200/90 dark:border-navy-700 shadow-sm{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white border border-transparent{% endif %}">
       <i data-lucide="layers" class="w-5 h-5 mb-0.5"></i>
       <span class="text-[10px] tracking-tight">Library</span>
     </a>
@@ -73,7 +66,7 @@
        hx-select="#main-content" 
        hx-swap="innerHTML show:window:top" 
        hx-push-url="true"
-       class="mobile-nav-item relative z-10 flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-colors duration-150 relative {% if '/progress/' in request.path %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white{% endif %}">
+       class="mobile-nav-item flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 relative {% if '/progress/' in request.path %}bg-brand-50/80 dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-brand-200/90 dark:border-navy-700 shadow-sm{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white border border-transparent{% endif %}">
       <i data-lucide="pie-chart" class="w-5 h-5 mb-0.5"></i>
       <span class="text-[10px] tracking-tight">Progress</span>
       {% if global_bookmark_count > 0 %}

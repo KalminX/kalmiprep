@@ -34,7 +34,38 @@ services:
       - ./practice:/app/practice
       - ./progress:/app/progress
       - ./accounts:/app/accounts
-      - /home/kalmin/startups/myschool-past-questions-scraper/myschool_dataset:/app/myschool_dataset:ro
+      - ./config:/app/config
+      - ./static:/app/static
+      - /home/kalmin/startups/myschool-past-questions-scraper/myschool_dataset:/app/myschool_dataset
+    networks:
+      - webproxy
+
+  worker:
+    build: .
+    container_name: kalmiprep-worker
+    restart: always
+    command: celery -A config worker -l info -c 3 -Q scraping,ingestion,default
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://kalmiprep_user:kalmiprep_secure_pass_2026@postgres-db:5432/kalmiprep_db
+      - REDIS_URL=redis://kalmiprep-redis:6379/1
+      - CELERY_BROKER_URL=amqp://kalmin:iamasaint@global-rabbitmq:5672//
+      - CELERY_RESULT_BACKEND=redis://kalmiprep-redis:6379/2
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+      - ./templates:/app/templates
+      - ./core:/app/core
+      - ./curriculum:/app/curriculum
+      - ./questions:/app/questions
+      - ./practice:/app/practice
+      - ./progress:/app/progress
+      - ./accounts:/app/accounts
+      - ./config:/app/config
+      - /home/kalmin/startups/myschool-past-questions-scraper/myschool_dataset:/app/myschool_dataset
     networks:
       - webproxy
 

@@ -12,8 +12,8 @@
   const ignoredPatterns = [
     /\/admin\//,
     /\/accounts\//,
-    /\/session\/\d+\/finish\//,
-    /\/session\/\d+\/submit\//,
+    /\/practice\/session\//,
+    /\/session\/\d+/,
     /\/logout\//,
     /#/
   ];

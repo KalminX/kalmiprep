@@ -65,6 +65,9 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.kalmiprep_global_context",
             ],
+            "builtins": [
+                "core.templatetags.kalmi_tags",
+            ],
         },
     },
 ]
@@ -129,13 +132,63 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# ==============================================================================
+# Cloudflare R2 Object Storage (Production & CDN)
+# ==============================================================================
+USE_S3_STORAGE = os.getenv("USE_S3_STORAGE", "True").lower() in ("true", "1", "yes")
+R2_BUCKET_NAME = os.getenv("R2_BUCKET_NAME", "edusphere").strip()
+R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID", "").strip()
+R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY", "").strip()
+R2_ENDPOINT_URL = os.getenv("R2_ENDPOINT_URL", "").strip()
+R2_CUSTOM_DOMAIN = os.getenv("R2_CUSTOM_DOMAIN", "").strip()
+
+if USE_S3_STORAGE and R2_BUCKET_NAME and R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY:
+    if "storages" not in INSTALLED_APPS:
+        INSTALLED_APPS.append("storages")
+
+    AWS_STORAGE_BUCKET_NAME = R2_BUCKET_NAME
+    AWS_ACCESS_KEY_ID = R2_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY = R2_SECRET_ACCESS_KEY
+    AWS_S3_ENDPOINT_URL = R2_ENDPOINT_URL
+    AWS_S3_REGION_NAME = "auto"
+    AWS_S3_SIGNATURE_VERSION = "s3v4"
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_DEFAULT_ACL = None
+    AWS_LOCATION = "kalmiprep"
+
+    AWS_QUERYSTRING_AUTH = True
+    AWS_QUERYSTRING_EXPIRE = 86400  # 24 hours valid signed URLs
+
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "access_key": AWS_ACCESS_KEY_ID,
+                "secret_key": AWS_SECRET_ACCESS_KEY,
+                "bucket_name": AWS_STORAGE_BUCKET_NAME,
+                "endpoint_url": AWS_S3_ENDPOINT_URL,
+                "region_name": AWS_S3_REGION_NAME,
+                "signature_version": AWS_S3_SIGNATURE_VERSION,
+                "file_overwrite": AWS_S3_FILE_OVERWRITE,
+                "location": AWS_LOCATION,
+                "querystring_auth": AWS_QUERYSTRING_AUTH,
+                "querystring_expire": AWS_QUERYSTRING_EXPIRE,
+                "custom_domain": R2_CUSTOM_DOMAIN if R2_CUSTOM_DOMAIN else None,
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
+
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # WhiteNoise storage for efficient static file serving
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Caching Engine (Redis with LocMem fallback)
 REDIS_URL = os.getenv("REDIS_URL")
@@ -158,3 +211,12 @@ else:
             "TIMEOUT": 1800,
         }
     }
+
+# Celery & RabbitMQ Distributed Ingestion Engine
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://kalmin:iamasaint@global-rabbitmq:5672//")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://kalmiprep-redis:6379/2")
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_DEFAULT_QUEUE = "default"
