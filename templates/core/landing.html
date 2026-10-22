@@ -1,123 +1,117 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}KalmiPrep — Understand Every Topic. Prepare For Every Question.{% endblock %}
+{% block title %}KalmiPrep — Nigerian Exam Preparation for UTME, WAEC & NECO{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-32">
-  <!-- Subtle Gradient Glow Background -->
-  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-brand-500/10 via-brand-500/5 to-transparent pointer-events-none blur-3xl -z-10"></div>
-  
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center max-w-3xl mx-auto space-y-6">
-      
-      <!-- Kalmitech Eyebrow Badge -->
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 shadow-sm gsap-fade-in">
-        <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
-        <span>A Premium EdTech Platform by <strong>Kalmitech</strong></span>
-      </div>
-
-      <!-- Main Headline -->
-      <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-[1.15] gsap-fade-in">
-        Understand every topic. <br class="hidden sm:inline">
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-emerald-600 to-teal-500 dark:from-brand-400 dark:via-emerald-400 dark:to-teal-300">
-          Prepare for every question.
-        </span>
-      </h1>
-
-      <!-- Supporting Statement -->
-      <p class="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-normal gsap-fade-in">
-        Stop memorising answers blindly. KalmiPrep helps Nigerian students master <strong>Mathematics</strong>, <strong>Chemistry</strong>, and <strong>Physics</strong> for <strong>UTME/JAMB</strong>, <strong>WAEC</strong>, and <strong>NECO</strong> through deliberate topic practice and step-by-step mathematical reasoning.
-      </p>
-
-      <!-- Action Buttons -->
-      <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5 gsap-fade-in">
-        <a href="{% url 'practice:setup' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-white bg-brand-600 hover:bg-brand-700 active:bg-brand-800 rounded-xl shadow-lg shadow-brand-600/25 transition-all group">
-          <i data-lucide="zap" class="w-5 h-5 text-brand-200 group-hover:scale-110 transition-transform"></i>
-          <span>Start Practising Now</span>
-        </a>
-        <a href="#subjects-catalog" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-base font-semibold text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 border border-slate-300 dark:border-navy-700 hover:bg-slate-50 dark:hover:bg-navy-700 rounded-xl shadow-sm transition-all">
-          <i data-lucide="compass" class="w-5 h-5 text-slate-500"></i>
-          <span>Explore Subjects</span>
-        </a>
-      </div>
-
-      <!-- Real Live Metrics Banner -->
-      <div class="pt-8 sm:pt-10 grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-left border-t border-slate-200/80 dark:border-navy-800">
-        <div class="p-2.5 sm:p-3 bg-slate-50/60 dark:bg-navy-900/60 rounded-xl border border-slate-200/50 dark:border-navy-800/50">
-          <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-mono">{{ total_questions }}+</div>
-          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Verified Questions</div>
-        </div>
-        <div class="p-2.5 sm:p-3 bg-slate-50/60 dark:bg-navy-900/60 rounded-xl border border-slate-200/50 dark:border-navy-800/50">
-          <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-mono">{{ total_topics }}</div>
-          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Syllabus Topics</div>
-        </div>
-        <div class="p-2.5 sm:p-3 bg-slate-50/60 dark:bg-navy-900/60 rounded-xl border border-slate-200/50 dark:border-navy-800/50">
-          <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-mono">{{ total_with_solutions }}+</div>
-          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Worked Solutions</div>
-        </div>
-        <div class="p-2.5 sm:p-3 bg-slate-50/60 dark:bg-navy-900/60 rounded-xl border border-slate-200/50 dark:border-navy-800/50">
-          <div class="text-sm sm:text-lg font-bold text-slate-900 dark:text-white font-mono leading-snug">UTME &bull; WAEC &bull; NECO</div>
-          <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">Official Exams</div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- Subject Catalog Section -->
-<section id="subjects-catalog" class="py-16 bg-white dark:bg-navy-900 border-y border-slate-200 dark:border-navy-800 transition-colors">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<!-- Academic Hero Section -->
+<section class="border-b border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900/60 py-12 md:py-20 transition-colors">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
     
-    <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-      <div>
-        <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Curriculum Catalog</span>
-        <h2 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">Available Science & STEM Subjects</h2>
-        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
-          Structured according to the official Nigerian exam syllabus. Select any subject to explore topics or launch focused practice.
-        </p>
-      </div>
-      <a href="{% url 'curriculum:subject_list' %}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300">
-        View All Subjects &rarr;
+    <!-- Verified Curriculum Tag -->
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-navy-700 mb-6">
+      <i data-lucide="book-open" class="w-3.5 h-3.5 text-brand-600 dark:text-brand-400"></i>
+      <span>Official Examination Syllabus &bull; UTME &bull; WAEC &bull; NECO</span>
+    </div>
+
+    <!-- Clear, Authoritative Headline -->
+    <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
+      Understand every topic.<br>
+      Prepare for every question.
+    </h1>
+
+    <!-- Direct Subtitle -->
+    <p class="text-base sm:text-lg text-slate-600 dark:text-slate-300 mt-5 max-w-2xl mx-auto leading-relaxed">
+      Deliberate exam preparation with verified Nigerian past questions, step-by-step mathematical reasoning, and realistic CBT mock examinations for Mathematics, Chemistry, and Physics.
+    </p>
+
+    <!-- Primary Action Buttons -->
+    <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
+      <a href="{% url 'practice:setup' %}" class="w-full sm:w-auto btn-primary py-3 px-6 text-sm font-bold flex items-center justify-center gap-2 shadow-sm min-h-[44px]">
+        <i data-lucide="play" class="w-4 h-4"></i>
+        <span>Start Free Practice</span>
+      </a>
+      <a href="{% url 'curriculum:subject_list' %}" class="w-full sm:w-auto btn-secondary py-3 px-6 text-sm font-semibold flex items-center justify-center gap-2 min-h-[44px]">
+        <i data-lucide="list" class="w-4 h-4 text-slate-500"></i>
+        <span>Explore Syllabus Topics</span>
       </a>
     </div>
 
-    <!-- 3 Subject Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <!-- Live Academic Data Summary -->
+    <div class="mt-12 pt-8 border-t border-slate-100 dark:border-navy-800 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+      <div class="p-3">
+        <div class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white">{{ total_questions }}+</div>
+        <div class="text-xs text-slate-500 font-medium mt-0.5">Verified Past Questions</div>
+      </div>
+      <div class="p-3">
+        <div class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white">{{ total_topics }}</div>
+        <div class="text-xs text-slate-500 font-medium mt-0.5">Syllabus Topics Mapped</div>
+      </div>
+      <div class="p-3">
+        <div class="text-2xl sm:text-3xl font-bold font-mono text-slate-900 dark:text-white">{{ total_with_solutions }}+</div>
+        <div class="text-xs text-slate-500 font-medium mt-0.5">Step-by-Step Solutions</div>
+      </div>
+      <div class="p-3">
+        <div class="text-sm sm:text-base font-bold font-mono text-slate-800 dark:text-slate-200 mt-1.5">UTME / WAEC / NECO</div>
+        <div class="text-xs text-slate-500 font-medium mt-0.5">Standard Exam Formats</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- Subject Catalog -->
+<section class="py-14 bg-slate-50 dark:bg-navy-950">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Available Subjects</h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          Select a subject to browse topic breakdowns, subtopic syllabi, and practice past papers.
+        </p>
+      </div>
+      <a href="{% url 'curriculum:subject_list' %}" class="text-xs sm:text-sm font-semibold text-brand-600 dark:text-brand-400 hover:underline inline-flex items-center gap-1">
+        <span>View all subjects</span>
+        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       {% for subj in subjects %}
-      <div class="card-premium p-6 flex flex-col justify-between group hover:-translate-y-1 transition-all">
+      <div class="card-premium p-6 flex flex-col justify-between hover:border-slate-300 dark:hover:border-navy-700 transition-all">
         <div>
-          <!-- Icon & Code Header -->
+          <!-- Subject Header -->
           <div class="flex items-center justify-between mb-4">
-            <div class="w-12 h-12 rounded-xl flex items-center justify-center {% if subj.color_theme == 'math' %}bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800{% elif subj.color_theme == 'chem' %}bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800{% else %}bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800{% endif %}">
-              <i data-lucide="{{ subj.icon_name }}" class="w-6 h-6"></i>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center font-bold {% if subj.color_theme == 'math' %}bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300{% elif subj.color_theme == 'chem' %}bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300{% else %}bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300{% endif %}">
+                <i data-lucide="{{ subj.icon_name }}" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">{{ subj.name }}</h3>
+                <span class="text-xs text-slate-500 font-mono">{{ subj.code }}</span>
+              </div>
             </div>
-            <span class="text-xs font-mono font-semibold px-2.5 py-1 rounded-md bg-slate-100 dark:bg-navy-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-navy-700">
-              {{ subj.code }}
+            <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300">
+              {{ subj.question_count }} Qs
             </span>
           </div>
 
-          <h3 class="text-xl font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
-            {{ subj.name }}
-          </h3>
-
-          <p class="text-xs text-slate-600 dark:text-slate-400 mt-2 line-clamp-3">
+          <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
             {{ subj.description }}
           </p>
 
-          <!-- Core Topics Chips -->
-          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-navy-800">
-            <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-2">Featured Topics:</span>
+          <!-- Featured Topics Preview -->
+          <div class="pt-3 border-t border-slate-100 dark:border-navy-800">
+            <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-2">Curriculum Topics:</span>
             <div class="flex flex-wrap gap-1.5">
               {% for topic in subj.topics.all|slice:":4" %}
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300">
+              <a href="{% url 'curriculum:topic_detail' subj.slug topic.slug %}" class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700 transition-colors">
                 {{ topic.name }}
-              </span>
+              </a>
               {% endfor %}
               {% if subj.topics.count > 4 %}
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] text-slate-500">
+              <span class="text-[11px] text-slate-400 py-0.5 px-1 font-mono">
                 +{{ subj.topics.count|add:"-4" }} more
               </span>
               {% endif %}
@@ -125,14 +119,12 @@
           </div>
         </div>
 
-        <!-- Footer Actions -->
         <div class="mt-6 pt-4 border-t border-slate-100 dark:border-navy-800 flex items-center justify-between">
-          <div class="text-xs text-slate-500 dark:text-slate-400">
-            <span class="font-bold text-slate-800 dark:text-slate-200 font-mono">{{ subj.question_count }}</span> Questions Available
-          </div>
-          <a href="{% url 'curriculum:subject_detail' subj.slug %}" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700">
-            <span>Explore Topics</span>
-            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          <a href="{% url 'practice:setup' %}?subject={{ subj.slug }}" class="btn-primary text-xs py-2 px-3.5 min-h-[38px]">
+            Practise Now
+          </a>
+          <a href="{% url 'curriculum:subject_detail' subj.slug %}" class="btn-secondary text-xs py-2 px-3 min-h-[38px]">
+            Syllabus &rarr;
           </a>
         </div>
       </div>
@@ -142,77 +134,58 @@
   </div>
 </section>
 
-<!-- The Deliberate Learning Cycle Philosophy -->
-<section class="py-20">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<!-- Deliberate Practice Methodology (Academic Foundation) -->
+<section class="py-16 bg-white dark:bg-navy-900 border-t border-slate-200 dark:border-navy-800">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
     
-    <div class="text-center max-w-2xl mx-auto mb-16">
-      <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">The Learning Engine</span>
-      <h2 class="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mt-1">Why KalmiPrep Works: The 6-Step Cycle</h2>
-      <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">
-        Instead of answering random question dumps without feedback, KalmiPrep structures your preparation into an iterative cycle of mastery.
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+        Built for Real Understanding, Not Rote Memorization
+      </h2>
+      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-2">
+        Most CBT tools only test speed and score. KalmiPrep focuses on the pedagogical learning cycle to eliminate conceptual blind spots.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
       
-      <div class="bg-white dark:bg-navy-900 p-5 rounded-xl border border-slate-200 dark:border-navy-800 space-y-3">
-        <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold text-sm">
-          1
+      <div class="p-5 rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-50/50 dark:bg-navy-850">
+        <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-xs font-mono mb-3">
+          01
         </div>
-        <h4 class="font-bold text-slate-900 dark:text-white text-base">Teach</h4>
-        <p class="text-xs text-slate-600 dark:text-slate-400">
-          Break syllabus into digestible topics and learn the core formulas and underlying concepts.
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Topic-Based Practice</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+          Master specific syllabus topics (e.g. Surds, Gas Laws, Wave Motion) before attempting mixed full mocks.
         </p>
       </div>
 
-      <div class="bg-white dark:bg-navy-900 p-5 rounded-xl border border-slate-200 dark:border-navy-800 space-y-3">
-        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
-          2
+      <div class="p-5 rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-50/50 dark:bg-navy-850">
+        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-xs font-mono mb-3">
+          02
         </div>
-        <h4 class="font-bold text-slate-900 dark:text-white text-base">Practise</h4>
-        <p class="text-xs text-slate-600 dark:text-slate-400">
-          Solve topic-specific questions with instant feedback and step-by-step mathematical working.
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Step-by-Step Working</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+          Every solution shows the exact mathematical derivation, intermediate working, and underlying physical principles.
         </p>
       </div>
 
-      <div class="bg-white dark:bg-navy-900 p-5 rounded-xl border border-slate-200 dark:border-navy-800 space-y-3">
-        <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-sm">
-          3
+      <div class="p-5 rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-50/50 dark:bg-navy-850">
+        <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold text-xs font-mono mb-3">
+          03
         </div>
-        <h4 class="font-bold text-slate-900 dark:text-white text-base">Test</h4>
-        <p class="text-xs text-slate-600 dark:text-slate-400">
-          Sit for realistic timed assessments and CBT mocks under genuine exam conditions.
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Timed CBT Simulator</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+          Experience realistic JAMB/WAEC exam software conditions with question flags, timing pressure, and keyboard navigation.
         </p>
       </div>
 
-      <div class="bg-white dark:bg-navy-900 p-5 rounded-xl border border-slate-200 dark:border-navy-800 space-y-3">
-        <div class="w-8 h-8 rounded-lg bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold text-sm">
-          4
+      <div class="p-5 rounded-xl border border-slate-200 dark:border-navy-800 bg-slate-50/50 dark:bg-navy-850">
+        <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs font-mono mb-3">
+          04
         </div>
-        <h4 class="font-bold text-slate-900 dark:text-white text-base">Diagnose</h4>
-        <p class="text-xs text-slate-600 dark:text-slate-400">
-          The platform detects exactly which subtopics you scored below 60% in and highlights gaps.
-        </p>
-      </div>
-
-      <div class="bg-white dark:bg-navy-900 p-5 rounded-xl border border-slate-200 dark:border-navy-800 space-y-3">
-        <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold text-sm">
-          5
-        </div>
-        <h4 class="font-bold text-slate-900 dark:text-white text-base">Revise</h4>
-        <p class="text-xs text-slate-600 dark:text-slate-400">
-          Revisit flagged questions, personal bookmarks, and solutions until you conquer the concept.
-        </p>
-      </div>
-
-      <div class="bg-white dark:bg-navy-900 p-5 rounded-xl border border-slate-200 dark:border-navy-800 space-y-3">
-        <div class="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-950 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-sm">
-          6
-        </div>
-        <h4 class="font-bold text-slate-900 dark:text-white text-base">Improve</h4>
-        <p class="text-xs text-slate-600 dark:text-slate-400">
-          Watch your accuracy and speed climb steadily, building unshakable confidence for exam day.
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Weak-Area Diagnostics</h3>
+        <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+          The scoring system breaks down performance by topic, identifying areas below 60% that require immediate revision.
         </p>
       </div>
 
@@ -221,42 +194,36 @@
   </div>
 </section>
 
-<!-- Interactive Question & KaTeX Experience Preview -->
+<!-- Authentic Past Question Demonstration -->
 {% if preview_question %}
-<section class="py-16 bg-slate-100/70 dark:bg-navy-900/60 border-t border-slate-200 dark:border-navy-800">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-8">
-      <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Product Experience</span>
-      <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1">Pristine Mathematical LaTeX Rendering</h2>
-      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-        Every formula, fraction, radical, and chemical symbol renders with desktop typography and mobile responsiveness.
-      </p>
+<section class="py-14 bg-slate-50 dark:bg-navy-950 border-t border-slate-200 dark:border-navy-800">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-6">
+      <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Sample Past Question</span>
+      <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-1">Accurate Mathematical & Scientific Formatting</h2>
     </div>
 
-    <!-- Interactive Sample Card -->
-    <div class="card-premium p-6 sm:p-8 bg-white dark:bg-navy-900 shadow-elevated">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-navy-800 mb-6">
+    <div class="card-premium p-5 sm:p-7 bg-white dark:bg-navy-900">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-navy-800 mb-4 text-xs">
         <div class="flex items-center gap-2">
-          <span class="badge-tag bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 font-mono text-xs">
+          <span class="badge-tag bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold font-mono">
             {{ preview_question.exam_badge_label }}
           </span>
-          <span class="text-xs text-slate-500 font-medium">
+          <span class="text-slate-600 dark:text-slate-400 font-medium">
             {{ preview_question.topic.name }}
           </span>
         </div>
-        <span class="text-xs font-mono text-slate-400">Sample Question</span>
+        <span class="text-slate-400 font-mono text-[11px]">Official Past Question</span>
       </div>
 
-      <!-- Question Text with KaTeX -->
-      <div class="text-base sm:text-lg font-medium text-slate-900 dark:text-white leading-relaxed mb-6 font-sans">
+      <div class="text-sm sm:text-base font-medium text-slate-900 dark:text-white leading-relaxed mb-4 overflow-x-auto">
         {{ preview_question.question_text|safe }}
       </div>
 
-      <!-- Answer Options Grid -->
-      <div class="space-y-3 mb-6">
+      <div class="space-y-2 mb-4">
         {% for opt in preview_question.options.all %}
-        <div class="flex items-center gap-3 p-3.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-slate-50/50 dark:bg-navy-800/40 text-sm font-medium">
-          <span class="w-6 h-6 rounded-lg bg-slate-200 dark:bg-navy-700 text-slate-700 dark:text-slate-300 flex items-center justify-center text-xs font-bold font-mono">
+        <div class="flex items-center gap-2.5 p-2.5 rounded-lg border border-slate-200 dark:border-navy-800 text-xs sm:text-sm">
+          <span class="w-6 h-6 rounded bg-slate-100 dark:bg-navy-800 font-bold font-mono text-xs flex items-center justify-center shrink-0">
             {{ opt.tag }}
           </span>
           <span class="text-slate-800 dark:text-slate-200">
@@ -266,17 +233,16 @@
         {% endfor %}
       </div>
 
-      <!-- Expandable Working Solution -->
-      <div class="pt-4 border-t border-slate-100 dark:border-navy-800">
+      <div class="pt-3 border-t border-slate-100 dark:border-navy-800">
         <details class="group">
-          <summary class="flex items-center justify-between cursor-pointer list-none text-sm font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700">
-            <span class="flex items-center gap-2">
+          <summary class="flex items-center justify-between cursor-pointer list-none text-xs sm:text-sm font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700">
+            <span class="flex items-center gap-1.5">
               <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-              <span>View Step-by-Step Mathematical Working</span>
+              <span>View Worked Solution</span>
             </span>
             <i data-lucide="chevron-down" class="w-4 h-4 group-open:rotate-180 transition-transform"></i>
           </summary>
-          <div class="mt-4 p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-sans leading-relaxed whitespace-pre-line">
+          <div class="mt-3 p-3.5 rounded-lg bg-slate-50 dark:bg-navy-950 border border-slate-200 dark:border-navy-800 text-xs text-slate-700 dark:text-slate-300 leading-relaxed overflow-x-auto">
             {{ preview_question.explanation|safe }}
           </div>
         </details>
@@ -286,21 +252,21 @@
 </section>
 {% endif %}
 
-<!-- Bottom Call to Action -->
-<section class="py-20 bg-gradient-to-br from-brand-900 via-navy-950 to-slate-950 text-white relative overflow-hidden">
-  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
-    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
-      Ready to elevate your examination score?
+<!-- Clean Bottom Banner -->
+<section class="py-12 bg-slate-900 text-white border-t border-slate-800">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">
+      Start Preparing with Verified Questions Today
     </h2>
-    <p class="text-slate-300 max-w-xl mx-auto text-base">
-      Begin with free topic practice today. Understand every concept, time your attempts, and step into the examination hall with mastery.
+    <p class="text-xs sm:text-sm text-slate-400 max-w-lg mx-auto">
+      Free deliberate practice across all syllabus topics. No credit card required.
     </p>
-    <div class="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-      <a href="{% url 'practice:setup' %}" class="w-full sm:w-auto px-8 py-3.5 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold rounded-xl shadow-lg transition-all">
-        Start Free Practice Session &rarr;
+    <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+      <a href="{% url 'practice:setup' %}" class="btn-primary py-2.5 px-6 text-sm font-bold w-full sm:w-auto min-h-[44px]">
+        Launch Practice Session
       </a>
-      <a href="{% url 'questions:question_list' %}" class="w-full sm:w-auto px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition-all">
-        Browse Question Library
+      <a href="{% url 'questions:question_list' %}" class="btn-secondary py-2.5 px-6 text-sm font-semibold w-full sm:w-auto min-h-[44px] bg-slate-800 text-white border-slate-700 hover:bg-slate-700">
+        Browse All Questions
       </a>
     </div>
   </div>
