@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404, render
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -44,13 +45,13 @@ def question_list(request):
     context = {
         "filter": filterset,
         "page_obj": page_obj,
-        "total_results": filtered_qs.count(),
+        "total_results": paginator.count,
         "bookmarked_ids": bookmarked_ids,
         "sort": sort,
     }
 
-    # If request is HTMX, return only the results container partial
-    if request.headers.get("HX-Request"):
+    # If request is an HTMX query targeting the internal results container, return only the results partial
+    if request.headers.get("HX-Request") and request.headers.get("HX-Target") == "question-results-container":
         return render(request, "questions/partials/question_results_list.html", context)
 
     return render(request, "questions/question_list.html", context)
@@ -61,37 +62,55 @@ def study_question(request, pk):
     Study Mode for a single question.
     Displays full question, KaTeX formulas, diagrams, options, and toggleable step-by-step solution.
     Provides previous/next navigation within the subject/topic context.
+    Question details are cached in Redis with instant response.
     """
-    question = get_object_or_404(
-        Question.objects.select_related("subject", "topic").prefetch_related("options"),
-        pk=pk,
-        is_published=True,
-    )
+    cache_key = f"kalmiprep:q:study:{pk}"
+    cached_payload = cache.get(cache_key)
 
-    # Contextual Prev / Next questions within same subject
-    prev_question = (
-        Question.objects.filter(subject=question.subject, is_published=True, id__lt=question.id)
-        .order_by("-id")
-        .first()
-    )
-    next_question = (
-        Question.objects.filter(subject=question.subject, is_published=True, id__gt=question.id)
-        .order_by("id")
-        .first()
-    )
+    if cached_payload is None:
+        question = get_object_or_404(
+            Question.objects.select_related("subject", "topic").prefetch_related("options"),
+            pk=pk,
+            is_published=True,
+        )
+        options = list(question.options.all())
+        prev_question_id = (
+            Question.objects.filter(subject=question.subject, is_published=True, id__lt=question.id)
+            .order_by("-id")
+            .values_list("id", flat=True)
+            .first()
+        )
+        next_question_id = (
+            Question.objects.filter(subject=question.subject, is_published=True, id__gt=question.id)
+            .order_by("id")
+            .values_list("id", flat=True)
+            .first()
+        )
+        cached_payload = {
+            "question": question,
+            "options": options,
+            "prev_question_id": prev_question_id,
+            "next_question_id": next_question_id,
+        }
+        cache.set(cache_key, cached_payload, 3600)
 
-    # Check bookmark status
+    question = cached_payload["question"]
+    options = cached_payload["options"]
+    prev_question_id = cached_payload["prev_question_id"]
+    next_question_id = cached_payload["next_question_id"]
+
+    # Check bookmark status (user-isolated, evaluated dynamically)
     is_bookmarked = False
     if request.user.is_authenticated:
-        is_bookmarked = Bookmark.objects.filter(user=request.user, question=question).exists()
+        is_bookmarked = Bookmark.objects.filter(user=request.user, question_id=pk).exists()
     elif request.session.session_key:
-        is_bookmarked = Bookmark.objects.filter(session_key=request.session.session_key, question=question).exists()
+        is_bookmarked = Bookmark.objects.filter(session_key=request.session.session_key, question_id=pk).exists()
 
     context = {
         "question": question,
-        "options": question.options.all(),
-        "prev_question": prev_question,
-        "next_question": next_question,
+        "options": options,
+        "prev_question": {"id": prev_question_id} if prev_question_id else None,
+        "next_question": {"id": next_question_id} if next_question_id else None,
         "is_bookmarked": is_bookmarked,
     }
     return render(request, "questions/study_question.html", context)

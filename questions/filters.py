@@ -1,6 +1,7 @@
 import django_filters
 from django import forms
 from django.db.models import Q
+from core.cache_utils import get_cached_filter_choices
 from curriculum.models import Subject, Topic
 from questions.models import Question
 
@@ -15,8 +16,8 @@ class QuestionFilter(django_filters.FilterSet):
             }
         ),
     )
-    subject = django_filters.ModelChoiceFilter(
-        queryset=Subject.objects.filter(is_active=True),
+    subject = django_filters.ChoiceFilter(
+        field_name="subject_id",
         empty_label="All Subjects",
         widget=forms.Select(
             attrs={
@@ -33,8 +34,8 @@ class QuestionFilter(django_filters.FilterSet):
             }
         ),
     )
-    topic = django_filters.ModelChoiceFilter(
-        queryset=Topic.objects.all(),
+    topic = django_filters.ChoiceFilter(
+        field_name="topic_id",
         empty_label="All Topics",
         widget=forms.Select(
             attrs={
@@ -71,6 +72,16 @@ class QuestionFilter(django_filters.FilterSet):
     class Meta:
         model = Question
         fields = ["search", "subject", "exam_type", "topic", "has_image", "has_explanation"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        choices_data = get_cached_filter_choices()
+        self.filters["subject"].extra["choices"] = [("", "All Subjects")] + [
+            (str(sid), sname) for sid, sname in choices_data["subjects"]
+        ]
+        self.filters["topic"].extra["choices"] = [("", "All Topics")] + [
+            (str(tid), tname) for tid, tname in choices_data["topics"]
+        ]
 
     def filter_search(self, queryset, name, value):
         if not value:

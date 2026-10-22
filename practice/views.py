@@ -2,10 +2,12 @@ import random
 from decimal import Decimal
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
+from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import Count, Q
 
+from core.cache_utils import get_cached_practice_setup_data
 from curriculum.models import Subject, Topic
 from questions.models import Question, Option
 from practice.models import PracticeSession, PracticeQuestionResponse
@@ -16,7 +18,7 @@ def practice_setup(request):
     """
     Setup wizard for launching Topic Practice, Timed Assessments, or CBT Mocks.
     """
-    subjects = Subject.objects.filter(is_active=True).prefetch_related("topics")
+    subjects = get_cached_practice_setup_data()["subjects"]
     
     if request.method == "POST":
         subject_id = request.POST.get("subject")
@@ -24,6 +26,79 @@ def practice_setup(request):
         mode = request.POST.get("mode", PracticeSession.Mode.TOPIC_PRACTICE)
         question_count = int(request.POST.get("question_count", 10))
         exam_type = request.POST.get("exam_type", "")
+
+        # Special handling for Official JAMB Standard UTME Mock
+        if mode == PracticeSession.Mode.JAMB_FULL_MOCK:
+            # 1. Mandatory English Language (target 60 questions)
+            eng_subject = Subject.objects.filter(slug__in=["english-language", "english"]).first()
+            # 2. 3 Elective Subjects (target 40 questions each)
+            elective_ids = request.POST.getlist("electives")
+            if elective_ids:
+                electives = list(Subject.objects.filter(pk__in=elective_ids, is_active=True)[:3])
+            else:
+                electives = list(
+                    Subject.objects.filter(is_active=True)
+                    .exclude(id=eng_subject.id if eng_subject else 0)[:3]
+                )
+
+            selected_ids = []
+            if eng_subject:
+                eng_qs = list(Question.objects.filter(subject=eng_subject, is_published=True).values_list("id", flat=True))
+                count_eng = min(len(eng_qs), 60)
+                if count_eng > 0:
+                    selected_ids.extend(random.sample(eng_qs, count_eng))
+
+            for subj in electives:
+                subj_qs = list(Question.objects.filter(subject=subj, is_published=True).values_list("id", flat=True))
+                count_subj = min(len(subj_qs), 40)
+                if count_subj > 0:
+                    selected_ids.extend(random.sample(subj_qs, count_subj))
+
+            # If under 180 questions, supplement from available UTME questions pool
+            if len(selected_ids) < 180:
+                deficit = 180 - len(selected_ids)
+                pool_subjs = ([eng_subject] if eng_subject else []) + electives
+                supp_pool = list(
+                    Question.objects.filter(subject__in=pool_subjs, is_published=True)
+                    .exclude(id__in=selected_ids)
+                    .values_list("id", flat=True)
+                )
+                if supp_pool:
+                    selected_ids.extend(random.sample(supp_pool, min(len(supp_pool), deficit)))
+
+            if not selected_ids:
+                messages.error(request, "No past questions available for the selected JAMB subjects.")
+                return redirect("practice:setup")
+
+            subject_names = [s.name for s in electives]
+            title = f"JAMB Standard UTME Mock — English + {', '.join(subject_names)}"
+            time_limit = 7200  # Exact JAMB UTME standard: 120 minutes (2 hours)
+
+            if not request.session.session_key:
+                request.session.create()
+            session_key = request.session.session_key
+
+            practice_session = PracticeSession.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                session_key=session_key,
+                mode=mode,
+                title=title,
+                subject=None,
+                topic=None,
+                exam_type="UTME",
+                total_questions=len(selected_ids),
+                time_limit_seconds=time_limit,
+                status=PracticeSession.Status.IN_PROGRESS,
+            )
+
+            for idx, qid in enumerate(selected_ids, start=1):
+                PracticeQuestionResponse.objects.create(
+                    session=practice_session,
+                    question_id=qid,
+                    order=idx,
+                )
+
+            return redirect("practice:session_view", session_id=practice_session.id)
 
         subject = get_object_or_404(Subject, pk=subject_id)
         topic = Topic.objects.filter(pk=topic_id).first() if topic_id else None
@@ -52,8 +127,17 @@ def practice_setup(request):
         # Determine time limit
         time_limit = 0
         if mode in [PracticeSession.Mode.TIMED_TEST, PracticeSession.Mode.CBT_MOCK]:
-            # Default 1.2 minutes per question
-            time_limit = len(selected_ids) * 72
+            time_limit_minutes = request.POST.get("time_limit_minutes")
+            if time_limit_minutes:
+                try:
+                    tl_mins = int(time_limit_minutes)
+                    if tl_mins > 0:
+                        time_limit = tl_mins * 60
+                except (ValueError, TypeError):
+                    pass
+            if time_limit == 0:
+                # Default 1.2 minutes per question
+                time_limit = len(selected_ids) * 72
 
         # Create session
         if not request.session.session_key:
@@ -117,6 +201,12 @@ def session_view(request, session_id):
     if session.status == PracticeSession.Status.COMPLETED:
         return redirect("practice:session_results", session_id=session.id)
 
+    # Auto-complete if timed session has expired on server
+    if session.time_limit_seconds > 0 and session.is_expired:
+        session.time_spent_seconds = session.time_limit_seconds
+        session.calculate_results()
+        return redirect("practice:session_results", session_id=session.id)
+
     responses = (
         session.responses.all()
         .select_related("question", "question__topic", "selected_option")
@@ -131,6 +221,24 @@ def session_view(request, session_id):
 
     current_resp = responses[q_index - 1]
 
+    # For multi-subject JAMB mocks, calculate subject navigation tabs
+    subject_tabs = []
+    seen_subjects = {}
+    for r in responses:
+        sid = r.question.subject_id
+        if sid not in seen_subjects:
+            subj_tab = {
+                "id": sid,
+                "name": r.question.subject.name,
+                "code": r.question.subject.code,
+                "first_order": r.order,
+                "count": 0,
+                "is_active": (r.question.subject_id == current_resp.question.subject_id),
+            }
+            seen_subjects[sid] = subj_tab
+            subject_tabs.append(subj_tab)
+        seen_subjects[sid]["count"] += 1
+
     context = {
         "session": session,
         "responses": responses,
@@ -139,12 +247,34 @@ def session_view(request, session_id):
         "total_count": responses.count(),
         "prev_index": q_index - 1 if q_index > 1 else None,
         "next_index": q_index + 1 if q_index < responses.count() else None,
+        "time_remaining_seconds": session.time_remaining_seconds,
+        "expires_at_iso": session.expires_at.isoformat() if session.expires_at else "",
+        "subject_tabs": subject_tabs,
     }
 
     if session.mode == PracticeSession.Mode.TOPIC_PRACTICE:
         return render(request, "practice/topic_practice.html", context)
     else:
         return render(request, "practice/cbt_exam.html", context)
+
+
+def time_sync(request, session_id):
+    """
+    Lightweight JSON endpoint to cross-check time remaining with server time.
+    Accepts both GET and POST requests.
+    """
+    session = get_object_or_404(PracticeSession, pk=session_id)
+    is_expired = session.is_expired
+
+    if is_expired and session.status != PracticeSession.Status.COMPLETED:
+        session.time_spent_seconds = session.time_limit_seconds
+        session.calculate_results()
+
+    return JsonResponse({
+        "remaining_seconds": session.time_remaining_seconds,
+        "is_expired": is_expired,
+        "is_completed": session.is_completed,
+    })
 
 
 @require_POST
@@ -205,8 +335,14 @@ def finish_session(request, session_id):
     Finalizes an assessment, runs server-side scoring, records topic diagnostics, and shows results.
     """
     session = get_object_or_404(PracticeSession, pk=session_id)
-    time_spent = int(request.POST.get("total_time_spent", session.time_spent_seconds or 0))
-    session.time_spent_seconds = time_spent
+    if session.started_at:
+        elapsed_seconds = int((timezone.now() - session.started_at).total_seconds())
+        if session.time_limit_seconds > 0:
+            elapsed_seconds = min(session.time_limit_seconds, elapsed_seconds)
+        session.time_spent_seconds = max(0, elapsed_seconds)
+    else:
+        time_spent = int(request.POST.get("total_time_spent", session.time_spent_seconds or 0))
+        session.time_spent_seconds = time_spent
 
     # Calculate results
     session.calculate_results()

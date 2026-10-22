@@ -1,10 +1,10 @@
 from datetime import datetime
-from curriculum.models import Subject
+from core.cache_utils import get_cached_global_subjects
 from progress.models import Bookmark
 
 def kalmiprep_global_context(request):
     try:
-        subjects = Subject.objects.filter(is_active=True).order_by("order", "name")
+        subjects = get_cached_global_subjects()
     except Exception:
         subjects = []
 

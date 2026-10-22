@@ -24,9 +24,19 @@
       </div>
     </div>
 
-    <!-- Center/Right: Countdown Timer & Submit -->
-    <div class="flex items-center gap-2 sm:gap-4 shrink-0">
+    <!-- Center/Right: Calculator, Countdown Timer & Submit -->
+    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
       
+      <!-- Scientific Calculator Trigger Button -->
+      <button type="button" 
+              onclick="useKalmiStore.getState().toggleCalc()" 
+              class="btn-secondary py-1.5 sm:py-2 px-2.5 sm:px-3 text-xs flex items-center gap-1.5 min-h-[38px] sm:min-h-[44px] border-slate-300 dark:border-navy-700 shadow-sm" 
+              title="Open Scientific Calculator (Press Alt+C)">
+        <i data-lucide="calculator" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+        <span class="hidden sm:inline font-semibold">Calc</span>
+        <kbd class="hidden md:inline-block px-1.5 py-0.2 rounded bg-slate-100 dark:bg-navy-800 text-[10px] text-slate-500 font-mono border border-slate-200 dark:border-navy-700">Alt+C</kbd>
+      </button>
+
       <!-- Countdown Clock -->
       {% if session.time_limit_seconds > 0 %}
       <div class="flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-slate-100 dark:bg-navy-800 border border-slate-200 dark:border-navy-700">
@@ -46,6 +56,25 @@
     </div>
 
   </div>
+
+  <!-- JAMB Multi-Subject Navigation Tabs (Real UTME Subject Switcher) -->
+  {% if subject_tabs and subject_tabs|length > 1 %}
+  <div class="mb-4 p-2 rounded-2xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 shadow-sm flex items-center gap-2 overflow-x-auto no-scrollbar">
+    <div class="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0">
+      <i data-lucide="layers" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+      <span class="hidden sm:inline">Subjects:</span>
+    </div>
+    {% for tab in subject_tabs %}
+    <a href="?q={{ tab.first_order }}" 
+       class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0 {% if tab.is_active %}bg-brand-600 text-white shadow-sm ring-2 ring-brand-400{% else %}bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700{% endif %}">
+      <span>{{ tab.name }}</span>
+      <span class="px-1.5 py-0.5 rounded text-[10px] font-mono {% if tab.is_active %}bg-white/25 text-white{% else %}bg-slate-200 dark:bg-navy-700 text-slate-500 dark:text-slate-400{% endif %}">
+        {{ tab.count }} Qs
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <!-- Mobile Horizontal Quick Jump Ribbon (CBT Android/iOS UX) -->
   <div class="lg:hidden mb-4 p-3 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 shadow-sm">
@@ -108,9 +137,9 @@
         {% if current_resp.question.has_diagram %}
         <div class="mb-6 p-4 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200 dark:border-navy-800 text-center">
           {% if current_resp.question.image %}
-          <img src="{{ current_resp.question.image.url }}" alt="Diagram" class="max-h-64 mx-auto rounded-lg">
+          <img src="{{ current_resp.question.image.url }}" alt="Diagram" loading="lazy" decoding="async" class="max-h-64 mx-auto rounded-lg">
           {% elif current_resp.question.image_url %}
-          <img src="{{ current_resp.question.image_url }}" alt="Diagram" class="max-h-64 mx-auto rounded-lg">
+          <img src="{{ current_resp.question.image_url }}" alt="Diagram" loading="lazy" decoding="async" class="max-h-64 mx-auto rounded-lg">
           {% endif %}
         </div>
         {% endif %}
@@ -275,36 +304,16 @@
 
 {% block extra_js %}
 <script>
-  let timeRemaining = {{ session.time_limit_seconds }} - {{ session.time_spent_seconds|default:0 }};
-  const timerDisplay = document.getElementById('countdown-timer');
-  const timerInterval = setInterval(updateTimer, 1000);
-
-  function updateTimer() {
-    if (!timerDisplay) return;
-    if (timeRemaining <= 0) {
-      clearInterval(timerInterval);
-      timerDisplay.innerText = "00:00";
-      alert("Time is up! Your examination is being submitted automatically.");
-      document.getElementById('final-submit-form').submit();
-      return;
-    }
-
-    const mins = Math.floor(timeRemaining / 60);
-    const secs = timeRemaining % 60;
-    timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-
-    if (timeRemaining < 120) {
-      timerDisplay.classList.add('text-rose-600');
-    } else if (timeRemaining < 300) {
-      timerDisplay.classList.add('text-amber-600');
-    }
-
-    timeRemaining--;
-    const timeSpentField = document.getElementById('final-time-spent');
-    if (timeSpentField) {
-      timeSpentField.value = parseInt(timeSpentField.value || 0) + 1;
-    }
+  // Server-synced countdown timer managed by central Zustand store
+  {% if session.time_limit_seconds > 0 %}
+  if (window.useKalmiStore) {
+    useKalmiStore.getState().initTimer(
+      {{ session.id }},
+      {{ time_remaining_seconds|default:session.time_limit_seconds }},
+      "{% url 'practice:time_sync' session.id %}"
+    );
   }
+  {% endif %}
 
   function onSelectCBTOption(radio, tag) {
     document.querySelectorAll('.cbt-option-item').forEach(el => {
@@ -384,7 +393,7 @@
 <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border-t border-slate-200 dark:border-navy-800 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-xl transition-colors">
   <div class="flex items-center justify-between gap-2 max-w-lg mx-auto">
     {% if prev_index %}
-    <a href="?q={{ prev_index }}" class="btn-secondary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px]">
+    <a href="?q={{ prev_index }}" class="btn-secondary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1 min-h-[42px]">
       <i data-lucide="arrow-left" class="w-4 h-4"></i>
       <span>Prev</span>
     </a>
@@ -392,18 +401,23 @@
     <div class="flex-1"></div>
     {% endif %}
 
+    <button type="button" onclick="useKalmiStore.getState().toggleCalc()" class="btn-secondary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px]" title="Scientific Calculator">
+      <i data-lucide="calculator" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+      <span>Calc</span>
+    </button>
+
     <button type="button" onclick="toggleFlagReview()" class="flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px] transition-colors {% if current_resp.is_flagged %}bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700{% else %}bg-slate-100 text-slate-700 dark:bg-navy-800 dark:text-slate-200 border-slate-200 dark:border-navy-700 hover:bg-slate-200{% endif %}">
       <i data-lucide="flag" class="w-3.5 h-3.5 {% if current_resp.is_flagged %}fill-amber-500 text-amber-500{% endif %}"></i>
       <span>{% if current_resp.is_flagged %}Flagged{% else %}Flag{% endif %}</span>
     </button>
 
     {% if next_index %}
-    <a href="?q={{ next_index }}" class="btn-primary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px]">
+    <a href="?q={{ next_index }}" class="btn-primary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1 min-h-[42px]">
       <span>Next</span>
       <i data-lucide="arrow-right" class="w-4 h-4"></i>
     </a>
     {% else %}
-    <button type="button" onclick="openSubmitModal()" class="btn-primary flex-1 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center gap-1.5 min-h-[42px]">
+    <button type="button" onclick="openSubmitModal()" class="btn-primary flex-1 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center gap-1 min-h-[42px]">
       <span>Submit</span>
       <i data-lucide="check" class="w-4 h-4"></i>
     </button>

@@ -79,3 +79,106 @@ class PracticeTests(TestCase):
         res_view = self.client.get(results_url)
         self.assertEqual(res_view.status_code, 200)
         self.assertContains(res_view, "Mastery / Distinction")
+
+    def test_start_session_timed_mode_custom_minutes(self):
+        data = {
+            "subject": self.subject.id,
+            "mode": "TIMED_TEST",
+            "topic": self.topic.id,
+            "question_count": "10",
+            "time_limit_minutes": "25",
+        }
+        response = self.client.post(reverse("practice:setup"), data=data)
+        self.assertEqual(response.status_code, 302)
+        session = PracticeSession.objects.filter(mode=PracticeSession.Mode.TIMED_TEST).first()
+        self.assertIsNotNone(session)
+        # 25 minutes = 1500 seconds
+        self.assertEqual(session.time_limit_seconds, 1500)
+
+    def test_time_sync_endpoint_and_timer_persistence(self):
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        # Session started 2 minutes (120 seconds) ago with a 10-minute (600 seconds) limit
+        two_mins_ago = timezone.now() - timedelta(seconds=120)
+        session = PracticeSession.objects.create(
+            subject=self.subject,
+            topic=self.topic,
+            mode=PracticeSession.Mode.TIMED_TEST,
+            total_questions=1,
+            time_limit_seconds=600,
+            started_at=two_mins_ago,
+        )
+
+        # Remaining time should be approximately 480 seconds (between 475 and 480)
+        self.assertAlmostEqual(session.time_remaining_seconds, 480, delta=3)
+        self.assertFalse(session.is_expired)
+
+        # Sync endpoint returns correct remaining seconds
+        sync_url = reverse("practice:time_sync", args=[session.id])
+        res = self.client.get(sync_url)
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertFalse(data["is_expired"])
+        self.assertAlmostEqual(data["remaining_seconds"], 480, delta=3)
+
+    def test_timer_expiration_auto_completion(self):
+        from django.utils import timezone
+        from datetime import timedelta
+
+        # Session started 20 minutes ago with a 15-minute limit (expired 5 minutes ago)
+        twenty_mins_ago = timezone.now() - timedelta(minutes=20)
+        session = PracticeSession.objects.create(
+            subject=self.subject,
+            topic=self.topic,
+            mode=PracticeSession.Mode.TIMED_TEST,
+            total_questions=1,
+            time_limit_seconds=900,
+            started_at=twenty_mins_ago,
+        )
+
+        self.assertTrue(session.is_expired)
+        self.assertEqual(session.time_remaining_seconds, 0)
+
+        # Accessing session_view when expired should auto-complete and redirect to results
+        view_url = reverse("practice:session_view", args=[session.id])
+        res = self.client.get(view_url)
+        self.assertEqual(res.status_code, 302)
+        self.assertIn(f"/practice/session/{session.id}/results/", res.url)
+
+        session.refresh_from_db()
+        self.assertTrue(session.is_completed)
+        self.assertEqual(session.time_spent_seconds, 900)
+
+    def test_jamb_full_mock_setup_and_scoring(self):
+        # Create second subject
+        math_subj = Subject.objects.create(name="Mathematics", slug="mathematics", code="MTH")
+        q_math = Question.objects.create(
+            subject=math_subj,
+            exam_type=Question.ExamType.UTME,
+            exam_year=2023,
+            question_number=2,
+            question_text="Solve 2x = 10",
+            explanation="x = 5",
+        )
+        opt_correct = Option.objects.create(question=q_math, tag="A", text="5", is_correct=True)
+
+        # Launch JAMB Full Mock session
+        data = {
+            "mode": "JAMB_FULL_MOCK",
+            "electives": [self.subject.id, math_subj.id],
+        }
+        res = self.client.post(reverse("practice:setup"), data=data)
+        self.assertEqual(res.status_code, 302)
+
+        session = PracticeSession.objects.filter(mode=PracticeSession.Mode.JAMB_FULL_MOCK).first()
+        self.assertIsNotNone(session)
+        # JAMB standard duration: 2 hours = 7200 seconds
+        self.assertEqual(session.time_limit_seconds, 7200)
+        self.assertGreater(session.total_questions, 0)
+
+        # Verify score_out_of_400 calculation
+        session.calculate_results()
+        self.assertIsInstance(session.score_out_of_400, int)
+        self.assertGreaterEqual(session.score_out_of_400, 0)
+        self.assertLessEqual(session.score_out_of_400, 400)

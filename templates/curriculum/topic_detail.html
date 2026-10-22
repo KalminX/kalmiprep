@@ -113,21 +113,21 @@
     <!-- Right Col: Learning Guidelines & Diagnostic Info -->
     <div class="space-y-6">
       
-      <div class="card-premium p-6 bg-slate-900 text-white">
-        <div class="flex items-center gap-2.5 mb-3 text-brand-400">
+      <div class="card-hero p-6">
+        <div class="flex items-center gap-2.5 mb-3 text-brand-600 dark:text-brand-400">
           <i data-lucide="target" class="w-5 h-5"></i>
-          <h3 class="font-bold text-base text-white">Study Recommendation</h3>
+          <h3 class="font-bold text-base text-slate-900 dark:text-white">Study Recommendation</h3>
         </div>
-        <p class="text-xs text-slate-300 leading-relaxed">
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
           1. Begin with <strong>Instant Practice</strong> to learn the step-by-step mathematical reasoning.
         </p>
-        <p class="text-xs text-slate-300 leading-relaxed mt-2">
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-2">
           2. Complete a <strong>Timed Assessment</strong> of 10 questions to benchmark your speed under 1 minute per question.
         </p>
-        <p class="text-xs text-slate-300 leading-relaxed mt-2">
+        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-2">
           3. Bookmark tricky questions to review in your student dashboard.
         </p>
-        <div class="mt-6 pt-4 border-t border-slate-800">
+        <div class="mt-6 pt-4 border-t border-slate-200 dark:border-navy-800">
           <a href="{% url 'practice:setup' %}?subject={{ subject.slug }}&topic={{ topic.slug }}" class="w-full btn-primary py-2.5 text-xs text-center justify-center">
             Start 10-Question Diagnostic
           </a>

@@ -1,40 +1,41 @@
 {% load static %}
-<!-- Mobile Fixed Bottom Navigation Bar -->
-<nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border-t border-slate-200 dark:border-navy-800 transition-colors shadow-lg pb-[max(0.25rem,env(safe-area-inset-bottom))]">
-  <div class="grid grid-cols-5 h-16 max-w-lg mx-auto items-center px-1">
+<!-- Mobile Fixed Bottom Navigation Bar with Smooth Blur Highlight (No Glitchy Orb) -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border-t border-slate-200 dark:border-navy-800 transition-colors shadow-lg pb-[max(0.25rem,env(safe-area-inset-bottom))]"
+     id="mobile-bottom-nav">
+  <div class="max-w-lg mx-auto h-16 px-2 flex items-center justify-around">
     
     <!-- 1. Home -->
-    <a href="{% url 'core:landing' %}" class="flex flex-col items-center justify-center py-1 transition-colors group {% if request.resolver_match.app_name == 'core' and request.resolver_match.url_name == 'landing' %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
-      <i data-lucide="home" class="w-5 h-5 mb-1 group-active:scale-95 transition-transform"></i>
+    <a href="{% url 'core:landing' %}" class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 {% if request.path == '/' %}bg-brand-500/10 dark:bg-brand-400/15 text-brand-600 dark:text-brand-400 font-bold backdrop-blur-md border border-brand-500/20{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white{% endif %}">
+      <i data-lucide="home" class="w-5 h-5 mb-0.5"></i>
       <span class="text-[10px] tracking-tight">Home</span>
     </a>
 
     <!-- 2. Subjects Explorer -->
-    <a href="{% url 'curriculum:subject_list' %}" class="flex flex-col items-center justify-center py-1 transition-colors group {% if request.resolver_match.app_name == 'curriculum' %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
-      <i data-lucide="book-open" class="w-5 h-5 mb-1 group-active:scale-95 transition-transform"></i>
+    <a href="{% url 'curriculum:subject_list' %}" class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 {% if '/curriculum/' in request.path %}bg-brand-500/10 dark:bg-brand-400/15 text-brand-600 dark:text-brand-400 font-bold backdrop-blur-md border border-brand-500/20{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white{% endif %}">
+      <i data-lucide="book-open" class="w-5 h-5 mb-0.5"></i>
       <span class="text-[10px] tracking-tight">Syllabus</span>
     </a>
 
-    <!-- 3. Practice & CBT (Prominent Center Button) -->
-    <a href="{% url 'practice:setup' %}" class="flex flex-col items-center justify-center py-1 transition-colors group -mt-3">
-      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-700 via-brand-600 to-emerald-400 text-white flex items-center justify-center shadow-md shadow-brand-600/30 group-active:scale-90 transition-transform">
+    <!-- 3. Practice & CBT (Elevated Action Button) -->
+    <a href="{% url 'practice:setup' %}" class="flex flex-col items-center justify-center py-1 transition-transform active:scale-95 -mt-3">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-700 via-brand-600 to-emerald-400 text-white flex items-center justify-center shadow-md shadow-brand-600/30">
         <i data-lucide="zap" class="w-6 h-6"></i>
       </div>
       <span class="text-[10px] tracking-tight font-bold text-slate-800 dark:text-slate-200 mt-1">Practise</span>
     </a>
 
     <!-- 4. Questions Library -->
-    <a href="{% url 'questions:question_list' %}" class="flex flex-col items-center justify-center py-1 transition-colors group {% if request.resolver_match.app_name == 'questions' %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
-      <i data-lucide="layers" class="w-5 h-5 mb-1 group-active:scale-95 transition-transform"></i>
+    <a href="{% url 'questions:question_list' %}" class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 {% if '/questions/' in request.path %}bg-brand-500/10 dark:bg-brand-400/15 text-brand-600 dark:text-brand-400 font-bold backdrop-blur-md border border-brand-500/20{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white{% endif %}">
+      <i data-lucide="layers" class="w-5 h-5 mb-0.5"></i>
       <span class="text-[10px] tracking-tight">Library</span>
     </a>
 
     <!-- 5. Student Dashboard / Progress -->
-    <a href="{% url 'progress:dashboard' %}" class="flex flex-col items-center justify-center py-1 transition-colors group relative {% if request.resolver_match.app_name == 'progress' or request.resolver_match.app_name == 'accounts' %}text-brand-600 dark:text-brand-400 font-bold{% else %}text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white{% endif %}">
-      <i data-lucide="pie-chart" class="w-5 h-5 mb-1 group-active:scale-95 transition-transform"></i>
+    <a href="{% url 'progress:dashboard' %}" class="flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 relative {% if '/progress/' in request.path %}bg-brand-500/10 dark:bg-brand-400/15 text-brand-600 dark:text-brand-400 font-bold backdrop-blur-md border border-brand-500/20{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white{% endif %}">
+      <i data-lucide="pie-chart" class="w-5 h-5 mb-0.5"></i>
       <span class="text-[10px] tracking-tight">Progress</span>
       {% if global_bookmark_count > 0 %}
-      <span class="absolute top-1.5 right-4 w-2 h-2 rounded-full bg-amber-500"></span>
+      <span class="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500"></span>
       {% endif %}
     </a>
 

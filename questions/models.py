@@ -55,6 +55,12 @@ class Question(models.Model):
         ordering = ["-exam_year", "question_number", "id"]
         verbose_name = "Question"
         verbose_name_plural = "Questions"
+        indexes = [
+            models.Index(fields=["subject", "is_published", "exam_type"], name="idx_q_subj_pub_exam"),
+            models.Index(fields=["topic", "is_published"], name="idx_q_topic_pub"),
+            models.Index(fields=["subject", "is_published", "-exam_year"], name="idx_q_subj_pub_year"),
+            models.Index(fields=["is_published", "-created_at"], name="idx_q_pub_created"),
+        ]
 
     def __str__(self):
         year_str = f" ({self.exam_year})" if self.exam_year else ""
@@ -91,6 +97,9 @@ class Option(models.Model):
         unique_together = ("question", "tag")
         verbose_name = "Option"
         verbose_name_plural = "Options"
+        indexes = [
+            models.Index(fields=["question", "is_correct"], name="idx_opt_q_correct"),
+        ]
 
     def __str__(self):
         status = " (Correct)" if self.is_correct else ""

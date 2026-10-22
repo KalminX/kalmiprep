@@ -15,6 +15,7 @@ class PracticeSession(models.Model):
         TOPIC_PRACTICE = "TOPIC_PRACTICE", "Interactive Topic Practice (Instant Feedback)"
         TIMED_TEST = "TIMED_TEST", "Timed Topic Assessment"
         CBT_MOCK = "CBT_MOCK", "CBT / Full Mock Examination"
+        JAMB_FULL_MOCK = "JAMB_FULL_MOCK", "JAMB Standard UTME Mock (4 Subjects • 180 Qs • 2 Hrs)"
 
     class Status(models.TextChoices):
         IN_PROGRESS = "IN_PROGRESS", "In Progress"
@@ -45,6 +46,11 @@ class PracticeSession(models.Model):
         ordering = ["-started_at"]
         verbose_name = "Practice Session"
         verbose_name_plural = "Practice Sessions"
+        indexes = [
+            models.Index(fields=["user", "status", "-started_at"], name="idx_sess_user_status"),
+            models.Index(fields=["session_key", "status", "-started_at"], name="idx_sess_key_status"),
+            models.Index(fields=["mode", "status"], name="idx_sess_mode_status"),
+        ]
 
     def __str__(self):
         user_str = self.user.username if self.user else f"Guest ({self.session_key[:8]})"
@@ -53,6 +59,32 @@ class PracticeSession(models.Model):
     @property
     def is_completed(self):
         return self.status == self.Status.COMPLETED
+
+    @property
+    def expires_at(self):
+        """Returns the datetime when this timed session will expire, or None if untimed."""
+        if not self.time_limit_seconds:
+            return None
+        from datetime import timedelta
+        return self.started_at + timedelta(seconds=self.time_limit_seconds)
+
+    @property
+    def time_remaining_seconds(self):
+        """
+        Calculates exact seconds remaining based on server-side started_at time.
+        Immune to client page refreshes or device clock manipulation.
+        """
+        if not self.time_limit_seconds:
+            return 0
+        elapsed = (timezone.now() - self.started_at).total_seconds()
+        remaining = int(self.time_limit_seconds - elapsed)
+        return max(0, remaining)
+
+    @property
+    def is_expired(self):
+        if not self.time_limit_seconds:
+            return False
+        return self.time_remaining_seconds <= 0
 
     @property
     def mode_display(self):
@@ -77,6 +109,60 @@ class PracticeSession(models.Model):
     @property
     def flagged_count(self):
         return self.responses.filter(is_flagged=True).count()
+
+    @property
+    def score_out_of_400(self):
+        """
+        Calculates official JAMB UTME aggregate score out of 400 marks.
+        In real JAMB UTME, each of the 4 subject components is evaluated out of 100 marks.
+        """
+        responses = list(self.responses.select_related("question__subject"))
+        if not responses:
+            return 0
+        subject_groups = {}
+        for r in responses:
+            sid = r.question.subject_id
+            if sid not in subject_groups:
+                subject_groups[sid] = {"correct": 0, "total": 0}
+            subject_groups[sid]["total"] += 1
+            if r.is_correct:
+                subject_groups[sid]["correct"] += 1
+
+        total_jamb_score = 0.0
+        for sid, counts in subject_groups.items():
+            if counts["total"] > 0:
+                subj_score = (counts["correct"] / counts["total"]) * 100.0
+                total_jamb_score += subj_score
+        
+        # If single subject or generic session, scale percentage to 400
+        if len(subject_groups) <= 1:
+            return int(round((float(self.percentage) / 100.0) * 400.0))
+
+        return int(round(total_jamb_score))
+
+    @property
+    def subject_scores_breakdown(self):
+        """Returns subject-by-subject performance analysis for multi-subject mock assessments."""
+        responses = list(self.responses.select_related("question__subject"))
+        subject_groups = {}
+        for r in responses:
+            subj = r.question.subject
+            if subj.id not in subject_groups:
+                subject_groups[subj.id] = {"subject": subj, "correct": 0, "total": 0}
+            subject_groups[subj.id]["total"] += 1
+            if r.is_correct:
+                subject_groups[subj.id]["correct"] += 1
+
+        breakdown = []
+        for sid, data in subject_groups.items():
+            score_100 = round((data["correct"] / data["total"]) * 100, 1) if data["total"] > 0 else 0
+            breakdown.append({
+                "subject": data["subject"],
+                "score_100": score_100,
+                "correct": data["correct"],
+                "total": data["total"],
+            })
+        return breakdown
 
     @property
     def formatted_time_spent(self):
@@ -123,6 +209,10 @@ class PracticeQuestionResponse(models.Model):
         unique_together = ("session", "question")
         verbose_name = "Question Response"
         verbose_name_plural = "Question Responses"
+        indexes = [
+            models.Index(fields=["session", "order"], name="idx_resp_sess_order"),
+            models.Index(fields=["session", "is_correct"], name="idx_resp_sess_correct"),
+        ]
 
     def __str__(self):
         opt = self.selected_option.tag if self.selected_option else "Unanswered"

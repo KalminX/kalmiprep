@@ -70,9 +70,9 @@
     <div class="mb-6 p-3 sm:p-4 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200 dark:border-navy-800 text-center">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Attached Figure / Diagram</div>
       {% if question.image %}
-      <img src="{{ question.image.url }}" alt="Question diagram" class="max-h-60 sm:max-h-72 mx-auto rounded-lg shadow-sm object-contain w-auto">
+      <img src="{{ question.image.url }}" alt="Question diagram" loading="lazy" decoding="async" class="max-h-60 sm:max-h-72 mx-auto rounded-lg shadow-sm object-contain w-auto">
       {% elif question.image_url %}
-      <img src="{{ question.image_url }}" alt="Question diagram" class="max-h-60 sm:max-h-72 mx-auto rounded-lg shadow-sm object-contain w-auto">
+      <img src="{{ question.image_url }}" alt="Question diagram" loading="lazy" decoding="async" class="max-h-60 sm:max-h-72 mx-auto rounded-lg shadow-sm object-contain w-auto">
       {% endif %}
     </div>
     {% endif %}
@@ -101,25 +101,25 @@
       <button type="button" 
               onclick="toggleExplanation()" 
               id="reveal-btn" 
-              class="w-full btn-secondary py-3 text-sm flex items-center justify-center gap-2 border-brand-500/30 text-brand-700 dark:text-brand-300 font-semibold shadow-sm active:scale-[0.99]">
-        <i data-lucide="eye" class="w-4 h-4"></i>
-        <span>Reveal Answer & Step-by-Step Mathematical Solution</span>
+              class="w-full btn-secondary py-3 text-sm flex items-center justify-center gap-2 border-brand-500/40 bg-white dark:bg-navy-800 text-brand-700 dark:text-brand-300 hover:bg-brand-50/50 dark:hover:bg-navy-700 font-bold shadow-sm active:scale-[0.99] transition-all">
+        <i data-lucide="eye" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+        <span>View Step-by-Step Mathematical Solution</span>
       </button>
 
-      <div id="explanation-box" class="hidden mt-6 p-4 sm:p-6 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 space-y-4">
-        <div class="flex items-center justify-between pb-3 border-b border-emerald-200/60 dark:border-emerald-800/60">
-          <div class="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-bold text-sm">
-            <i data-lucide="check-circle-2" class="w-5 h-5 shrink-0"></i>
-            <span>Verified Correct Answer: <strong class="font-mono text-base">{{ question.correct_option.tag }}.</strong></span>
+      <div id="explanation-box" class="hidden mt-6 p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-navy-950 border-2 border-brand-500/30 dark:border-brand-500/40 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-navy-800">
+          <div class="flex items-center gap-2 text-brand-800 dark:text-brand-300 font-bold text-sm">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-brand-600 dark:text-brand-400 shrink-0"></i>
+            <span>Verified Correct Answer: <strong class="font-mono text-base text-slate-900 dark:text-white">{{ question.correct_option.tag }}.</strong></span>
           </div>
-          <span class="text-xs text-emerald-700 dark:text-emerald-400 font-semibold">Step-by-Step</span>
+          <span class="text-xs text-brand-700 dark:text-brand-400 font-semibold uppercase tracking-wider">Step-by-Step Mathematical Solution</span>
         </div>
 
-        <div class="text-sm sm:text-base text-slate-800 dark:text-slate-100 font-sans leading-relaxed overflow-x-auto whitespace-pre-line">
+        <div class="text-sm sm:text-base text-slate-900 dark:text-white font-sans leading-relaxed overflow-x-auto whitespace-pre-line katex-content">
           {% if question.has_solution %}
             {{ question.explanation|safe }}
           {% else %}
-            <p class="text-slate-500 italic">No expanded working has been attached for this question yet. The verified answer is Option {{ question.correct_option.tag }}.</p>
+            <p class="text-slate-500 dark:text-slate-400 italic">No expanded working has been attached for this question yet. The verified answer is Option {{ question.correct_option.tag }}.</p>
           {% endif %}
         </div>
 
@@ -196,8 +196,8 @@
 
     if (btn) {
       btn.innerHTML = isHidden 
-        ? '<i data-lucide="eye" class="w-4 h-4 mr-2"></i><span>Reveal Answer & Step-by-Step Mathematical Solution</span>'
-        : '<i data-lucide="eye-off" class="w-4 h-4 mr-2"></i><span>Hide Explanation</span>';
+        ? '<i data-lucide="eye" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i><span class="text-brand-700 dark:text-brand-300 font-bold">View Step-by-Step Mathematical Solution</span>'
+        : '<i data-lucide="eye-off" class="w-4 h-4 text-slate-500 dark:text-slate-300"></i><span class="text-slate-700 dark:text-slate-200 font-bold">Hide Explanation</span>';
       if (window.lucide) lucide.createIcons();
     }
     if (!isHidden && window.renderMathInElement) {

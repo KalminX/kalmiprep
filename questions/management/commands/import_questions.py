@@ -46,10 +46,10 @@ def normalize_latex(text: str) -> str:
     return text.strip()
 
 
-def classify_topic(subject: Subject, text: str) -> Topic:
+def classify_topic(subject: Subject, text: str, preloaded_topics: list = None) -> Topic:
     """Classifies a question into a curriculum topic based on keywords in its text and explanation."""
     text_lower = text.lower()
-    topics = list(subject.topics.all())
+    topics = preloaded_topics if preloaded_topics is not None else list(subject.topics.all())
     if not topics:
         return None
 
@@ -137,6 +137,11 @@ class Command(BaseCommand):
             default=0,
             help="Limit number of questions to import (0 for all)",
         )
+        parser.add_argument(
+            "--force-update",
+            action="store_true",
+            help="Force updating of existing questions and options in the database",
+        )
 
     def handle(self, *args, **options):
         dataset_path = Path(options["dataset_path"])
@@ -183,8 +188,29 @@ class Command(BaseCommand):
 
         # Cache subjects
         subjects_map = {s.slug: s for s in Subject.objects.all()}
-        # Also map alternative names
         subjects_map["maths"] = subjects_map.get("mathematics")
+        subjects_map["english"] = subjects_map.get("english-language")
+        subjects_map["use-of-english"] = subjects_map.get("english-language")
+        subjects_map["english_language"] = subjects_map.get("english-language")
+        subjects_map["bio"] = subjects_map.get("biology")
+        subjects_map["chem"] = subjects_map.get("chemistry")
+        subjects_map["phys"] = subjects_map.get("physics")
+
+        # Pre-cache topics for fast O(1) in-memory resolution
+        topics_by_subject = {}
+        topic_lookup = {}
+        for s in Subject.objects.prefetch_related("topics"):
+            sub_topics = list(s.topics.all())
+            topics_by_subject[s.id] = sub_topics
+            for t in sub_topics:
+                topic_lookup[(s.id, t.slug)] = t
+                topic_lookup[(s.id, t.name.lower().strip())] = t
+
+        # Pre-cache existing questions by source_id for instant O(1) duplicate checks
+        force_update = options.get("force_update", False)
+        existing_source_ids = set(
+            Question.objects.exclude(source_id="").values_list("subject_id", "source_id")
+        )
 
         media_diagrams_dir = Path("media/question_diagrams")
         media_diagrams_dir.mkdir(parents=True, exist_ok=True)
@@ -194,16 +220,25 @@ class Command(BaseCommand):
             raw_subj = (raw.get("subject") or "mathematics").lower().strip()
             subject = subjects_map.get(raw_subj)
             if not subject:
-                # If subject not in DB, skip or map
                 if "chem" in raw_subj:
                     subject = subjects_map.get("chemistry")
                 elif "phys" in raw_subj:
                     subject = subjects_map.get("physics")
                 elif "math" in raw_subj:
                     subject = subjects_map.get("mathematics")
+                elif "eng" in raw_subj:
+                    subject = subjects_map.get("english-language")
+                elif "bio" in raw_subj:
+                    subject = subjects_map.get("biology")
 
             if not subject:
                 self.stdout.write(self.style.WARNING(f"Skipping unknown subject: {raw_subj}"))
+                skipped_count += 1
+                continue
+
+            source_id = str(raw.get("id") or "")
+            if not force_update and source_id and (subject.id, source_id) in existing_source_ids:
+                # Already ingested and verified, skip expensive SQL operations
                 skipped_count += 1
                 continue
 
@@ -223,7 +258,6 @@ class Command(BaseCommand):
             except (ValueError, TypeError):
                 exam_year = None
 
-            source_id = str(raw.get("id") or "")
             q_text = normalize_latex(raw.get("question_text", ""))
             explanation = normalize_latex(raw.get("explanation", ""))
             explanation_url = raw.get("explanation_url") or ""
@@ -232,13 +266,13 @@ class Command(BaseCommand):
                 skipped_count += 1
                 continue
 
-            # Classify topic
+            # Classify topic using in-memory cache
             topic_raw = raw.get("topic") or raw.get("topic_slug")
             topic = None
             if topic_raw:
-                topic = subject.topics.filter(slug=topic_raw).first() or subject.topics.filter(name__iexact=str(topic_raw).strip()).first()
+                topic = topic_lookup.get((subject.id, str(topic_raw).lower().strip()))
             if not topic:
-                topic = classify_topic(subject, q_text + " " + explanation)
+                topic = classify_topic(subject, q_text + " " + explanation, preloaded_topics=topics_by_subject.get(subject.id, []))
 
             has_image = bool(raw.get("has_image") or raw.get("image_url") or raw.get("local_image"))
             image_url = raw.get("image_url") or ""
@@ -263,7 +297,7 @@ class Command(BaseCommand):
 
             is_new = False
             if not question:
-                question = Question(
+                question = Question.objects.create(
                     subject=subject,
                     topic=topic,
                     exam_type=exam_type,
@@ -278,10 +312,10 @@ class Command(BaseCommand):
                     verification_status=Question.VerificationStatus.VERIFIED if explanation else Question.VerificationStatus.COMMUNITY,
                     difficulty=Question.Difficulty.MEDIUM,
                     is_published=True,
+                    image=image_rel_path or "",
                 )
-                if image_rel_path:
-                    question.image = image_rel_path
-                question.save()
+                if source_id:
+                    existing_source_ids.add((subject.id, source_id))
                 is_new = True
                 imported_count += 1
             else:
@@ -301,20 +335,32 @@ class Command(BaseCommand):
             raw_options = raw.get("options") or []
             correct_tag = (raw.get("correct_option") or "").strip().lower()
 
-            # Delete existing options if updating to ensure pristine state
-            question.options.all().delete()
+            if not is_new:
+                question.options.all().delete()
 
+            seen_tags = set()
+            options_to_create = []
             for idx, opt_data in enumerate(raw_options, start=1):
-                tag = str(opt_data.get("tag") or chr(64 + idx)).upper()
+                raw_tag = str(opt_data.get("tag") or chr(64 + idx)).upper().strip()
+                tag = raw_tag if raw_tag and raw_tag not in seen_tags else chr(64 + idx)
+                if tag in seen_tags:
+                    continue
+                seen_tags.add(tag)
+
                 opt_text = normalize_latex(opt_data.get("text", ""))
                 is_correct = bool(opt_data.get("is_correct") or tag.lower() == correct_tag)
-                Option.objects.create(
-                    question=question,
-                    tag=tag,
-                    text=opt_text,
-                    is_correct=is_correct,
-                    order=idx,
+                options_to_create.append(
+                    Option(
+                        question=question,
+                        tag=tag,
+                        text=opt_text,
+                        is_correct=is_correct,
+                        order=idx,
+                    )
                 )
+
+            if options_to_create:
+                Option.objects.bulk_create(options_to_create)
 
         self.stdout.write(
             self.style.SUCCESS(

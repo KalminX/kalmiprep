@@ -28,10 +28,52 @@
     }
   </script>
 
+  <!-- Speculative Pre-rendering Engine for Instant Navigation (Chrome, Edge, Android) -->
+  <script type="speculationrules">
+  {
+    "prefetch": [
+      {
+        "source": "list",
+        "urls": ["{% url 'core:landing' %}", "{% url 'curriculum:subject_list' %}", "{% url 'practice:setup' %}", "{% url 'questions:question_list' %}", "{% url 'progress:dashboard' %}"]
+      },
+      {
+        "where": {
+          "and": [
+            { "href_matches": "/*" },
+            { "not": { "href_matches": "/admin/*" } },
+            { "not": { "href_matches": "/practice/session/*" } },
+            { "not": { "href_matches": "/accounts/*" } }
+          ]
+        },
+        "eagerness": "moderate"
+      }
+    ]
+  }
+  </script>
+
   {% block extra_head %}{% endblock %}
 </head>
 <body class="flex flex-col min-h-screen bg-slate-50 dark:bg-navy-950 text-slate-800 dark:text-slate-100 font-sans selection:bg-brand-500 selection:text-white" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   
+  <!-- Subtle Top Loading Beam -->
+  <div id="page-loading-bar" class="fixed top-0 inset-x-0 h-[2.5px] z-50 pointer-events-none opacity-0 transition-opacity duration-150">
+    <div id="page-loading-bar-inner" class="h-full bg-gradient-to-r from-brand-600 via-emerald-400 to-teal-300 shadow-[0_0_12px_rgba(34,197,94,0.85)] w-0"></div>
+  </div>
+
+  <!-- Subtle Floating KalmiPrep Micro-Loader Capsule -->
+  <div id="page-loading-pill" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 scale-90 transition-all duration-200">
+    <div class="px-3.5 py-1.5 rounded-full bg-slate-900/95 dark:bg-navy-900/95 text-white backdrop-blur-md border border-brand-500/40 shadow-xl flex items-center gap-2">
+      <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+      </span>
+      <span class="text-[11px] font-bold tracking-tight text-white flex items-center gap-1.5 font-sans">
+        <span>Kalmi<span class="text-brand-400">Prep</span></span>
+        <span class="text-slate-400 font-normal text-[10px]">&bull; Switching...</span>
+      </span>
+    </div>
+  </div>
+
   <!-- Global Navigation Header -->
   {% include 'components/navbar.html' %}
 
@@ -53,8 +95,9 @@
   {% endif %}
 
   <!-- Main Content Page Block -->
-  <main class="flex-grow pb-20 md:pb-0">
+  <main id="main-content" class="flex-grow pb-20 md:pb-0">
     {% block content %}{% endblock %}
+    {% block extra_js %}{% endblock %}
   </main>
 
   <!-- Global Footer -->
@@ -65,12 +108,18 @@
     {% include 'components/bottom_nav.html' %}
   {% endblock %}
 
+  <!-- On-Screen Scientific Calculator Modal -->
+  {% include 'components/calculator_modal.html' %}
+
   <!-- Local Vendor Scripts -->
   <script src="{% static 'vendor/katex/katex.min.js' %}"></script>
   <script src="{% static 'vendor/katex/contrib/auto-render.min.js' %}"></script>
   <script src="{% static 'vendor/gsap/gsap.min.js' %}"></script>
   <script src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
   <script src="{% static 'vendor/lucide/lucide.min.js' %}"></script>
+  <script src="{% static 'vendor/mathjs/math.min.js' %}"></script>
+  <script src="{% static 'js/store.js' %}"></script>
+  <script src="{% static 'js/prefetch.js' %}"></script>
 
   <!-- Global KalmiPrep Runtime & KaTeX Auto-Render Engine -->
   <script>
@@ -98,6 +147,11 @@
     // Run on initial page load
     document.addEventListener("DOMContentLoaded", () => {
       renderMathAndIcons();
+
+      // Register Progressive Service Worker for instant offline asset caching
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        navigator.serviceWorker.register('/static/sw.js').catch(() => {});
+      }
       
       // GSAP Page Entrance Enhancements (respects prefers-reduced-motion)
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -117,14 +171,16 @@
       renderMathAndIcons(e.detail.target);
     });
 
-    // Dark Mode Toggle Logic
+    // Dark Mode Toggle Logic (Coordinated with Zustand Store)
     function toggleTheme() {
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
-      if (window.lucide) lucide.createIcons();
+      if (window.useKalmiStore) {
+        useKalmiStore.getState().toggleTheme();
+      } else {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
+        if (window.lucide) lucide.createIcons();
+      }
     }
   </script>
-
-  {% block extra_js %}{% endblock %}
 </body>
 </html>

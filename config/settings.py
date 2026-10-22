@@ -85,6 +85,12 @@ if DATABASE_URL and DATABASE_URL.startswith("postgres"):
             "PASSWORD": url.password,
             "HOST": url.hostname,
             "PORT": url.port or 5432,
+            "CONN_MAX_AGE": 600,  # 10 minutes persistent connection pooling
+            "CONN_HEALTH_CHECKS": True,  # Health check persistent sockets
+            "OPTIONS": {
+                "connect_timeout": 5,
+                "application_name": "kalmiprep_app",
+            },
         }
     }
 else:
@@ -130,3 +136,25 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # WhiteNoise storage for efficient static file serving
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Caching Engine (Redis with LocMem fallback)
+REDIS_URL = os.getenv("REDIS_URL")
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+            "KEY_PREFIX": "kalmiprep:v1",
+            "TIMEOUT": 1800,  # 30 minutes default
+        }
+    }
+    # Fast cached database sessions: Redis for read speed, Postgres for persistent write-through
+    SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "kalmiprep-locmem",
+            "TIMEOUT": 1800,
+        }
+    }

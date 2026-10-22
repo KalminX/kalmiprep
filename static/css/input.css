@@ -19,6 +19,21 @@
   .card-premium {
     @apply bg-white dark:bg-navy-900 border border-slate-200/80 dark:border-navy-800 rounded-xl shadow-card hover:shadow-elevated transition-shadow duration-200;
   }
+  .card-hero {
+    @apply rounded-2xl bg-white dark:bg-navy-900 border border-slate-200/90 dark:border-navy-800 p-6 md:p-8 text-slate-900 dark:text-white shadow-card transition-colors;
+  }
+  .card-inner {
+    @apply bg-slate-50/80 dark:bg-navy-950/70 border border-slate-200/80 dark:border-navy-800 rounded-xl p-5 text-slate-900 dark:text-white transition-colors;
+  }
+  .metric-label {
+    @apply text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium;
+  }
+  .metric-value {
+    @apply text-xl sm:text-2xl font-bold text-slate-900 dark:text-white font-mono;
+  }
+  .badge-hero {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-navy-700;
+  }
   .badge-tag {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
@@ -70,6 +85,29 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Navigation Glowing Orb Enhancements */
+#bottom-nav-orb, #desktop-nav-orb {
+  will-change: transform, left, width, opacity;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.orb-glow {
+  filter: blur(10px);
+  will-change: transform, opacity;
+}
+
+/* Off-screen rendering containment: skips layout and paint until scrolled near */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 180px;
+}
+
+.desktop-orb-glow {
+  filter: blur(8px);
+  will-change: transform, opacity;
 }
 
 /* Touch feedback ripple and smooth tap */
