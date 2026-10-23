@@ -39,160 +39,6 @@
     return api;
   };
 
-  // --- Factorial Helper ---
-  function factorial(n) {
-    if (n < 0 || !Number.isInteger(n)) return NaN;
-    if (n === 0 || n === 1) return 1;
-    if (n > 170) return Infinity; // JS precision limit
-    let res = 1;
-    for (let i = 2; i <= n; i++) res *= i;
-    return res;
-  }
-
-  // --- GoF Memento Pattern for Calculator State Persistence ---
-  const CALC_MEMENTO_KEY = 'kalmiprep_calc_memento';
-
-  function loadCalcMemento() {
-    try {
-      const saved = localStorage.getItem(CALC_MEMENTO_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return null;
-  }
-
-  function saveCalcMemento(state) {
-    try {
-      const memento = {
-        isOpen: false, // Never auto-pop open across page refreshes or navigation
-        angleMode: state.angleMode || 'DEG',
-        expression: state.expression || '',
-        result: state.result || '0',
-        lastAns: state.lastAns || '0',
-        memory: typeof state.memory === 'number' ? state.memory : 0,
-        isEvaluated: Boolean(state.isEvaluated),
-      };
-      localStorage.setItem(CALC_MEMENTO_KEY, JSON.stringify(memento));
-    } catch (e) {}
-  }
-
-  // --- Scientific Expression Evaluator (Powered by Math.js with native fallback) ---
-  function safeEvalScientific(expr, angleMode = 'DEG', lastAns = 0) {
-    if (!expr || !expr.trim()) return '0';
-
-    // Auto-balance unclosed parentheses
-    const openCount = (expr.match(/\(/g) || []).length;
-    const closeCount = (expr.match(/\)/g) || []).length;
-    let balanced = expr;
-    if (openCount > closeCount) {
-      balanced = expr + ')'.repeat(openCount - closeCount);
-    }
-
-    const numericAns = parseFloat(lastAns) || 0;
-
-    // 1. Math.js Industry Standard Engine
-    if (typeof window !== 'undefined' && window.math && typeof window.math.evaluate === 'function') {
-      try {
-        let cleaned = balanced
-          .replace(/×/g, '*')
-          .replace(/÷/g, '/')
-          .replace(/π/g, 'pi')
-          .replace(/Ans/gi, `(${numericAns})`)
-          .replace(/EXP/g, '*10^')
-          .replace(/(\d+(\.\d+)?)%/g, '($1 * 0.01)');
-
-        const scope = angleMode === 'DEG' ? {
-          Ans: numericAns,
-          ans: numericAns,
-          sin: (x) => window.math.sin(window.math.unit(x, 'deg')),
-          cos: (x) => {
-            const rad = (x * Math.PI) / 180;
-            return Math.abs(Math.cos(rad)) < 1e-15 ? 0 : Math.cos(rad);
-          },
-          tan: (x) => {
-            if (Math.abs((x - 90) % 180) < 1e-10) return Infinity;
-            return window.math.tan(window.math.unit(x, 'deg'));
-          },
-          asin: (x) => (window.math.asin(x) * 180) / Math.PI,
-          acos: (x) => (window.math.acos(x) * 180) / Math.PI,
-          atan: (x) => (window.math.atan(x) * 180) / Math.PI,
-          ln: (x) => window.math.log(x),
-          log: (x) => window.math.log10(x),
-          cbrt: (x) => window.math.cbrt(x),
-        } : {
-          Ans: numericAns,
-          ans: numericAns,
-          ln: (x) => window.math.log(x),
-          log: (x) => window.math.log10(x),
-          cbrt: (x) => window.math.cbrt(x),
-        };
-
-        const result = window.math.evaluate(cleaned, scope);
-        if (typeof result === 'function') return 'Error';
-        if (typeof result === 'number') {
-          if (!isFinite(result)) return result > 0 ? 'Infinity' : '-Infinity';
-          if (Math.abs(result) < 1e-12 && Math.abs(result) > 0) return '0';
-          return parseFloat(result.toPrecision(12)).toString();
-        }
-        return window.math.format(result, { precision: 12 });
-      } catch (err) {
-        // Fall back to native evaluator
-      }
-    }
-
-    // 2. Safe Fallback Evaluator
-    try {
-      let sanitized = balanced
-        .replace(/×/g, '*')
-        .replace(/÷/g, '/')
-        .replace(/π/g, 'Math.PI')
-        .replace(/\be\b/g, 'Math.E')
-        .replace(/Ans/gi, `(${numericAns})`)
-        .replace(/EXP/g, '*10**')
-        .replace(/(\d+(\.\d+)?)%/g, '($1 * 0.01)');
-
-      sanitized = sanitized.replace(/(\d+)!/g, 'factorial($1)');
-
-      if (angleMode === 'DEG') {
-        sanitized = sanitized
-          .replace(/sin\(([^)]+)\)/g, 'Math.sin(($1) * Math.PI / 180)')
-          .replace(/cos\(([^)]+)\)/g, 'Math.cos(($1) * Math.PI / 180)')
-          .replace(/tan\(([^)]+)\)/g, 'Math.tan(($1) * Math.PI / 180)')
-          .replace(/asin\(([^)]+)\)/g, '(Math.asin($1) * 180 / Math.PI)')
-          .replace(/acos\(([^)]+)\)/g, '(Math.acos($1) * 180 / Math.PI)')
-          .replace(/atan\(([^)]+)\)/g, '(Math.atan($1) * 180 / Math.PI)');
-      } else {
-        sanitized = sanitized
-          .replace(/sin\(/g, 'Math.sin(')
-          .replace(/cos\(/g, 'Math.cos(')
-          .replace(/tan\(/g, 'Math.tan(')
-          .replace(/asin\(/g, 'Math.asin(')
-          .replace(/acos\(/g, 'Math.acos(')
-          .replace(/atan\(/g, 'Math.atan(');
-      }
-
-      sanitized = sanitized
-        .replace(/log\(/g, 'Math.log10(')
-        .replace(/ln\(/g, 'Math.log(')
-        .replace(/sqrt\(/g, 'Math.sqrt(')
-        .replace(/cbrt\(/g, 'Math.cbrt(')
-        .replace(/\^/g, '**');
-
-      if (!/^[0-9+\-*/().,MathPIEfactorial\s*]+$/.test(sanitized)) {
-        return 'Error';
-      }
-
-      const evalFunc = new Function('factorial', `return (${sanitized});`);
-      const val = evalFunc(factorial);
-
-      if (typeof val !== 'number' || isNaN(val)) return 'Error';
-      if (!isFinite(val)) return val > 0 ? 'Infinity' : '-Infinity';
-
-      return parseFloat(val.toPrecision(12)).toString();
-    } catch (e) {
-      return 'Error';
-    }
-  }
-
   // --- Central KalmiPrep Zustand Store ---
   let tickInterval = null;
   let heartbeatInterval = null;
@@ -353,191 +199,29 @@
     },
 
     // ----------------------------------------------------
-    // 3. SCIENTIFIC CALCULATOR SLICE (GoF Command & Memento Pattern)
+    // 3. CALCULATOR MODAL LIFECYCLE SLICE
+    // Only visibility lives here. All calculator state (expression, answer,
+    // memory, angle mode, history) is owned by KalmiCalcUI / KalmiCalcEngine
+    // (static/js/calculator/), so there is a single source of truth.
     // ----------------------------------------------------
-    calc: (() => {
-      const saved = loadCalcMemento() || {};
-      return {
-        isOpen: false, // Always initialize closed so calculator only appears when explicitly invoked in a test
-        angleMode: saved.angleMode || 'DEG',
-        expression: saved.expression || '',
-        result: saved.result || '0',
-        lastAns: saved.lastAns || '0',
-        memory: typeof saved.memory === 'number' ? saved.memory : 0,
-        isEvaluated: saved.isEvaluated || false,
-      };
-    })(),
+    calc: {
+      isOpen: false, // always closed on initialisation / navigation
+    },
 
     toggleCalc: () => {
-      const widget = document.getElementById('scientific-calculator-modal');
-      if (!widget) return;
-      set((state) => ({
-        calc: { ...state.calc, isOpen: !state.calc.isOpen }
-      }));
+      if (!document.getElementById('scientific-calculator-modal')) return;
+      set((state) => ({ calc: { ...state.calc, isOpen: !state.calc.isOpen } }));
       get().renderCalcDOM();
     },
 
     openCalc: () => {
-      const widget = document.getElementById('scientific-calculator-modal');
-      if (!widget) return;
-      set((state) => ({
-        calc: { ...state.calc, isOpen: true }
-      }));
+      if (!document.getElementById('scientific-calculator-modal')) return;
+      set((state) => ({ calc: { ...state.calc, isOpen: true } }));
       get().renderCalcDOM();
     },
 
     closeCalc: () => {
-      set((state) => ({
-        calc: { ...state.calc, isOpen: false }
-      }));
-      get().renderCalcDOM();
-    },
-
-    setCalcAngleMode: (mode) => {
-      set((state) => ({
-        calc: { ...state.calc, angleMode: mode }
-      }));
-      get().evaluateCalc(false);
-      get().renderCalcDOM();
-    },
-
-    appendCalc: (token) => {
-      const { expression, isEvaluated, lastAns } = get().calc;
-      let nextExpr = expression;
-      let tok = token;
-
-      if (tok === '(-)') {
-        tok = '-';
-      }
-
-      const isOperator = ['+', '-', '*', '/', '^', '%'].includes(tok);
-
-      if (isEvaluated) {
-        if (isOperator) {
-          nextExpr = 'Ans' + tok;
-        } else {
-          nextExpr = tok;
-        }
-      } else {
-        if (!nextExpr && isOperator && lastAns && lastAns !== '0') {
-          nextExpr = 'Ans' + tok;
-        } else {
-          nextExpr += tok;
-        }
-      }
-
-      set((state) => ({
-        calc: {
-          ...state.calc,
-          expression: nextExpr,
-          isEvaluated: false
-        }
-      }));
-
-      get().evaluateCalc(false);
-      get().renderCalcDOM();
-    },
-
-    backspaceCalc: () => {
-      const { expression } = get().calc;
-      if (!expression) return;
-
-      let nextExpr = expression;
-      const funcTokens = [
-        'asin(', 'acos(', 'atan(', 'sin(', 'cos(', 'tan(',
-        'log(', 'sqrt(', 'cbrt(', 'ln(', '10^(', 'e^('
-      ];
-      let matched = false;
-
-      for (const tok of funcTokens) {
-        if (nextExpr.endsWith(tok)) {
-          nextExpr = nextExpr.slice(0, -tok.length);
-          matched = true;
-          break;
-        }
-      }
-
-      if (!matched) {
-        if (nextExpr.endsWith('Ans')) {
-          nextExpr = nextExpr.slice(0, -3);
-        } else if (nextExpr.endsWith('EXP')) {
-          nextExpr = nextExpr.slice(0, -3);
-        } else {
-          nextExpr = nextExpr.slice(0, -1);
-        }
-      }
-
-      set((state) => ({
-        calc: { ...state.calc, expression: nextExpr, isEvaluated: false }
-      }));
-
-      get().evaluateCalc(false);
-      get().renderCalcDOM();
-    },
-
-    clearCalc: () => {
-      set((state) => ({
-        calc: { ...state.calc, expression: '', result: '0', isEvaluated: false }
-      }));
-      get().renderCalcDOM();
-    },
-
-    evaluateCalc: (isFinal = true) => {
-      const { expression, angleMode, lastAns } = get().calc;
-      if (!expression || !expression.trim()) {
-        set((state) => ({
-          calc: { ...state.calc, result: '0', isEvaluated: isFinal }
-        }));
-        if (isFinal) get().renderCalcDOM();
-        return;
-      }
-
-      const res = safeEvalScientific(expression, angleMode, lastAns);
-      set((state) => ({
-        calc: {
-          ...state.calc,
-          result: res,
-          lastAns: isFinal && res !== 'Error' ? res : state.calc.lastAns,
-          isEvaluated: isFinal && res !== 'Error'
-        }
-      }));
-
-      if (isFinal) {
-        get().renderCalcDOM();
-      }
-    },
-
-    memoryAdd: () => {
-      const { result, memory } = get().calc;
-      const num = parseFloat(result);
-      if (!isNaN(num)) {
-        set((state) => ({
-          calc: { ...state.calc, memory: memory + num }
-        }));
-      }
-      get().renderCalcDOM();
-    },
-
-    memorySubtract: () => {
-      const { result, memory } = get().calc;
-      const num = parseFloat(result);
-      if (!isNaN(num)) {
-        set((state) => ({
-          calc: { ...state.calc, memory: memory - num }
-        }));
-      }
-      get().renderCalcDOM();
-    },
-
-    memoryRecall: () => {
-      const { memory } = get().calc;
-      get().appendCalc(memory.toString());
-    },
-
-    memoryClear: () => {
-      set((state) => ({
-        calc: { ...state.calc, memory: 0 }
-      }));
+      set((state) => ({ calc: { ...state.calc, isOpen: false } }));
       get().renderCalcDOM();
     },
 
@@ -595,41 +279,13 @@
       const widget = document.getElementById('scientific-calculator-modal');
       if (!widget) return;
 
-      const {
-        isOpen,
-        expression,
-        result,
-        lastAns,
-        angleMode,
-        memory
-      } = get().calc;
+      const { isOpen } = get().calc;
+      widget.classList.toggle('hidden', !isOpen);
+      widget.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
 
-      // Visibility state
-      if (isOpen) {
-        widget.classList.remove('hidden');
-      } else {
-        widget.classList.add('hidden');
+      if (isOpen && window.KalmiCalcUI) {
+        window.KalmiCalcUI.onCalcModalOpened();
       }
-
-      const exprEl = document.getElementById('calc-expression-display');
-      const resultEl = document.getElementById('calc-result-display');
-      const angleBtn = document.getElementById('calc-angle-mode-btn');
-      const memIndicator = document.getElementById('calc-memory-indicator');
-      const ansIndicator = document.getElementById('calc-ans-indicator');
-
-      // Display text
-      if (exprEl) exprEl.innerText = expression || '0';
-      if (resultEl) resultEl.innerText = result || '0';
-      if (angleBtn) angleBtn.innerText = angleMode;
-
-      // Badges
-      if (memIndicator) memIndicator.classList.toggle('hidden', memory === 0);
-      if (ansIndicator) ansIndicator.classList.toggle('hidden', !lastAns || lastAns === '0');
-
-      if (window.lucide) lucide.createIcons();
-
-      // Persist to Memento storage
-      saveCalcMemento(get().calc);
     }
   }));
 
@@ -644,87 +300,40 @@
     }
   });
 
-  // Global keyboard shortcuts and direct calculator numeric typing
-  document.addEventListener('keydown', (e) => {
-    // Calculator shortcuts only apply if the calculator widget exists on the current page (tests/exams)
-    const widget = document.getElementById('scientific-calculator-modal');
-    if (!widget) return;
+  // Calculator keyboard shortcuts. Registered once (guarded) and inert on pages
+  // that do not render the calculator modal. Typing inside the calculator is
+  // handled by the MathLive field itself (see calculator/ui.js).
+  if (!window.__kalmiCalcShortcutsBound) {
+    window.__kalmiCalcShortcutsBound = true;
+    document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('scientific-calculator-modal')) return;
 
-    // If user is actively typing in a form input, textarea, or contentEditable element, skip
-    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) {
-      return;
-    }
-
-    const calcState = useKalmiStore.getState().calc;
-    const isAltC = (e.key === 'c' || e.key === 'C') && e.altKey;
-
-    if (isAltC) {
-      e.preventDefault();
-      useKalmiStore.getState().toggleCalc();
-      return;
-    }
-
-    // Direct Keypad typing when calculator is active & visible
-    if (calcState.isOpen) {
-      if (e.key === 'Escape') {
+      const isAltC = e.altKey && (e.key === 'c' || e.key === 'C');
+      if (isAltC) {
         e.preventDefault();
-        useKalmiStore.getState().closeCalc();
-      } else if (e.key >= '0' && e.key <= '9') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc(e.key);
-      } else if (e.key === '.') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc('.');
-      } else if (e.key === '+') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc('+');
-      } else if (e.key === '-') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc('-');
-      } else if (e.key === '*' || e.key === 'x' || e.key === 'X') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc('*');
-      } else if (e.key === '/') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc('/');
-      } else if (e.key === '(' || e.key === ')') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc(e.key);
-      } else if (e.key === '^') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc('^');
-      } else if (e.key === '%') {
-        e.preventDefault();
-        useKalmiStore.getState().appendCalc('%');
-      } else if (e.key === 'Enter' || e.key === '=') {
-        e.preventDefault();
-        useKalmiStore.getState().evaluateCalc(true);
-      } else if (e.key === 'Backspace') {
-        e.preventDefault();
-        useKalmiStore.getState().backspaceCalc();
-      } else if (e.key === 'Delete') {
-        e.preventDefault();
-        useKalmiStore.getState().clearCalc();
+        window.useKalmiStore.getState().toggleCalc();
+        return;
       }
-    }
-  });
 
-  // Self-initializing lifecycle: restore persistent state on direct load, DOMContentLoaded, and HTMX swaps
+      if (e.key === 'Escape' && window.useKalmiStore.getState().calc.isOpen) {
+        e.preventDefault();
+        window.useKalmiStore.getState().closeCalc();
+      }
+    });
+  }
+
+  // Ensure the modal is closed (and hidden) whenever a page is initialised or swapped in.
   function bootstrapCalculator() {
     if (window.useKalmiStore) {
-      const widget = document.getElementById('scientific-calculator-modal');
-      if (widget) {
-        useKalmiStore.getState().renderCalcDOM();
-      } else {
-        useKalmiStore.setState((state) => ({
-          calc: { ...state.calc, isOpen: false }
-        }));
-      }
+      useKalmiStore.setState((state) => ({ calc: { ...state.calc, isOpen: false } }));
+      useKalmiStore.getState().renderCalcDOM();
     }
   }
 
   bootstrapCalculator();
-  document.addEventListener('DOMContentLoaded', bootstrapCalculator);
-  document.addEventListener('htmx:load', bootstrapCalculator);
+  if (!window.__kalmiCalcBootstrapBound) {
+    window.__kalmiCalcBootstrapBound = true;
+    document.addEventListener('DOMContentLoaded', bootstrapCalculator);
+  }
 
 })();

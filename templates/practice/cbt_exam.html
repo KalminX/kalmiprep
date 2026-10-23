@@ -451,6 +451,10 @@
   // Keyboard shortcut listener (A, B, C, D, E or 1, 2, 3, 4, 5)
   document.addEventListener('keydown', (e) => {
     if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+    // Never treat calculator typing (digits / letters) as an answer choice
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.target && e.target.closest && e.target.closest('#scientific-calculator-modal')) return;
+    if (window.useKalmiStore && window.useKalmiStore.getState().calc.isOpen) return;
     const key = e.key.toUpperCase();
     const tagMap = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E' };
     const targetTag = tagMap[key] || key;

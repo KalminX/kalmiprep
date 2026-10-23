@@ -16,8 +16,18 @@
           Instant Practice Mode
         </span>
       </div>
-      <div class="text-slate-500 font-medium">
-        Question <strong class="text-slate-900 dark:text-white font-mono">{{ current_index }}</strong> of <strong class="text-slate-900 dark:text-white font-mono">{{ total_count }}</strong>
+      <div class="flex items-center gap-2">
+        <button type="button" 
+                onclick="useKalmiStore.getState().toggleCalc()" 
+                class="btn-secondary py-1 px-2.5 text-xs flex items-center gap-1.5 border-slate-300 dark:border-navy-700 shadow-sm" 
+                title="Open Scientific Calculator (Alt+C)">
+          <i data-lucide="calculator" class="w-3.5 h-3.5 text-brand-600 dark:text-brand-400"></i>
+          <span class="font-semibold">Calc</span>
+          <kbd class="hidden md:inline-block px-1 py-0.2 rounded bg-slate-100 dark:bg-navy-800 text-[9px] text-slate-500 font-mono border border-slate-200 dark:border-navy-700">Alt+C</kbd>
+        </button>
+        <div class="text-slate-500 font-medium">
+          Question <strong class="text-slate-900 dark:text-white font-mono">{{ current_index }}</strong> of <strong class="text-slate-900 dark:text-white font-mono">{{ total_count }}</strong>
+        </div>
       </div>
     </div>
 

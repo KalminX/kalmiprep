@@ -26,7 +26,7 @@
           <!-- Celery pool badge -->
           <span class="text-[11px] font-mono font-semibold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950/50 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800 flex items-center gap-1.5">
             <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
-            <span>Celery: {{ celery_workers_count }} Prefork Workers</span>
+            <span>Celery: {{ celery_workers_count }} prefork process{{ celery_workers_count|pluralize:'es' }}{% if celery_state == 'unreachable' %} (unreachable){% endif %}</span>
           </span>
 
           {% if is_daemon_alive %}
@@ -77,7 +77,7 @@
               <span class="text-xs font-bold text-slate-900 dark:text-white">Celery Distributed Workers (RabbitMQ)</span>
             </div>
             <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold {% if celery_active_tasks %}bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 animate-pulse{% else %}bg-slate-200 dark:bg-navy-800 text-slate-600 dark:text-slate-400{% endif %}">
-              {% if celery_active_tasks %}{{ celery_active_tasks|length }} Active Tasks{% else %}Idle in Queue{% endif %}
+              {% if celery_active_tasks %}{{ celery_active_tasks|length }} Active Tasks{% elif celery_state == 'busy' %}Working{% elif celery_state == 'idle' %}Idle (queue empty){% else %}Workers unreachable{% endif %}
             </span>
           </div>
 

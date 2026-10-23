@@ -146,6 +146,8 @@ def extractor_status(request):
     import datetime
     import re
 
+    from django.utils import timezone
+
     from django.conf import settings
     dataset_dir_setting = getattr(settings, "SCRAPER_DATASET_DIR", None)
     if dataset_dir_setting:
@@ -178,33 +180,46 @@ def extractor_status(request):
         except Exception:
             pass
 
-    # Inspect Celery and RabbitMQ status and active tasks
+    # Inspect Celery. The RabbitMQ broker is shared with other projects (bakery, etc.), so only
+    # count workers that consume KalmiPrep's own queues; a bare ping() would count them all.
+    our_queues = {"scraping", "ingestion"}
+    celery_state = "unreachable"  # "busy" | "idle" | "unreachable"
     celery_active = False
-    active_workers_count = 0
+    active_workers_count = 0      # prefork processes across KalmiPrep workers
+    celery_node_count = 0
     celery_active_tasks = []
     celery_active_subjects = set()
     try:
         from config.celery import app as celery_app
-        insp = celery_app.control.inspect(timeout=0.4)
-        if insp:
-            ping_res = insp.ping()
-            if ping_res:
-                active_workers_count = len(ping_res)
-                celery_active = active_workers_count > 0
-
+        insp = celery_app.control.inspect(timeout=1.5)  # busy prefork workers answer slowly
+        queues_map = insp.active_queues() or {}
+        our_nodes = {
+            node for node, qs in queues_map.items()
+            if our_queues & {q.get("name") for q in (qs or [])}
+        }
+        if our_nodes:
+            celery_node_count = len(our_nodes)
+            stats = insp.stats() or {}
+            active_workers_count = sum(
+                (stats.get(n, {}).get("pool", {}) or {}).get("max-concurrency", 1) for n in our_nodes
+            )
+            celery_active = True
+            celery_state = "idle"
             active_map = insp.active() or {}
             for worker_name, tasks in active_map.items():
+                if worker_name not in our_nodes:
+                    continue
                 for t in tasks:
+                    celery_state = "busy"
                     args = t.get("args", [])
                     name = t.get("name", "")
                     if "scrape_subject_page_task" in name and len(args) >= 2:
                         subj_arg = args[0]
-                        page_arg = args[1]
                         celery_active_subjects.add(subj_arg)
                         celery_active_tasks.append({
                             "subject": subj_arg,
                             "subject_name": STEM_TARGETS.get(subj_arg, {}).get("name", subj_arg.title()),
-                            "page": page_arg,
+                            "page": args[1],
                             "task_id": t.get("id"),
                         })
     except Exception:
@@ -254,12 +269,13 @@ def extractor_status(request):
     all_log_lines.sort()
     recent_logs = all_log_lines[-12:] if all_log_lines else []
 
-    # If celery is running in parallel, augment velocity
-    if celery_active:
-        live_velocity = max(live_velocity, 50.0) + (len(celery_active_tasks) * 35.0)
-
-    if live_velocity <= 0 and (is_daemon_alive or celery_active):
-        live_velocity = 120.0
+    # Real throughput = NEW questions written to the database over the last 5 minutes.
+    # (Pages fetched / "+5 Qs" log lines are not throughput: re-walking already-ingested pages
+    # logs "+5 Qs" per page while adding nothing.)
+    window_minutes = 5
+    since = timezone.now() - datetime.timedelta(minutes=window_minutes)
+    new_recent = Question.objects.filter(created_at__gte=since).count()
+    live_velocity = round(new_recent / window_minutes, 1)
 
     current_active_subject_slug = telemetry_data.get("subject", "")
     current_active_page = telemetry_data.get("current_page", 0)
@@ -273,9 +289,8 @@ def extractor_status(request):
     for slug, meta in STEM_TARGETS.items():
         db_count = Question.objects.filter(subject__slug=slug).count()
         sol_count = Question.objects.filter(subject__slug=slug).exclude(explanation="").count()
-        # Accurate calculation combining progress file and database question count (5 Qs per page)
-        raw_done = len(completed_pages_data.get(slug, []))
-        pages_done = min(meta["target_pages"], max(raw_done, int(round(db_count / 5))))
+        # Pages crawled, as recorded by the crawler itself (not inferred from DB row counts)
+        pages_done = min(meta["target_pages"], len(completed_pages_data.get(slug, [])))
         pct = round((db_count / meta["target_q"]) * 100, 1) if meta["target_q"] else 0.0
 
         total_db_questions += db_count
@@ -324,16 +339,16 @@ def extractor_status(request):
     remaining_questions = max(0, TOTAL_TARGET_QUESTIONS - total_db_questions)
     overall_percent = round((total_db_questions / TOTAL_TARGET_QUESTIONS) * 100, 2)
 
-    # Dynamic ETA calculation based on real multi-threaded velocity
-    if (is_daemon_alive or celery_active) and live_velocity > 0:
-        eta_minutes = int(remaining_questions / live_velocity) if remaining_questions > 0 else 0
-        eta_hours = eta_minutes // 60
-        eta_remaining_mins = eta_minutes % 60
+    # ETA from measured DB write rate; says so plainly when nothing is being written
+    if live_velocity > 0 and remaining_questions > 0:
+        eta_minutes = int(remaining_questions / live_velocity)
+        eta_hours, eta_remaining_mins = divmod(eta_minutes, 60)
         formatted_eta = f"{eta_hours}h {eta_remaining_mins}m" if eta_hours > 0 else f"{eta_minutes} mins"
-        rate_display = f"~{int(round(live_velocity))} questions/min"
+    elif remaining_questions <= 0:
+        formatted_eta = "Target reached"
     else:
-        formatted_eta = "Paused / Complete"
-        rate_display = "0 questions/min"
+        formatted_eta = "No new questions being added"
+    rate_display = f"{live_velocity:g} new questions/min (last {window_minutes} min)"
 
     active_subject_name = STEM_TARGETS.get(current_active_subject_slug, {}).get("name", current_active_subject_slug.replace("-", " ").title())
     active_subject_percent = round((current_active_page / current_active_total_pages) * 100, 1) if current_active_total_pages > 0 else 0.0
@@ -342,6 +357,8 @@ def extractor_status(request):
         "is_active": is_daemon_alive or celery_active,
         "celery_active": celery_active,
         "celery_workers_count": active_workers_count,
+        "celery_node_count": celery_node_count,
+        "celery_state": celery_state,
         "celery_active_tasks": celery_active_tasks,
         "celery_active_subjects": list(celery_active_subjects),
         "is_daemon_alive": is_daemon_alive,
@@ -362,7 +379,7 @@ def extractor_status(request):
         "active_subject_total_pages": current_active_total_pages,
         "active_subject_percent": active_subject_percent,
         "recent_logs": recent_logs,
-        "parallel_workers": max(active_workers_count, 1) + (1 if is_daemon_alive else 0),
+        "parallel_workers": active_workers_count + (1 if is_daemon_alive else 0),
         "subjects": subjects_progress,
     }
 
