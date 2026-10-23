@@ -39,31 +39,35 @@
     return api;
   };
 
-  // --- Factorial Helper ---
-  function factorial(n) {
-    if (n < 0 || !Number.isInteger(n)) return NaN;
-    if (n === 0 || n === 1) return 1;
-    if (n > 170) return Infinity; // JS precision limit
-    let res = 1;
-    for (let i = 2; i <= n; i++) res *= i;
-    return res;
+  // --- GoF Memento & Engine Delegates for Calculator ---
+  function getCalcEngine() {
+    if (typeof window !== 'undefined' && window.KalmiCalcEngine) {
+      if (!window.__kalmiCalcEngineInstance) {
+        window.__kalmiCalcEngineInstance = new window.KalmiCalcEngine();
+      }
+      return window.__kalmiCalcEngineInstance;
+    }
+    return null;
   }
 
-  // --- GoF Memento Pattern for Calculator State Persistence ---
-  const CALC_MEMENTO_KEY = 'kalmiprep_calc_memento';
-
   function loadCalcMemento() {
+    if (typeof window !== 'undefined' && window.KalmiCalcMemento) {
+      return window.KalmiCalcMemento.load();
+    }
     try {
-      const saved = localStorage.getItem(CALC_MEMENTO_KEY);
+      const saved = localStorage.getItem('kalmiprep_calc_memento');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return null;
   }
 
   function saveCalcMemento(state) {
+    if (typeof window !== 'undefined' && window.KalmiCalcMemento) {
+      return window.KalmiCalcMemento.save(state);
+    }
     try {
       const memento = {
-        isOpen: false, // Never auto-pop open across page refreshes or navigation
+        isOpen: false,
         angleMode: state.angleMode || 'DEG',
         expression: state.expression || '',
         result: state.result || '0',
@@ -71,85 +75,15 @@
         memory: typeof state.memory === 'number' ? state.memory : 0,
         isEvaluated: Boolean(state.isEvaluated),
       };
-      localStorage.setItem(CALC_MEMENTO_KEY, JSON.stringify(memento));
+      localStorage.setItem('kalmiprep_calc_memento', JSON.stringify(memento));
     } catch (e) {}
   }
 
-  // --- Scientific Expression Evaluator (Powered by Math.js - Zero eval/Function) ---
   function safeEvalScientific(expr, angleMode = 'DEG', lastAns = 0) {
-    if (!expr || !expr.trim()) return '0';
-
-    // Auto-balance unclosed parentheses
-    const openCount = (expr.match(/\(/g) || []).length;
-    const closeCount = (expr.match(/\)/g) || []).length;
-    let balanced = expr;
-    if (openCount > closeCount) {
-      balanced = expr + ')'.repeat(openCount - closeCount);
-    }
-
-    const numericAns = parseFloat(lastAns) || 0;
-
-    if (typeof window !== 'undefined' && window.math && typeof window.math.evaluate === 'function') {
-      try {
-        let cleaned = balanced
-          .replace(/×/g, '*')
-          .replace(/÷/g, '/')
-          .replace(/−/g, '-')
-          .replace(/π/g, 'pi')
-          .replace(/Ans/gi, `(${numericAns})`)
-          .replace(/EXP/g, '*10^')
-          .replace(/(\d+(\.\d+)?)%/g, '($1 * 0.01)');
-
-        const scope = angleMode === 'DEG' ? {
-          Ans: numericAns,
-          ans: numericAns,
-          sin: (x) => {
-            const rad = (x * Math.PI) / 180;
-            const s = Math.sin(rad);
-            return Math.abs(s) < 1e-15 ? 0 : s;
-          },
-          cos: (x) => {
-            const rad = (x * Math.PI) / 180;
-            const c = Math.cos(rad);
-            return Math.abs(c) < 1e-15 ? 0 : c;
-          },
-          tan: (x) => {
-            if (Math.abs((x - 90) % 180) < 1e-10) throw new Error('Math ERROR');
-            return Math.tan((x * Math.PI) / 180);
-          },
-          asin: (x) => (Math.asin(x) * 180) / Math.PI,
-          acos: (x) => (Math.acos(x) * 180) / Math.PI,
-          atan: (x) => (Math.atan(x) * 180) / Math.PI,
-          ln: (x) => Math.log(x),
-          log: (x) => Math.log10(x),
-          sqrt: (x) => Math.sqrt(x),
-          cbrt: (x) => Math.cbrt(x),
-          factorial: (n) => factorial(n),
-        } : {
-          Ans: numericAns,
-          ans: numericAns,
-          ln: (x) => Math.log(x),
-          log: (x) => Math.log10(x),
-          sqrt: (x) => Math.sqrt(x),
-          cbrt: (x) => Math.cbrt(x),
-          factorial: (n) => factorial(n),
-        };
-
-        const result = window.math.evaluate(cleaned, scope);
-        if (typeof result === 'function') return 'Error';
-        if (typeof result === 'number') {
-          if (!isFinite(result)) return 'Math ERROR';
-          if (Math.abs(result) < 1e-12 && Math.abs(result) > 0) return '0';
-          return parseFloat(result.toPrecision(12)).toString();
-        }
-        if (result && typeof result.format === 'function') {
-          return result.format({ precision: 12 });
-        }
-        return String(result);
-      } catch (err) {
-        if (err && err.message === 'Math ERROR') return 'Math ERROR';
-        return 'Error';
-      }
+    const engine = getCalcEngine();
+    if (engine) {
+      const res = engine.evaluate(expr, angleMode, lastAns);
+      return res.success ? res.result : (res.error || 'Error');
     }
     return '0';
   }
@@ -314,7 +248,7 @@
     },
 
     // ----------------------------------------------------
-    // 3. SCIENTIFIC CALCULATOR SLICE (GoF Command & Memento)
+    // 3. SCIENTIFIC CALCULATOR SLICE (Delegated to GoF KalmiCalc)
     // ----------------------------------------------------
     calc: {
       isOpen: false,
@@ -329,30 +263,35 @@
     },
 
     toggleCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.toggle(); return; }
       if (!document.getElementById('scientific-calculator-modal')) return;
       set((state) => ({ calc: { ...state.calc, isOpen: !state.calc.isOpen } }));
       get().renderCalcDOM();
     },
 
     openCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.open(); return; }
       if (!document.getElementById('scientific-calculator-modal')) return;
       set((state) => ({ calc: { ...state.calc, isOpen: true } }));
       get().renderCalcDOM();
     },
 
     closeCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.close(); return; }
       if (!document.getElementById('scientific-calculator-modal')) return;
       set((state) => ({ calc: { ...state.calc, isOpen: false } }));
       get().renderCalcDOM();
     },
 
     setCalcAngleMode: (mode) => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.setAngleMode(mode); return; }
       set((state) => ({ calc: { ...state.calc, angleMode: mode } }));
       get().evaluateCalc(false);
       get().renderCalcDOM();
     },
 
     clearCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.clear(); return; }
       set((state) => ({
         calc: {
           ...state.calc,
@@ -365,17 +304,14 @@
     },
 
     backspaceCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.backspace(); return; }
       set((state) => {
         let expr = state.calc.expression;
         if (!expr || state.calc.isEvaluated) {
           return { calc: { ...state.calc, expression: '', result: '0', isEvaluated: false } };
         }
         const fnMatch = expr.match(/(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|ln|log|sqrt|cbrt)\($/);
-        if (fnMatch) {
-          expr = expr.slice(0, -fnMatch[0].length);
-        } else {
-          expr = expr.slice(0, -1);
-        }
+        expr = fnMatch ? expr.slice(0, -fnMatch[0].length) : expr.slice(0, -1);
         return { calc: { ...state.calc, expression: expr } };
       });
       get().evaluateCalc(false);
@@ -383,6 +319,7 @@
     },
 
     appendCalc: (token) => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.append(token); return; }
       set((state) => {
         let { expression, isEvaluated, lastAns } = state.calc;
         const isOperator = ['+', '-', '−', '*', '/', '×', '÷', '^', '%'].includes(token);
@@ -411,6 +348,7 @@
     },
 
     evaluateCalc: (isFinal = true) => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.evaluate(isFinal); return; }
       const { expression, angleMode, lastAns } = get().calc;
       if (!expression || !expression.trim()) {
         if (isFinal) {
@@ -445,22 +383,26 @@
     },
 
     memoryAdd: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.memoryAdd(); return; }
       const current = parseFloat(get().calc.result) || 0;
       set((state) => ({ calc: { ...state.calc, memory: state.calc.memory + current } }));
       get().renderCalcDOM();
     },
 
     memorySubtract: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.memorySubtract(); return; }
       const current = parseFloat(get().calc.result) || 0;
       set((state) => ({ calc: { ...state.calc, memory: state.calc.memory - current } }));
       get().renderCalcDOM();
     },
 
     memoryRecall: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.memoryRecall(); return; }
       get().appendCalc(get().calc.memory.toString());
     },
 
     memoryClear: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.memoryClear(); return; }
       set((state) => ({ calc: { ...state.calc, memory: 0 } }));
       get().renderCalcDOM();
     },
@@ -516,6 +458,10 @@
     },
 
     renderCalcDOM: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) {
+        window.KalmiCalc.render();
+        return;
+      }
       const widget = document.getElementById('scientific-calculator-modal');
       if (!widget) return;
 
@@ -565,8 +511,8 @@
     }
   });
 
-  // Calculator keyboard shortcuts and direct calculator numeric typing
-  if (!window.__kalmiCalcShortcutsBound) {
+  // Calculator keyboard shortcuts and direct calculator numeric typing (fallback if KalmiCalc controller not present)
+  if (!window.__kalmiCalcShortcutsBound && !window.KalmiCalc) {
     window.__kalmiCalcShortcutsBound = true;
     document.addEventListener('keydown', (e) => {
       const widget = document.getElementById('scientific-calculator-modal');

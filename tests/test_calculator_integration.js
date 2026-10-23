@@ -10,6 +10,9 @@ const { JSDOM } = require('jsdom');
 const root = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const STORE = read('static/js/store.js');
+const ENGINE = read('static/js/calculator/engine.js');
+const MEMENTO = read('static/js/calculator/memento.js');
+const CONTROLLER = read('static/js/calculator/controller.js');
 const MODAL_HTML = read('templates/components/calculator_modal.html')
   .replace(/\{#[\s\S]*?#\}/g, '')
   .replace(/\{%[\s\S]*?%\}/g, '')
@@ -49,6 +52,11 @@ function makePage({ calculator = true, savedMemento = null } = {}) {
     window.localStorage.setItem('kalmiprep_calc_memento', JSON.stringify(savedMemento));
   }
   window.eval(MATHJS);
+  if (calculator) {
+    window.eval(ENGINE);
+    window.eval(MEMENTO);
+    window.eval(CONTROLLER);
+  }
   window.eval(STORE);
   return window;
 }

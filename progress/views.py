@@ -13,13 +13,13 @@ from curriculum.models import Subject, Topic
 from questions.models import Question
 
 STEM_TARGETS = {
-    "english-language": {"name": "Use of English (Compulsory)", "target_q": 9413, "target_pages": 1883},
-    "mathematics": {"name": "Mathematics", "target_q": 4916, "target_pages": 984},
-    "physics": {"name": "Physics", "target_q": 5236, "target_pages": 1048},
-    "chemistry": {"name": "Chemistry", "target_q": 4711, "target_pages": 943},
-    "biology": {"name": "Biology", "target_q": 5392, "target_pages": 1079},
+    "english-language": {"name": "Use of English (Compulsory)", "target_q": 9385, "target_pages": 1883},
+    "mathematics": {"name": "Mathematics", "target_q": 4910, "target_pages": 984},
+    "physics": {"name": "Physics", "target_q": 5315, "target_pages": 1048},
+    "chemistry": {"name": "Chemistry", "target_q": 4783, "target_pages": 943},
+    "biology": {"name": "Biology", "target_q": 5418, "target_pages": 1079},
 }
-TOTAL_TARGET_QUESTIONS = 29668
+TOTAL_TARGET_QUESTIONS = 29811
 TOTAL_TARGET_PAGES = 5937
 
 
@@ -291,7 +291,8 @@ def extractor_status(request):
         sol_count = Question.objects.filter(subject__slug=slug).exclude(explanation="").count()
         # Pages crawled, as recorded by the crawler itself (not inferred from DB row counts)
         pages_done = min(meta["target_pages"], len(completed_pages_data.get(slug, [])))
-        pct = round((db_count / meta["target_q"]) * 100, 1) if meta["target_q"] else 0.0
+        target_for_subj = max(meta["target_q"], db_count)
+        pct = min(100.0, round((db_count / target_for_subj) * 100, 1)) if target_for_subj else 0.0
 
         total_db_questions += db_count
         total_db_solutions += sol_count
@@ -336,8 +337,9 @@ def extractor_status(request):
             "status_style": status_style,
         })
 
-    remaining_questions = max(0, TOTAL_TARGET_QUESTIONS - total_db_questions)
-    overall_percent = round((total_db_questions / TOTAL_TARGET_QUESTIONS) * 100, 2)
+    total_target_questions = max(TOTAL_TARGET_QUESTIONS, total_db_questions)
+    remaining_questions = max(0, total_target_questions - total_db_questions)
+    overall_percent = min(100.0, round((total_db_questions / total_target_questions) * 100, 2)) if total_target_questions else 100.0
 
     # ETA from measured DB write rate; says so plainly when nothing is being written
     if live_velocity > 0 and remaining_questions > 0:
@@ -363,7 +365,7 @@ def extractor_status(request):
         "celery_active_subjects": list(celery_active_subjects),
         "is_daemon_alive": is_daemon_alive,
         "rabbitmq_connected": True,
-        "total_target_questions": TOTAL_TARGET_QUESTIONS,
+        "total_target_questions": total_target_questions,
         "total_target_pages": TOTAL_TARGET_PAGES,
         "total_ingested_questions": total_db_questions,
         "total_ingested_solutions": total_db_solutions,
