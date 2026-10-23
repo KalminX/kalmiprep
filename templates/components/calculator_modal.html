@@ -12,20 +12,20 @@
        style="max-width: 440px; width: 100%;">
     
     <!-- Casio Top Bezel with Branding & Solar Cell Panel -->
-    <div class="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/60">
+    <div class="casio-top-bezel flex items-center justify-between px-4 py-2.5 border-b border-slate-700/60">
       <div class="flex items-center gap-2">
-        <span class="text-sm font-black tracking-widest font-sans text-slate-100">CASIO</span>
-        <span class="text-[9px] font-bold text-amber-400 font-mono tracking-tight px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30">NATURAL-V.P.A.M.</span>
-        <span class="text-[10px] text-slate-400 font-mono hidden xs:inline">fx-991ES PLUS</span>
+        <span class="casio-brand-title font-sans">CASIO</span>
+        <span class="casio-vpam-badge font-mono">NATURAL-V.P.A.M.</span>
+        <span class="casio-model-code font-mono hidden xs:inline">fx-991ES PLUS</span>
       </div>
 
       <div class="flex items-center gap-2.5">
         <!-- Two-Way Power Solar Cell Strip Graphic -->
-        <div class="hidden xs:flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-950/70 border border-amber-800/50 shadow-inner" title="Two-Way Power Solar Strip">
-          <div class="w-2 h-3.5 bg-amber-900/90 rounded-[1px]"></div>
-          <div class="w-2 h-3.5 bg-amber-900/90 rounded-[1px]"></div>
-          <div class="w-2 h-3.5 bg-amber-900/90 rounded-[1px]"></div>
-          <div class="w-2 h-3.5 bg-amber-900/90 rounded-[1px]"></div>
+        <div class="casio-solar-strip hidden xs:flex items-center" title="Two-Way Power Solar Strip">
+          <div class="casio-solar-cell"></div>
+          <div class="casio-solar-cell"></div>
+          <div class="casio-solar-cell"></div>
+          <div class="casio-solar-cell"></div>
         </div>
 
         <!-- Angle Mode Toggle (DEG / RAD) -->
@@ -50,19 +50,19 @@
 
     <!-- Section: Casio Natural Display Framed Screen Inset -->
     <div class="p-2.5 bg-slate-950/90 border-b border-slate-800 select-none">
-      <div class="px-3.5 py-2.5 bg-[#c2d2bc] dark:bg-[#16221c] border-2 border-slate-700/80 rounded-xl text-slate-900 dark:text-[#ecfdf5] shadow-inner select-none flex flex-col justify-between"
-           style="min-height: 120px;">
+      <div class="casio-lcd-screen px-3.5 py-2.5 select-none flex flex-col justify-between"
+           style="min-height: 122px;">
         
         <!-- Annunciators & Status Row -->
-        <div class="flex items-center justify-between text-[10px] text-slate-700 dark:text-emerald-500/80 mb-1 border-b border-slate-400/30 dark:border-emerald-950/60 pb-0.5 font-mono">
+        <div class="casio-lcd-status flex items-center justify-between mb-1 pb-1 font-mono">
           <div class="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[9px]">
-            <span id="calc-m-badge" class="px-1 rounded bg-black/10 dark:bg-emerald-950/80">D</span>
-            <span id="calc-memory-indicator" class="px-1 rounded bg-black/10 dark:bg-emerald-950/80 hidden">M</span>
-            <span id="calc-math-badge" class="px-1 rounded bg-black/10 dark:bg-emerald-950/80 font-serif italic">Math</span>
-            <span id="calc-ans-indicator" class="px-1 rounded bg-black/10 dark:bg-emerald-950/80 hidden">Ans</span>
-            <span id="calc-sd-indicator" class="px-1 rounded bg-amber-500/20 text-amber-800 dark:text-amber-400 hidden">S⇔D</span>
+            <span id="calc-m-badge" class="casio-lcd-badge">D</span>
+            <span id="calc-memory-indicator" class="casio-lcd-badge hidden">M</span>
+            <span id="calc-math-badge" class="casio-lcd-badge font-serif italic">Math</span>
+            <span id="calc-ans-indicator" class="casio-lcd-badge hidden">Ans</span>
+            <span id="calc-sd-indicator" class="casio-lcd-badge casio-lcd-badge-amber hidden">S⇔D</span>
           </div>
-          <div class="text-[9px] opacity-75 font-sans font-semibold tracking-wider">NATURAL-V.P.A.M.</div>
+          <div class="text-[9px] font-sans font-bold tracking-wider" style="color: #334155;">NATURAL-V.P.A.M.</div>
         </div>
 
         <!-- Line 1: Primary Natural Textbook Expression Area (Large, Spacious Casio Display) -->
@@ -71,7 +71,7 @@
              style="direction: ltr;">
           <math-field id="calc-math-field" 
                       math-virtual-keyboard-policy="manual"
-                      class="w-full bg-transparent border-none outline-none text-slate-900 dark:text-[#ecfdf5]" 
+                      class="w-full bg-transparent border-none outline-none" 
                       aria-label="Mathematical Input Field">
           </math-field>
           <span id="calc-text-mirror" class="sr-only">0</span>
@@ -79,7 +79,7 @@
 
         <!-- Line 2: Precision Result (Right-aligned Bottom Baseline) -->
         <div id="calc-result-display" 
-             class="text-xl sm:text-2xl font-bold font-mono text-right overflow-x-auto no-scrollbar whitespace-nowrap tracking-tight min-h-[32px] flex items-center justify-end text-slate-950 dark:text-[#a0e49a] pt-1 border-t border-slate-400/20 dark:border-emerald-950/40">
+             class="casio-lcd-result text-xl sm:text-2xl font-bold font-mono text-right overflow-x-auto no-scrollbar whitespace-nowrap tracking-tight min-h-[32px] flex items-center justify-end pt-1">
           0
         </div>
       </div>
@@ -105,84 +105,81 @@
       </button>
     </div>
 
-    <!-- Casio REPLAY 4-Way Directional Navigation Pad (Up, Down, Left, Right) -->
-    <div class="px-3.5 py-2 bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 border-b border-slate-800 flex items-center justify-between gap-2 select-none"
+    <!-- Casio REPLAY 4-Way Directional Navigation Deck -->
+    <div class="casio-nav-deck select-none"
          onmousedown="event.preventDefault()">
       
-      <!-- Left Quick Function Buttons -->
-      <div class="flex items-center gap-1.5">
+      <!-- Left Wing: Quick Grouping Keys -->
+      <div class="casio-wing-group justify-start">
         <button type="button" 
                 onclick="useKalmiStore.getState().appendCalc('(')" 
-                class="casio-fn-btn px-2.5 py-1 text-xs font-mono font-bold text-amber-300"
+                class="casio-aux-btn text-amber-300"
                 title="Open Parenthesis (">
           (
         </button>
         <button type="button" 
                 onclick="useKalmiStore.getState().appendCalc(')')" 
-                class="casio-fn-btn px-2.5 py-1 text-xs font-mono font-bold text-amber-300"
+                class="casio-aux-btn text-amber-300"
                 title="Close Parenthesis )">
           )
         </button>
       </div>
 
-      <!-- Center: Iconic Casio 4-Way REPLAY Directional Cluster -->
-      <div class="relative w-36 h-14 sm:w-40 sm:h-16 flex items-center justify-center">
-        <!-- Oval D-Pad Chassis -->
-        <div class="w-full h-full rounded-full bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 border-2 border-slate-600/80 shadow-md relative flex items-center justify-center overflow-hidden">
-          
-          <!-- Center REPLAY Label Badge -->
-          <div class="w-14 h-5 sm:h-6 rounded-full bg-slate-950 border border-slate-700/80 flex items-center justify-center shadow-inner z-10 pointer-events-none">
-            <span class="text-[8px] font-black tracking-widest text-slate-300">REPLAY</span>
-          </div>
+      <!-- Center: Sculpted 4-Way Segmented D-Pad Rocker -->
+      <div class="casio-dpad" role="group" aria-label="4-Way Cursor Navigation Pad">
+        <!-- LEFT Button (◄) -->
+        <button type="button" 
+                id="calc-nav-left"
+                onclick="KalmiCalc.navLeft()" 
+                class="casio-dpad-btn dpad-left"
+                aria-label="Cursor Left"
+                title="Move Cursor Left (ArrowLeft)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
 
-          <!-- UP Button (▲) -->
-          <button type="button" 
-                  id="calc-nav-up"
-                  onclick="KalmiCalc.navUp()" 
-                  class="absolute top-0 inset-x-0 mx-auto w-14 h-4.5 flex items-center justify-center text-slate-200 hover:text-amber-400 hover:bg-slate-700/60 transition-colors active:scale-90"
-                  aria-label="Cursor Up / History Previous"
-                  title="Cursor to Start / Up (ArrowUp)">
-            <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
-          </button>
+        <!-- UP Button (▲) -->
+        <button type="button" 
+                id="calc-nav-up"
+                onclick="KalmiCalc.navUp()" 
+                class="casio-dpad-btn dpad-up"
+                aria-label="Cursor Up / History Previous"
+                title="Move Cursor Up (ArrowUp)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+        </button>
 
-          <!-- DOWN Button (▼) -->
-          <button type="button" 
-                  id="calc-nav-down"
-                  onclick="KalmiCalc.navDown()" 
-                  class="absolute bottom-0 inset-x-0 mx-auto w-14 h-4.5 flex items-center justify-center text-slate-200 hover:text-amber-400 hover:bg-slate-700/60 transition-colors active:scale-90"
-                  aria-label="Cursor Down / History Next"
-                  title="Cursor to End / Down (ArrowDown)">
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-          </button>
+        <!-- DOWN Button (▼) -->
+        <button type="button" 
+                id="calc-nav-down"
+                onclick="KalmiCalc.navDown()" 
+                class="casio-dpad-btn dpad-down"
+                aria-label="Cursor Down / History Next"
+                title="Move Cursor Down (ArrowDown)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </button>
 
-          <!-- LEFT Button (◄) -->
-          <button type="button" 
-                  id="calc-nav-left"
-                  onclick="KalmiCalc.navLeft()" 
-                  class="absolute left-0 inset-y-0 my-auto w-9 h-10 flex items-center justify-center text-slate-200 hover:text-amber-400 hover:bg-slate-700/60 transition-colors active:scale-90"
-                  aria-label="Cursor Left"
-                  title="Move Cursor Left (ArrowLeft)">
-            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
-          </button>
-
-          <!-- RIGHT Button (►) -->
-          <button type="button" 
-                  id="calc-nav-right"
-                  onclick="KalmiCalc.navRight()" 
-                  class="absolute right-0 inset-y-0 my-auto w-9 h-10 flex items-center justify-center text-slate-200 hover:text-amber-400 hover:bg-slate-700/60 transition-colors active:scale-90"
-                  aria-label="Cursor Right"
-                  title="Move Cursor Right (ArrowRight)">
-            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
+        <!-- RIGHT Button (►) -->
+        <button type="button" 
+                id="calc-nav-right"
+                onclick="KalmiCalc.navRight()" 
+                class="casio-dpad-btn dpad-right"
+                aria-label="Cursor Right"
+                title="Move Cursor Right (ArrowRight)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
       </div>
 
-      <!-- Right Quick Actions -->
-      <div class="flex items-center gap-1.5">
+      <!-- Right Wing: Mode & S⇔D Quick Actions -->
+      <div class="casio-wing-group justify-end">
+        <button type="button" 
+                onclick="useKalmiStore.getState().toggleCalcFraction()" 
+                class="casio-aux-btn casio-aux-amber"
+                title="Toggle Fraction / Decimal (S⇔D)">
+          S&hArr;D
+        </button>
         <button type="button" 
                 id="calc-nav-mode-btn" 
                 onclick="useKalmiStore.getState().toggleCalcAngleMode()" 
-                class="casio-fn-btn px-2.5 py-1 text-xs font-mono font-bold text-sky-400"
+                class="casio-aux-btn casio-aux-sky"
                 title="Toggle Angle Mode (DEG / RAD)">
           MODE
         </button>
@@ -222,7 +219,7 @@
       <button type="button" onclick="KalmiCalc.insertTemplate('abs')" class="casio-fn-btn font-mono text-[11px]" title="Absolute Value (|x|)">|x|</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('(')" class="casio-fn-btn font-bold text-sm">(</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc(')')" class="casio-fn-btn font-bold text-sm">)</button>
-      <button type="button" id="calc-sd-btn" onclick="useKalmiStore.getState().toggleCalcFraction()" class="casio-fn-btn text-amber-400 font-mono text-[11px] font-bold" title="Toggle Fraction / Decimal (S<=>D)">S&hArr;D</button>
+      <button type="button" id="calc-sd-btn" onclick="useKalmiStore.getState().toggleCalcFraction()" class="casio-fn-btn casio-aux-amber font-mono text-[11px] font-bold" title="Toggle Fraction / Decimal (S<=>D)">S&hArr;D</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('nPr')" class="casio-fn-btn font-mono text-[11px]" title="Permutations (nPr)">nPr</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('&divide;')" class="casio-op-btn" title="Division (&divide;)">&divide;</button>
 
@@ -261,6 +258,188 @@
 </div>
 
 <style>
+  /* Casio Top Bezel & Solar Cell Panel */
+  .casio-top-bezel {
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  }
+  .casio-brand-title {
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    font-size: 0.85rem;
+    color: #f8fafc;
+  }
+  .casio-vpam-badge {
+    font-size: 9px;
+    font-weight: 700;
+    color: #fbbf24;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background-color: rgba(2, 6, 23, 0.75);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+  }
+  .casio-model-code {
+    font-size: 9px;
+    font-style: italic;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+  .casio-solar-strip {
+    height: 18px;
+    width: 54px;
+    border-radius: 4px;
+    background-color: #261710;
+    border: 1px solid #475569;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+  }
+  .casio-solar-cell {
+    flex: 1;
+    height: 100%;
+    border-right: 1px solid rgba(120, 53, 15, 0.45);
+  }
+  .casio-solar-cell:last-child {
+    border-right: none;
+  }
+
+  /* Casio Framed Natural Textbook LCD Screen */
+  .casio-lcd-screen {
+    background: linear-gradient(180deg, #cadac2 0%, #bfd2b6 100%) !important;
+    color: #0f172a !important;
+    border: 2px solid #334155;
+    border-radius: 0.75rem;
+    box-shadow: inset 0 3px 6px rgba(15, 23, 42, 0.28);
+  }
+  .casio-lcd-status {
+    border-bottom: 1px solid rgba(15, 23, 42, 0.14);
+  }
+  .casio-lcd-badge {
+    padding: 1px 4px;
+    border-radius: 3px;
+    background-color: rgba(15, 23, 42, 0.12);
+    color: #0f172a;
+    font-size: 9px;
+    font-weight: 700;
+  }
+  .casio-lcd-badge-amber {
+    background-color: rgba(120, 53, 15, 0.18);
+    color: #451a03;
+  }
+  .casio-lcd-result {
+    color: #0f172a !important;
+    border-top: 1px solid rgba(15, 23, 42, 0.14);
+  }
+
+  /* Casio REPLAY 4-Way Directional Navigation Deck */
+  .casio-nav-deck {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    background: linear-gradient(180deg, #0f172a 0%, #090d16 100%);
+    border-bottom: 1px solid #1e293b;
+  }
+  .casio-wing-group {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .casio-aux-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 36px;
+    padding: 0 0.5rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(180deg, #263349 0%, #1e293b 100%);
+    border: 1px solid #475569;
+    color: #fcd34d;
+    box-shadow: 0 2px 0 0 #020617;
+    font-family: monospace;
+    font-size: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.06s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .casio-aux-amber {
+    color: #fbbf24 !important;
+  }
+  .casio-aux-sky {
+    color: #38bdf8 !important;
+  }
+  .casio-aux-btn:hover {
+    background: linear-gradient(180deg, #334155 0%, #263349 100%);
+    border-color: #64748b;
+    filter: brightness(1.08);
+  }
+  .casio-aux-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 #020617;
+  }
+
+  /* Sculpted 4-Way Segmented D-Pad Rocker */
+  .casio-dpad {
+    display: grid;
+    grid-template-columns: 42px 50px 42px;
+    grid-template-rows: 26px 26px;
+    gap: 3px;
+    padding: 4px;
+    border-radius: 9999px;
+    background: #050811;
+    border: 1.5px solid #334155;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.85), 0 1px 2px rgba(255, 255, 255, 0.05);
+  }
+  .casio-dpad-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+    border: 1px solid #475569;
+    color: #e2e8f0;
+    box-shadow: 0 1px 0 0 #020617;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.06s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .casio-dpad-btn:hover {
+    background: linear-gradient(180deg, #475569 0%, #334155 100%);
+    border-color: #60a5fa;
+    color: #ffffff;
+  }
+  .casio-dpad-btn:active {
+    transform: translateY(1px);
+    background: #1e293b;
+    box-shadow: none;
+  }
+  .casio-dpad-btn.dpad-left {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    border-radius: 9999px 6px 6px 9999px;
+    padding-right: 2px;
+  }
+  .casio-dpad-btn.dpad-up {
+    grid-column: 2;
+    grid-row: 1;
+    border-radius: 8px 8px 3px 3px;
+  }
+  .casio-dpad-btn.dpad-down {
+    grid-column: 2;
+    grid-row: 2;
+    border-radius: 3px 3px 8px 8px;
+  }
+  .casio-dpad-btn.dpad-right {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    border-radius: 6px 9999px 9999px 6px;
+    padding-left: 2px;
+  }
+
   /* Casio fx-991 Style Tactile Keypad Styling */
   .casio-fn-btn {
     display: inline-flex;
@@ -420,7 +599,8 @@
   }
 
   /* MathLive Custom Casio Natural Display Styling */
-  math-field {
+  math-field,
+  .dark math-field {
     background-color: transparent !important;
     border: none !important;
     outline: none !important;
@@ -430,6 +610,9 @@
     --caret-color: #0f172a !important;
     --placeholder-color: #334155 !important;
     --placeholder-opacity: 0.65 !important;
+    --contains-highlight-background-color: rgba(15, 23, 42, 0.07) !important;
+    --selection-background-color: rgba(59, 130, 246, 0.25) !important;
+    --selection-color: #0f172a !important;
     font-family: KaTeX_Main, KaTeX_Math, 'Times New Roman', serif !important;
     font-size: 1.55rem !important;
     line-height: 2.2rem !important;
@@ -440,13 +623,6 @@
     text-align: left !important;
     direction: ltr !important;
     display: block !important;
-  }
-  .dark math-field {
-    color: #ecfdf5 !important;
-    --color: #ecfdf5 !important;
-    --caret-color: #a7f3d0 !important;
-    --placeholder-color: #6ee7b7 !important;
-    --placeholder-opacity: 0.55 !important;
   }
   math-field:focus,
   math-field:focus-within {

@@ -95,6 +95,11 @@
             display: inline-block !important;
             animation: ML__caret-blink 1.05s step-end forwards infinite !important;
           }
+          .ML__contains-highlight {
+            background-color: rgba(15, 23, 42, 0.07) !important;
+            color: #0f172a !important;
+            border-radius: 3px;
+          }
         `;
         mf.shadowRoot.appendChild(style);
       }
@@ -245,8 +250,14 @@
     navRight() {
       const mf = this.getMathField();
       if (mf && typeof mf.executeCommand === 'function') {
-        const moved = mf.executeCommand('moveToNextPlaceholder');
-        if (!moved) {
+        const hasPlaceholder = typeof mf.value === 'string' && mf.value.includes('\\placeholder');
+        const prev = mf.position;
+        if (hasPlaceholder) {
+          const moved = mf.executeCommand('moveToNextPlaceholder');
+          if (!moved || (prev !== undefined && mf.position === prev)) {
+            mf.executeCommand('moveToNextChar');
+          }
+        } else {
           mf.executeCommand('moveToNextChar');
         }
         if (typeof mf.focus === 'function') mf.focus();

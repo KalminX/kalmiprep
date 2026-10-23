@@ -40,6 +40,21 @@
     return null;
   }
 
+  function parseLatexArg(str, startIndex) {
+    let i = startIndex;
+    while (i < str.length && /\s/.test(str[i])) i++;
+    if (i >= str.length) return null;
+    if (str[i] === '{') {
+      return parseBraces(str, i);
+    }
+    if (str[i] === '\\') {
+      let j = i + 1;
+      while (j < str.length && /[a-zA-Z]/.test(str[j])) j++;
+      return { content: str.slice(i, j), nextIndex: j };
+    }
+    return { content: str[i], nextIndex: i + 1 };
+  }
+
   /**
    * Converts a MathLive LaTeX expression string into a computable math string.
    * 
@@ -58,30 +73,33 @@
     s = s.replace(/\\left/g, '').replace(/\\right/g, '');
     s = s.replace(/\\mleft/g, '').replace(/\\mright/g, '');
 
-    // 2. Handle nested stacked fractions recursively: \frac{num}{den} -> ((num)/(den))
+    // 2. Handle nested stacked fractions recursively: \frac{num}{den} or \frac56 -> ((num)/(den))
     let loopCount = 0;
     while (s.includes('\\frac') && loopCount < 30) {
       loopCount++;
       const idx = s.indexOf('\\frac');
-      const numObj = parseBraces(s, idx + 5);
+      const numObj = parseLatexArg(s, idx + 5);
       if (!numObj) break;
-      const denObj = parseBraces(s, numObj.nextIndex);
+      const denObj = parseLatexArg(s, numObj.nextIndex);
       if (!denObj) break;
       const converted = '((' + latexToMath(numObj.content, lastAns) + ') / (' + latexToMath(denObj.content, lastAns) + '))';
       s = s.slice(0, idx) + converted + s.slice(denObj.nextIndex);
     }
 
-    // 3. Handle indexed general roots: \sqrt[n]{x} -> nthRoot(x, n)
+    // 3. Handle indexed general roots: \sqrt[n]{x} or \sqrt[n]x -> nthRoot(x, n)
     s = s.replace(/\\sqrt\[([^\]]+)\]\{([^\}]+)\}/g, (m, n, x) => {
       return 'nthRoot(' + latexToMath(x, lastAns) + ', ' + latexToMath(n, lastAns) + ')';
     });
+    s = s.replace(/\\sqrt\[([^\]]+)\]([0-9a-zA-Z])/g, (m, n, x) => {
+      return 'nthRoot(' + latexToMath(x, lastAns) + ', ' + latexToMath(n, lastAns) + ')';
+    });
 
-    // 4. Handle square roots: \sqrt{x} -> sqrt(x)
+    // 4. Handle square roots: \sqrt{x} or \sqrt9 -> sqrt(x)
     loopCount = 0;
-    while (s.includes('\\sqrt{') && loopCount < 30) {
+    while (s.includes('\\sqrt') && loopCount < 30) {
       loopCount++;
-      const idx = s.indexOf('\\sqrt{');
-      const bodyObj = parseBraces(s, idx + 5);
+      const idx = s.indexOf('\\sqrt');
+      const bodyObj = parseLatexArg(s, idx + 5);
       if (!bodyObj) break;
       const converted = 'sqrt(' + latexToMath(bodyObj.content, lastAns) + ')';
       s = s.slice(0, idx) + converted + s.slice(bodyObj.nextIndex);
