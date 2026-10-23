@@ -63,10 +63,15 @@
         <div class="text-[9px] opacity-75 font-sans font-semibold">NATURAL DISPLAY</div>
       </div>
 
-      <!-- Line 1: Natural Textbook Expression (LaTeX rendered via KaTeX) -->
+      <!-- Line 1: Natural Textbook Expression (MathLive Natural Mathematical Expression Editor) -->
       <div id="calc-expression-display" 
-           class="w-full text-right overflow-x-auto no-scrollbar whitespace-nowrap text-sm sm:text-base font-normal min-h-[26px] flex items-center justify-end leading-tight tracking-tight">
-        0
+           class="w-full text-right overflow-x-auto no-scrollbar whitespace-nowrap text-sm sm:text-base font-normal min-h-[30px] flex items-center justify-end leading-tight tracking-tight">
+        <math-field id="calc-math-field" 
+                    math-virtual-keyboard-policy="manual"
+                    class="w-full text-right bg-transparent border-none outline-none text-slate-900 dark:text-[#a0e49a]" 
+                    aria-label="Mathematical Input Field">
+        </math-field>
+        <span id="calc-text-mirror" class="sr-only">0</span>
       </div>
 
       <!-- Line 2: Precision Result (Stacked Fraction / Decimal Display) -->
@@ -404,6 +409,32 @@
     box-shadow: 0 0 0 0 #047857;
   }
 
+  /* MathLive Custom Casio Natural Display Styling */
+  math-field {
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    font-size: 1.15rem;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    min-height: 28px;
+    text-align: right;
+    display: inline-block;
+  }
+  math-field:focus,
+  math-field:focus-within {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  math-field::part(virtual-keyboard-toggle),
+  math-field::part(menu-toggle) {
+    display: none !important;
+  }
+
   /* Blinking Natural Textbook Input Cursor */
   .calc-cursor {
     display: inline-block;
@@ -420,9 +451,13 @@
   }
 </style>
 
-<!-- Decoupled Casio Calculator Runtime (Nerdamer, AST, Validator, Formatter, Engine, Memento, and Command Controller) -->
+<!-- Decoupled Casio Calculator Runtime (MathLive, Nerdamer, AST, Converter, Validator, Formatter, Engine, Memento, and Command Controller) -->
+<link rel="stylesheet" href="{% static 'vendor/mathlive/mathlive-fonts.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/mathlive/mathlive-static.css' %}">
+<script src="{% static 'vendor/mathlive/mathlive.min.js' %}"></script>
 <script src="{% static 'vendor/nerdamer/nerdamer.min.js' %}"></script>
 <script src="{% static 'js/calculator/ast.js' %}"></script>
+<script src="{% static 'js/calculator/converter.js' %}"></script>
 <script src="{% static 'js/calculator/validator.js' %}"></script>
 <script src="{% static 'js/calculator/formatter.js' %}"></script>
 <script src="{% static 'js/calculator/engine.js' %}"></script>

@@ -151,6 +151,41 @@ const check = (name, ok, detail = '') => {
   const rNthRoot = (await page.locator('#calc-result-display').textContent()).trim();
   check('Casio 2D NthRoot: root[3]{27} = 3', rNthRoot === '3', rNthRoot);
 
+  // 7e. MathLive <math-field> Element & Natural Input Verification
+  const mfPolicy = await page.evaluate(() => {
+    const mf = document.getElementById('calc-math-field');
+    return mf ? mf.mathVirtualKeyboardPolicy : null;
+  });
+  check('MathLive math-field is present and virtual keyboard is manual', mfPolicy === 'manual', mfPolicy);
+
+  // 7f. MathLive Complex Expression: 2^(3^2) = 512
+  await modal.locator('button[onclick*="clearCalc"]').click();
+  await page.evaluate(() => {
+    const mf = document.getElementById('calc-math-field');
+    if (mf) {
+      mf.value = '2^{3^{2}}';
+      mf.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(100);
+  const rPow = (await page.locator('#calc-result-display').textContent()).trim();
+  check('MathLive nested power 2^(3^2) = 512', rPow === '512', rPow);
+
+  // 7g. MathLive Log_2(32) = 5
+  await modal.locator('button[onclick*="clearCalc"]').click();
+  await page.evaluate(() => {
+    const mf = document.getElementById('calc-math-field');
+    if (mf) {
+      mf.value = '\\log_{2}\\left(32\\right)';
+      mf.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(100);
+  const rLog32 = (await page.locator('#calc-result-display').textContent()).trim();
+  check('MathLive log_2(32) = 5', rLog32 === '5', rLog32);
+
   // 8. Exam isolation & radio buttons untouched
   const selectedDuring = await page.$$eval('input[type=radio]:checked', (els) => els.map((e) => e.value));
   await page.keyboard.press('Escape');

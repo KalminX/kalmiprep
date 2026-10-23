@@ -21,6 +21,7 @@
         renderExpressionWithCursor: (el, expr, pos) => { if (el) el.textContent = expr || '0'; },
         buildFullLatex: (e, r) => e + ' = ' + r
       };
+      this.converter = global.KalmiCalcConverter || { latexToMath: (l) => l };
       this.ast = new (global.KalmiCalcAST || class {
         clear() {}
         isEmpty() { return true; }
@@ -66,6 +67,49 @@
     }
 
     // ----------------------------------------------------
+    // MathLive Integration Helpers
+    // ----------------------------------------------------
+    getMathField() {
+      if (typeof document === 'undefined') return null;
+      return document.getElementById('calc-math-field');
+    }
+
+    setupMathField() {
+      const mf = this.getMathField();
+      if (!mf) return;
+
+      if ('mathVirtualKeyboardPolicy' in mf) {
+        mf.mathVirtualKeyboardPolicy = 'manual';
+      }
+      mf.menuItems = [];
+
+      if (!mf._kalmiBound) {
+        mf._kalmiBound = true;
+        mf.addEventListener('input', () => {
+          this.onMathFieldChange(mf.value);
+        });
+        mf.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === '=') {
+            e.preventDefault();
+            this.evaluate(true);
+          }
+        });
+      }
+    }
+
+    onMathFieldChange(latex) {
+      this.state.expression = this.converter.latexToMath(latex, this.state.lastAns);
+      const latexCodeEl = document.getElementById('calc-latex-code');
+      if (latexCodeEl) {
+        latexCodeEl.textContent = latex || '0';
+      }
+      const mirror = document.getElementById('calc-text-mirror');
+      if (mirror) {
+        mirror.textContent = latex || '0';
+      }
+    }
+
+    // ----------------------------------------------------
     // Command Pattern Handlers
     // ----------------------------------------------------
     open() {
@@ -73,6 +117,11 @@
       this.state.isOpen = true;
       this.syncStore();
       this.render();
+      this.setupMathField();
+      const mf = this.getMathField();
+      if (mf && typeof mf.focus === 'function') {
+        setTimeout(() => mf.focus(), 60);
+      }
     }
 
     close() {
@@ -112,6 +161,11 @@
     // Casio REPLAY Navigation (Up, Down, Left, Right)
     // ----------------------------------------------------
     navLeft() {
+      const mf = this.getMathField();
+      if (mf && typeof mf.executeCommand === 'function') {
+        mf.executeCommand('moveToPreviousChar');
+        return;
+      }
       if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
         this.ast.navLeft();
         this.state.cursorPos = this.ast.cursor.offset;
@@ -144,6 +198,14 @@
     }
 
     navRight() {
+      const mf = this.getMathField();
+      if (mf && typeof mf.executeCommand === 'function') {
+        const moved = mf.executeCommand('moveToNextPlaceholder');
+        if (!moved) {
+          mf.executeCommand('moveToNextChar');
+        }
+        return;
+      }
       if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
         this.ast.navRight();
         this.state.cursorPos = this.ast.cursor.offset;
@@ -176,6 +238,11 @@
     }
 
     navUp() {
+      const mf = this.getMathField();
+      if (mf && typeof mf.executeCommand === 'function') {
+        mf.executeCommand('moveUp');
+        return;
+      }
       if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
         const handled = this.ast.navUp();
         this.state.cursorPos = this.ast.cursor.offset;
@@ -209,6 +276,11 @@
     }
 
     navDown() {
+      const mf = this.getMathField();
+      if (mf && typeof mf.executeCommand === 'function') {
+        mf.executeCommand('moveDown');
+        return;
+      }
       if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
         const handled = this.ast.navDown();
         this.state.cursorPos = this.ast.cursor.offset;
@@ -248,6 +320,10 @@
     }
 
     clear() {
+      const mf = this.getMathField();
+      if (mf) mf.value = '';
+      const mirror = document.getElementById('calc-text-mirror');
+      if (mirror) mirror.textContent = '0';
       if (this.ast && typeof this.ast.clear === 'function') {
         this.ast.clear();
       }
@@ -265,6 +341,16 @@
       let { expression, isEvaluated, cursorPos } = this.state;
       if (!expression || isEvaluated) {
         this.clear();
+        return;
+      }
+
+      const mf = this.getMathField();
+      if (mf && typeof mf.executeCommand === 'function') {
+        mf.executeCommand('deleteBackward');
+        this.onMathFieldChange(mf.value);
+        this.evaluate(false);
+        this.syncStore();
+        this.render();
         return;
       }
 
@@ -302,6 +388,21 @@
       if (this.state.isEvaluated) {
         this.clear();
       }
+      const mf = this.getMathField();
+      if (mf && typeof mf.executeCommand === 'function') {
+        if (type === 'fraction') mf.executeCommand(['insert', '\\frac{#?}{#?}']);
+        else if (type === 'sqrt') mf.executeCommand(['insert', '\\sqrt{#?}']);
+        else if (type === 'power') mf.executeCommand(['insert', '^{#?}']);
+        else if (type === 'logbase') mf.executeCommand(['insert', '\\log_{#?}\\left(#?\\right)']);
+        else if (type === 'nthroot') mf.executeCommand(['insert', '\\sqrt[#?]{#?}']);
+        else if (type === 'abs') mf.executeCommand(['insert', '\\left|#?\\right|']);
+        this.onMathFieldChange(mf.value);
+        this.evaluate(false);
+        this.syncStore();
+        this.render();
+        return;
+      }
+
       if (this.ast && typeof this.ast.insertTemplate === 'function') {
         this.ast.insertTemplate(type);
         const mathExpr = this.ast.toMathString(this.state.lastAns);
@@ -316,6 +417,49 @@
     append(token) {
       if (['fraction', 'logbase', 'nthroot', 'sqrt', 'power', 'abs'].includes(token)) {
         return this.insertTemplate(token);
+      }
+
+      const mf = this.getMathField();
+      if (mf && typeof mf.executeCommand === 'function') {
+        if (this.state.isEvaluated) {
+          const isOperator = ['+', '-', '−', '*', '/', '×', '÷', '^', '%'].includes(token);
+          if (isOperator) {
+            const prev = (this.state.lastAns && this.state.lastAns !== 'Error' && this.state.lastAns !== 'Math ERROR' ? this.state.lastAns : '0');
+            mf.value = prev;
+          } else {
+            mf.value = '';
+          }
+          this.state.isEvaluated = false;
+        }
+
+        if (token === 'sin(') mf.executeCommand(['insert', '\\sin\\left(#?\\right)']);
+        else if (token === 'cos(') mf.executeCommand(['insert', '\\cos\\left(#?\\right)']);
+        else if (token === 'tan(') mf.executeCommand(['insert', '\\tan\\left(#?\\right)']);
+        else if (token === 'asin(') mf.executeCommand(['insert', '\\sin^{-1}\\left(#?\\right)']);
+        else if (token === 'acos(') mf.executeCommand(['insert', '\\cos^{-1}\\left(#?\\right)']);
+        else if (token === 'atan(') mf.executeCommand(['insert', '\\tan^{-1}\\left(#?\\right)']);
+        else if (token === 'log(') mf.executeCommand(['insert', '\\log\\left(#?\\right)']);
+        else if (token === 'ln(') mf.executeCommand(['insert', '\\ln\\left(#?\\right)']);
+        else if (token === 'π') mf.executeCommand(['insert', '\\pi ']);
+        else if (token === 'EXP') mf.executeCommand(['insert', '\\times 10^{#?}']);
+        else if (token === 'nPr') mf.executeCommand(['insert', '\\mathrm{P}']);
+        else if (token === 'nCr') mf.executeCommand(['insert', '\\mathrm{C}']);
+        else if (token === 'Ans') mf.executeCommand(['insert', '\\mathrm{Ans}']);
+        else if (token === '×') mf.executeCommand(['insert', '\\times ']);
+        else if (token === '÷') mf.executeCommand(['insert', '\\div ']);
+        else if (token === '−' || token === '-') mf.executeCommand(['insert', '-']);
+        else if (token === '^2') mf.executeCommand(['insert', '^{2}']);
+        else if (token === '^(') mf.executeCommand(['insert', '^{#?}']);
+        else if (token === '10^(') mf.executeCommand(['insert', '10^{#?}']);
+        else if (token === '!') mf.executeCommand(['insert', '!']);
+        else if (token === '%') mf.executeCommand(['insert', '%']);
+        else mf.executeCommand(['insert', token]);
+
+        this.onMathFieldChange(mf.value);
+        this.evaluate(false);
+        this.syncStore();
+        this.render();
+        return;
       }
 
       let { expression, isEvaluated, lastAns, cursorPos } = this.state;
@@ -360,7 +504,11 @@
 
     evaluate(isFinal = true) {
       let { expression, angleMode, lastAns } = this.state;
-      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+      const mf = this.getMathField();
+      if (mf && mf.value) {
+        expression = this.converter.latexToMath(mf.value, lastAns);
+        this.state.expression = expression;
+      } else if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
         const astMath = this.ast.toMathString(lastAns);
         if (astMath && astMath !== '0') {
           expression = astMath;
@@ -449,8 +597,9 @@
       const sdBtn = document.getElementById('calc-sd-btn');
       const sdIndicator = document.getElementById('calc-sd-indicator');
 
-      // 1. Natural Textbook Expression line via KaTeX LaTeX with active blinking cursor
-      if (exprEl) {
+      // 1. Natural Textbook Expression line via MathLive / KaTeX
+      const mf = this.getMathField();
+      if (!mf && exprEl) {
         this.formatter.renderExpressionWithCursor(exprEl, expression, cursorPos, this.ast);
       }
 
@@ -477,7 +626,16 @@
       const latexCodeEl = document.getElementById('calc-latex-code');
       if (latexCodeEl) {
         let fullLatex = '0';
-        if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+        if (mf && mf.value) {
+          const exprLatex = mf.value;
+          let resLatex = result || '0';
+          if (isFractionMode && currentFraction && currentFraction.latex) {
+            resLatex = currentFraction.latex;
+          }
+          fullLatex = result && result !== '0' && result !== 'Error' && result !== 'Math ERROR'
+            ? `${exprLatex} = ${resLatex}`
+            : exprLatex;
+        } else if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
           const exprLatex = this.ast.toLatex(false);
           let resLatex = result || '0';
           if (isFractionMode && currentFraction && currentFraction.latex) {
@@ -501,7 +659,17 @@
 
     copyLatex() {
       let fullLatex = '0';
-      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+      const mf = this.getMathField();
+      if (mf && mf.value) {
+        const exprLatex = mf.value;
+        let resLatex = this.state.result || '0';
+        if (this.state.isFractionMode && this.state.currentFraction && this.state.currentFraction.latex) {
+          resLatex = this.state.currentFraction.latex;
+        }
+        fullLatex = this.state.result && this.state.result !== '0' && this.state.result !== 'Error'
+          ? `${exprLatex} = ${resLatex}`
+          : exprLatex;
+      } else if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
         const exprLatex = this.ast.toLatex(false);
         let resLatex = this.state.result || '0';
         if (this.state.isFractionMode && this.state.currentFraction && this.state.currentFraction.latex) {

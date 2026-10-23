@@ -11,6 +11,7 @@ const root = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const STORE = read('static/js/store.js');
 const AST = read('static/js/calculator/ast.js');
+const CONVERTER = read('static/js/calculator/converter.js');
 const VALIDATOR = read('static/js/calculator/validator.js');
 const FORMATTER = read('static/js/calculator/formatter.js');
 const ENGINE = read('static/js/calculator/engine.js');
@@ -59,6 +60,7 @@ function makePage({ calculator = true, savedMemento = null } = {}) {
   window.eval(MATHJS);
   if (calculator) {
     window.eval(AST);
+    window.eval(CONVERTER);
     window.eval(VALIDATOR);
     window.eval(FORMATTER);
     window.eval(ENGINE);
