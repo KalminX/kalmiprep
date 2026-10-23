@@ -419,6 +419,30 @@
       }
     },
 
+    navLeftCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) {
+        window.KalmiCalc.navLeft();
+      }
+    },
+
+    navRightCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) {
+        window.KalmiCalc.navRight();
+      }
+    },
+
+    navUpCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) {
+        window.KalmiCalc.navUp();
+      }
+    },
+
+    navDownCalc: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) {
+        window.KalmiCalc.navDown();
+      }
+    },
+
     // ----------------------------------------------------
     // 4. STRICT NAVIGATION HIGHLIGHT SLICE
     // ----------------------------------------------------

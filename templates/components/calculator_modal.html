@@ -92,6 +92,90 @@
       </div>
     </div>
 
+    <!-- Casio REPLAY 4-Way Directional Navigation Pad (Up, Down, Left, Right) -->
+    <div class="px-3.5 py-2 bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 border-b border-slate-800 flex items-center justify-between gap-2 select-none">
+      
+      <!-- Left Quick Function Buttons -->
+      <div class="flex items-center gap-1.5">
+        <button type="button" 
+                onclick="useKalmiStore.getState().appendCalc('(')" 
+                class="casio-fn-btn px-2.5 py-1 text-xs font-mono font-bold text-amber-300"
+                title="Open Parenthesis (">
+          (
+        </button>
+        <button type="button" 
+                onclick="useKalmiStore.getState().appendCalc(')')" 
+                class="casio-fn-btn px-2.5 py-1 text-xs font-mono font-bold text-amber-300"
+                title="Close Parenthesis )">
+          )
+        </button>
+      </div>
+
+      <!-- Center: Iconic Casio 4-Way REPLAY Directional Cluster -->
+      <div class="relative w-36 h-14 sm:w-40 sm:h-16 flex items-center justify-center">
+        <!-- Oval D-Pad Chassis -->
+        <div class="w-full h-full rounded-full bg-gradient-to-b from-slate-700 via-slate-800 to-slate-900 border-2 border-slate-600/80 shadow-md relative flex items-center justify-center overflow-hidden">
+          
+          <!-- Center REPLAY Label Badge -->
+          <div class="w-14 h-5 sm:h-6 rounded-full bg-slate-950 border border-slate-700/80 flex items-center justify-center shadow-inner z-10 pointer-events-none">
+            <span class="text-[8px] font-black tracking-widest text-slate-300">REPLAY</span>
+          </div>
+
+          <!-- UP Button (▲) -->
+          <button type="button" 
+                  id="calc-nav-up"
+                  onclick="KalmiCalc.navUp()" 
+                  class="absolute top-0 inset-x-0 mx-auto w-14 h-4.5 flex items-center justify-center text-slate-200 hover:text-amber-400 hover:bg-slate-700/60 transition-colors active:scale-90"
+                  aria-label="Cursor Up / History Previous"
+                  title="Cursor to Start / Up (ArrowUp)">
+            <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- DOWN Button (▼) -->
+          <button type="button" 
+                  id="calc-nav-down"
+                  onclick="KalmiCalc.navDown()" 
+                  class="absolute bottom-0 inset-x-0 mx-auto w-14 h-4.5 flex items-center justify-center text-slate-200 hover:text-amber-400 hover:bg-slate-700/60 transition-colors active:scale-90"
+                  aria-label="Cursor Down / History Next"
+                  title="Cursor to End / Down (ArrowDown)">
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- LEFT Button (◄) -->
+          <button type="button" 
+                  id="calc-nav-left"
+                  onclick="KalmiCalc.navLeft()" 
+                  class="absolute left-0 inset-y-0 my-auto w-9 h-10 flex items-center justify-center text-slate-200 hover:text-amber-400 hover:bg-slate-700/60 transition-colors active:scale-90"
+                  aria-label="Cursor Left"
+                  title="Move Cursor Left (ArrowLeft)">
+            <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+          </button>
+
+          <!-- RIGHT Button (►) -->
+          <button type="button" 
+                  id="calc-nav-right"
+                  onclick="KalmiCalc.navRight()" 
+                  class="absolute right-0 inset-y-0 my-auto w-9 h-10 flex items-center justify-center text-slate-200 hover:text-amber-400 hover:bg-slate-700/60 transition-colors active:scale-90"
+                  aria-label="Cursor Right"
+                  title="Move Cursor Right (ArrowRight)">
+            <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Quick Actions -->
+      <div class="flex items-center gap-1.5">
+        <button type="button" 
+                id="calc-nav-mode-btn" 
+                onclick="useKalmiStore.getState().toggleCalcAngleMode()" 
+                class="casio-fn-btn px-2.5 py-1 text-xs font-mono font-bold text-sky-400"
+                title="Toggle Angle Mode (DEG / RAD)">
+          MODE
+        </button>
+      </div>
+
+    </div>
+
     <!-- Casio Tactile Keypad (Dual-Tone Accessible Touch Targets) -->
     <div class="p-2.5 sm:p-3 grid grid-cols-6 gap-1.5 text-xs font-semibold select-none bg-slate-900/95 overflow-y-auto">
       
@@ -318,6 +402,21 @@
   .casio-equal-btn:active {
     transform: translateY(2px);
     box-shadow: 0 0 0 0 #047857;
+  }
+
+  /* Blinking Natural Textbook Input Cursor */
+  .calc-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.15em;
+    background-color: currentColor;
+    margin: 0 1.5px;
+    vertical-align: text-bottom;
+    animation: calc-blink 0.9s steps(1) infinite;
+  }
+  @keyframes calc-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
   }
 </style>
 

@@ -3,7 +3,8 @@
  * 
  * GoF Command Pattern dispatcher & UI Controller.
  * Encapsulates keypad actions, keyboard bindings, DOM synchronization,
- * sign repetition validation, and LaTeX Natural Textbook rendering via KaTeX.
+ * sign repetition validation, LaTeX Natural Textbook rendering via KaTeX,
+ * and 4-way Casio REPLAY directional cursor navigation (Up, Down, Left, Right).
  */
 
 (function (global) {
@@ -14,13 +15,20 @@
       this.engine = new (global.KalmiCalcEngine || class { evaluate() { return { success: true, result: '0' }; } })();
       this.memento = global.KalmiCalcMemento || { load: () => null, save: () => {} };
       this.validator = global.KalmiCalcValidator || { sanitize: (e, t) => (e || '') + t };
-      this.formatter = global.KalmiCalcFormatter || { toLatex: (e) => e, renderToElement: (el, l, f) => { if (el) el.textContent = f || l; } };
+      this.formatter = global.KalmiCalcFormatter || {
+        toLatex: (e) => e,
+        renderToElement: (el, l, f) => { if (el) el.textContent = f || l; },
+        renderExpressionWithCursor: (el, expr, pos) => { if (el) el.textContent = expr || '0'; },
+        buildFullLatex: (e, r) => e + ' = ' + r
+      };
 
       const saved = this.memento.load() || {};
+      const initExpr = saved.expression || '';
       this.state = {
         isOpen: false,
         angleMode: saved.angleMode || 'DEG',
-        expression: saved.expression || '',
+        expression: initExpr,
+        cursorPos: initExpr.length,
         result: saved.result || '0',
         lastAns: saved.lastAns || '0',
         memory: typeof saved.memory === 'number' ? saved.memory : 0,
@@ -29,6 +37,8 @@
         currentFraction: saved.currentFraction || null,
       };
 
+      this.history = [];
+      this.historyIndex = -1;
       this.boundKeyHandler = null;
       this.init();
     }
@@ -85,8 +95,116 @@
       }
     }
 
+    // ----------------------------------------------------
+    // Casio REPLAY Navigation (Up, Down, Left, Right)
+    // ----------------------------------------------------
+    navLeft() {
+      let { expression, cursorPos } = this.state;
+      if (cursorPos === null || typeof cursorPos !== 'number') {
+        cursorPos = expression.length;
+      }
+      if (cursorPos <= 0) {
+        this.state.cursorPos = 0;
+        this.render();
+        return;
+      }
+
+      // Check if preceding token is a multi-character function (e.g. sin()
+      const left = expression.slice(0, cursorPos);
+      const fnMatch = left.match(/(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|ln|log|sqrt|cbrt)\($/);
+      if (fnMatch) {
+        cursorPos -= fnMatch[0].length;
+      } else {
+        cursorPos -= 1;
+      }
+
+      this.state.cursorPos = Math.max(0, cursorPos);
+      this.syncStore();
+      this.render();
+    }
+
+    navRight() {
+      let { expression, cursorPos } = this.state;
+      if (cursorPos === null || typeof cursorPos !== 'number') {
+        cursorPos = expression.length;
+      }
+      if (cursorPos >= expression.length) {
+        this.state.cursorPos = expression.length;
+        this.render();
+        return;
+      }
+
+      // Check if subsequent token starts with a multi-character function
+      const right = expression.slice(cursorPos);
+      const fnMatch = right.match(/^(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|ln|log|sqrt|cbrt)\(/);
+      if (fnMatch) {
+        cursorPos += fnMatch[0].length;
+      } else {
+        cursorPos += 1;
+      }
+
+      this.state.cursorPos = Math.min(expression.length, cursorPos);
+      this.syncStore();
+      this.render();
+    }
+
+    navUp() {
+      // In Casio fx-991: Up cycles through previous calculation history or jumps to start
+      if (this.history.length > 0) {
+        if (this.historyIndex === -1) {
+          this.historyIndex = this.history.length - 1;
+        } else if (this.historyIndex > 0) {
+          this.historyIndex -= 1;
+        }
+        const item = this.history[this.historyIndex];
+        if (item) {
+          this.state.expression = item.expression;
+          this.state.result = item.result;
+          this.state.cursorPos = item.expression.length;
+          this.syncStore();
+          this.render();
+          return;
+        }
+      }
+      // Jump cursor to the very start of the expression
+      this.state.cursorPos = 0;
+      this.syncStore();
+      this.render();
+    }
+
+    navDown() {
+      // In Casio fx-991: Down cycles forward in history or jumps to end
+      if (this.history.length > 0 && this.historyIndex !== -1) {
+        if (this.historyIndex < this.history.length - 1) {
+          this.historyIndex += 1;
+          const item = this.history[this.historyIndex];
+          if (item) {
+            this.state.expression = item.expression;
+            this.state.result = item.result;
+            this.state.cursorPos = item.expression.length;
+            this.syncStore();
+            this.render();
+            return;
+          }
+        } else {
+          this.historyIndex = -1;
+          this.state.expression = '';
+          this.state.result = '0';
+          this.state.cursorPos = 0;
+          this.syncStore();
+          this.render();
+          return;
+        }
+      }
+      // Jump cursor to the very end of the expression
+      this.state.cursorPos = this.state.expression.length;
+      this.syncStore();
+      this.render();
+    }
+
     clear() {
       this.state.expression = '';
+      this.state.cursorPos = 0;
       this.state.result = '0';
       this.state.isEvaluated = false;
       this.state.currentFraction = null;
@@ -96,30 +214,40 @@
     }
 
     backspace() {
-      let expr = this.state.expression;
-      if (!expr || this.state.isEvaluated) {
+      let { expression, isEvaluated, cursorPos } = this.state;
+      if (!expression || isEvaluated) {
         this.clear();
         return;
       }
 
-      const fnMatch = expr.match(/(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|ln|log|sqrt|cbrt)\($/);
-      if (fnMatch) {
-        expr = expr.slice(0, -fnMatch[0].length);
-        if (expr.endsWith('×') || expr.endsWith('*')) {
-          expr = expr.slice(0, -1);
-        }
-      } else {
-        expr = expr.slice(0, -1);
+      if (cursorPos === null || typeof cursorPos !== 'number' || cursorPos > expression.length) {
+        cursorPos = expression.length;
       }
 
-      this.state.expression = expr;
+      if (cursorPos <= 0) return;
+
+      let left = expression.slice(0, cursorPos);
+      const right = expression.slice(cursorPos);
+
+      const fnMatch = left.match(/(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|ln|log|sqrt|cbrt)\($/);
+      if (fnMatch) {
+        left = left.slice(0, -fnMatch[0].length);
+        if (left.endsWith('×') || left.endsWith('*')) {
+          left = left.slice(0, -1);
+        }
+      } else {
+        left = left.slice(0, -1);
+      }
+
+      this.state.expression = left + right;
+      this.state.cursorPos = left.length;
       this.evaluate(false);
       this.syncStore();
       this.render();
     }
 
     append(token) {
-      let { expression, isEvaluated, lastAns } = this.state;
+      let { expression, isEvaluated, lastAns, cursorPos } = this.state;
       const isOperator = ['+', '-', '−', '*', '/', '×', '÷', '^', '%'].includes(token);
 
       if (isEvaluated) {
@@ -129,10 +257,20 @@
           expression = '';
         }
         this.state.isEvaluated = false;
+        cursorPos = expression.length;
       }
 
-      // Pass through GoF validator to prevent repeated signs and illegal sequences
-      this.state.expression = this.validator.sanitize(expression, token, lastAns);
+      if (cursorPos === null || typeof cursorPos !== 'number' || cursorPos >= expression.length) {
+        this.state.expression = this.validator.sanitize(expression, token, lastAns);
+        this.state.cursorPos = this.state.expression.length;
+      } else {
+        const left = expression.slice(0, cursorPos);
+        const right = expression.slice(cursorPos);
+        const newLeft = this.validator.sanitize(left, token, lastAns);
+        this.state.expression = newLeft + right;
+        this.state.cursorPos = newLeft.length;
+      }
+
       this.evaluate(false);
       this.syncStore();
       this.render();
@@ -161,6 +299,12 @@
         this.state.isEvaluated = true;
         this.state.currentFraction = isErr ? null : (res.fraction || null);
         this.state.isFractionMode = false;
+        if (!isErr) {
+          this.history.push({ expression, result: output });
+          if (this.history.length > 30) this.history.shift();
+          this.historyIndex = -1;
+        }
+        this.state.cursorPos = this.state.expression.length;
       } else {
         if (res.success && output !== 'Error' && output !== 'Math ERROR') {
           this.state.result = output;
@@ -203,7 +347,7 @@
       const widget = document.getElementById('scientific-calculator-modal');
       if (!widget) return;
 
-      const { isOpen, expression, result, lastAns, angleMode, memory, isFractionMode, currentFraction } = this.state;
+      const { isOpen, expression, result, lastAns, angleMode, memory, isFractionMode, currentFraction, cursorPos } = this.state;
 
       widget.classList.toggle('hidden', !isOpen);
       widget.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -216,10 +360,9 @@
       const sdBtn = document.getElementById('calc-sd-btn');
       const sdIndicator = document.getElementById('calc-sd-indicator');
 
-      // 1. Natural Textbook Expression line via KaTeX LaTeX
+      // 1. Natural Textbook Expression line via KaTeX LaTeX with active blinking cursor
       if (exprEl) {
-        const latexExpr = this.formatter.toLatex(expression || '0');
-        this.formatter.renderToElement(exprEl, latexExpr, expression || '0');
+        this.formatter.renderExpressionWithCursor(exprEl, expression, cursorPos);
       }
 
       // 2. High-precision Result line (Stacked Fraction vs Decimal)
@@ -290,7 +433,7 @@
     }
 
     // ----------------------------------------------------
-    // Keyboard Handling
+    // Keyboard Handling (Typing & Arrow Navigation)
     // ----------------------------------------------------
     bindShortcuts() {
       if (this.boundKeyHandler || global.__kalmiCalcShortcutsBound) return;
@@ -315,6 +458,18 @@
           if (e.key === 'Escape') {
             e.preventDefault();
             this.close();
+          } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            this.navLeft();
+          } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            this.navRight();
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.navUp();
+          } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.navDown();
           } else if (e.key >= '0' && e.key <= '9') {
             e.preventDefault();
             this.append(e.key);
@@ -380,6 +535,10 @@
     setAngleMode: (m) => getCalcController().setAngleMode(m),
     toggleAngleMode: () => getCalcController().toggleAngleMode(),
     toggleFractionMode: () => getCalcController().toggleFractionMode(),
+    navLeft: () => getCalcController().navLeft(),
+    navRight: () => getCalcController().navRight(),
+    navUp: () => getCalcController().navUp(),
+    navDown: () => getCalcController().navDown(),
     memoryAdd: () => getCalcController().memoryAdd(),
     memorySubtract: () => getCalcController().memorySubtract(),
     memoryRecall: () => getCalcController().memoryRecall(),

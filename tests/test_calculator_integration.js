@@ -360,5 +360,46 @@ test('Casio S<=>D fraction toggle and KaTeX display rendering', () => {
   assert(resultEl.textContent.includes('0.25'), 'Toggled back to decimal 0.25');
 });
 
+test('Casio REPLAY 4-way directional navigation (Left, Right, Up, Down buttons & arrows)', () => {
+  const win = makePage({ calculator: true });
+  win.useKalmiStore.getState().openCalc();
+  win.useKalmiStore.getState().clearCalc();
+
+  // Type: 1 2 + 3 4
+  win.useKalmiStore.getState().appendCalc('1');
+  win.useKalmiStore.getState().appendCalc('2');
+  win.useKalmiStore.getState().appendCalc('+');
+  win.useKalmiStore.getState().appendCalc('3');
+  win.useKalmiStore.getState().appendCalc('4');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '12+34');
+
+  // Navigate left 3 times (after '2' before '+')
+  win.KalmiCalc.navLeft(); // after 3
+  win.KalmiCalc.navLeft(); // after +
+  win.KalmiCalc.navLeft(); // after 2
+  assert.strictEqual(win.KalmiCalc.getInstance().state.cursorPos, 2);
+
+  // Insert '5' at cursor position 2 -> '125+34'
+  win.useKalmiStore.getState().appendCalc('5');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '125+34');
+  assert.strictEqual(win.KalmiCalc.getInstance().state.cursorPos, 3);
+
+  // Navigate Up jumps cursor to the very start (pos 0)
+  win.KalmiCalc.navUp();
+  assert.strictEqual(win.KalmiCalc.getInstance().state.cursorPos, 0);
+
+  // Insert '9' at start -> '9125+34'
+  win.useKalmiStore.getState().appendCalc('9');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '9125+34');
+
+  // Navigate Down jumps cursor to the very end
+  win.KalmiCalc.navDown();
+  assert.strictEqual(win.KalmiCalc.getInstance().state.cursorPos, win.useKalmiStore.getState().calc.expression.length);
+
+  // Physical keyboard arrow keys work as well
+  win.document.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+  assert.strictEqual(win.KalmiCalc.getInstance().state.cursorPos, win.useKalmiStore.getState().calc.expression.length - 1);
+});
+
 console.log(failures === 0 ? '--- ALL CALCULATOR INTEGRATION TESTS PASSED ---' : `--- ${failures} TEST(S) FAILED ---`);
 process.exit(failures === 0 ? 0 : 1);

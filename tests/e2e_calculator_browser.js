@@ -119,6 +119,16 @@ const check = (name, ok, detail = '') => {
   const rDivZero = (await page.locator('#calc-result-display').textContent()).trim();
   check('division by zero reports Math ERROR', /Math ERROR|Infinity/.test(rDivZero), rDivZero);
 
+  // 7b. Casio REPLAY 4-way Directional Pad Navigation
+  await modal.locator('button[onclick*="clearCalc"]').click();
+  await page.keyboard.type('12+34');
+  await modal.locator('#calc-nav-left').click();
+  await modal.locator('#calc-nav-left').click();
+  await modal.locator('#calc-nav-left').click();
+  await page.keyboard.type('5');
+  const midNavExpr = (await page.locator('#calc-expression-display').textContent()).trim();
+  check('REPLAY directional navigation inserts in middle: 125+34', midNavExpr.includes('125') && midNavExpr.includes('34'), midNavExpr);
+
   // 8. Exam isolation & radio buttons untouched
   const selectedDuring = await page.$$eval('input[type=radio]:checked', (els) => els.map((e) => e.value));
   await page.keyboard.press('Escape');

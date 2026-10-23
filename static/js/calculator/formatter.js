@@ -96,6 +96,42 @@
     },
 
     /**
+     * Safely renders the expression with an active blinking cursor indicator.
+     * Splits into left and right tokens and inserts <span class="calc-cursor"></span>
+     * for authentic Casio Natural Textbook Display navigation.
+     */
+    renderExpressionWithCursor(target, expression, cursorPos) {
+      const el = typeof target === 'string' ? document.getElementById(target) : target;
+      if (!el) return;
+
+      if (!expression || expression === '0') {
+        el.innerHTML = '<span class="calc-cursor"></span>0';
+        return;
+      }
+
+      const pos = typeof cursorPos === 'number' && cursorPos >= 0 && cursorPos <= expression.length
+        ? cursorPos
+        : expression.length;
+
+      const left = expression.slice(0, pos);
+      const right = expression.slice(pos);
+
+      const katexLib = typeof global !== 'undefined' && global.katex ? global.katex : null;
+      if (katexLib && typeof katexLib.renderToString === 'function') {
+        try {
+          const leftTex = left ? this.toLatex(left) : '';
+          const rightTex = right ? this.toLatex(right) : '';
+          const leftHtml = leftTex ? katexLib.renderToString(leftTex, { throwOnError: false, output: 'html' }) : '';
+          const rightHtml = rightTex ? katexLib.renderToString(rightTex, { throwOnError: false, output: 'html' }) : '';
+          el.innerHTML = leftHtml + '<span class="calc-cursor"></span>' + rightHtml;
+          return;
+        } catch (e) {}
+      }
+
+      el.textContent = (left || '') + '|' + (right || '');
+    },
+
+    /**
      * Safely renders LaTeX into a DOM container element.
      * Uses KaTeX if available, with immediate fallback to clean textContent.
      * 
