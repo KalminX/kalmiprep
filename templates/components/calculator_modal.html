@@ -74,6 +74,22 @@
            class="text-2xl sm:text-3xl font-bold text-right overflow-x-auto no-scrollbar whitespace-nowrap tracking-tight min-h-[40px] flex items-center justify-end">
         0
       </div>
+
+      <!-- Line 3: Direct LaTeX Conversion Preview & Quick-Copy Tool -->
+      <div class="mt-1.5 pt-1.5 border-t border-slate-400/40 dark:border-emerald-950/70 flex items-center justify-between text-[10px] text-slate-700 dark:text-emerald-400/90 font-mono">
+        <div class="flex items-center gap-1 overflow-hidden min-w-0 pr-2">
+          <span class="text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded bg-black/10 dark:bg-emerald-950/80 border border-slate-600/30 dark:border-emerald-800/40 shrink-0">LaTeX</span>
+          <code id="calc-latex-code" class="truncate font-mono text-[10px] text-slate-800 dark:text-emerald-300 font-semibold select-all" title="Current LaTeX markup">0</code>
+        </div>
+        <button type="button" 
+                id="calc-copy-latex-btn"
+                onclick="KalmiCalc.copyLatex()" 
+                class="shrink-0 px-1.5 py-0.5 rounded bg-black/10 hover:bg-black/20 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-slate-400/30 dark:border-emerald-800/40 text-[9px] font-bold text-slate-800 dark:text-emerald-300 flex items-center gap-1 transition-all"
+                title="Copy LaTeX conversion markup">
+          <i data-lucide="copy" class="w-3 h-3"></i>
+          <span>Copy</span>
+        </button>
+      </div>
     </div>
 
     <!-- Casio Tactile Keypad (Dual-Tone Accessible Touch Targets) -->

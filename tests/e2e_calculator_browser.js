@@ -90,6 +90,15 @@ const check = (name, ok, detail = '') => {
   await page.waitForTimeout(50);
   const rFrac = (await page.locator('#calc-result-display').innerHTML());
   check('S<=>D toggles to fraction 1/2 in KaTeX', rFrac.includes('frac') || rFrac.includes('1'), rFrac);
+  
+  // LaTeX conversion line & copy test
+  const latexStr = (await page.locator('#calc-latex-code').textContent()).trim();
+  check('LaTeX conversion line is visible and displays formula', latexStr.length > 0, latexStr);
+  await modal.locator('#calc-copy-latex-btn').click();
+  await page.waitForTimeout(50);
+  const btnText = (await modal.locator('#calc-copy-latex-btn').textContent()).trim();
+  check('Copy LaTeX button provides instant feedback', btnText.includes('Copied'), btnText);
+
   await modal.locator('#calc-sd-btn').click();
   await page.waitForTimeout(50);
 

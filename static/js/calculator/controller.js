@@ -241,11 +241,41 @@
         sdBtn.classList.toggle('cursor-not-allowed', !currentFraction);
       }
 
+      // 4. Update dedicated LaTeX code conversion bar
+      const latexCodeEl = document.getElementById('calc-latex-code');
+      if (latexCodeEl) {
+        const fullLatex = this.formatter.buildFullLatex(expression, result, isFractionMode, currentFraction);
+        latexCodeEl.textContent = fullLatex;
+      }
+
       if (global.lucide && typeof global.lucide.createIcons === 'function') {
         global.lucide.createIcons();
       }
 
       this.memento.save(this.state);
+    }
+
+    copyLatex() {
+      const fullLatex = this.formatter.buildFullLatex(
+        this.state.expression,
+        this.state.result,
+        this.state.isFractionMode,
+        this.state.currentFraction
+      );
+      if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        navigator.clipboard.writeText(fullLatex).catch(() => {});
+      }
+      const copyBtn = document.getElementById('calc-copy-latex-btn');
+      if (copyBtn) {
+        const original = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<span class="text-emerald-400 font-bold">Copied!</span>';
+        setTimeout(() => {
+          copyBtn.innerHTML = original;
+          if (global.lucide && typeof global.lucide.createIcons === 'function') {
+            global.lucide.createIcons();
+          }
+        }, 1500);
+      }
     }
 
     syncStore() {
@@ -354,6 +384,7 @@
     memorySubtract: () => getCalcController().memorySubtract(),
     memoryRecall: () => getCalcController().memoryRecall(),
     memoryClear: () => getCalcController().memoryClear(),
+    copyLatex: () => getCalcController().copyLatex(),
     render: () => getCalcController().render(),
   };
 

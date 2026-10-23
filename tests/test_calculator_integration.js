@@ -346,9 +346,14 @@ test('Casio S<=>D fraction toggle and KaTeX display rendering', () => {
   const resultEl = win.document.getElementById('calc-result-display');
   assert(resultEl.textContent.includes('0.25'), 'Initial result displays decimal 0.25');
 
+  const latexCodeEl = win.document.getElementById('calc-latex-code');
+  assert(latexCodeEl, '#calc-latex-code must exist');
+  assert(latexCodeEl.textContent.includes('\\frac{1}{4}') || latexCodeEl.textContent.includes('0.25'), 'LaTeX conversion string must show fraction conversion');
+
   // Toggle S<=>D to fraction
   win.useKalmiStore.getState().toggleCalcFraction();
   assert(resultEl.innerHTML.includes('frac') || resultEl.innerHTML.includes('katex'), 'Toggled to fraction markup');
+  assert(latexCodeEl.textContent.includes('\\frac{1}{4}'), 'LaTeX conversion string displays \\frac{1}{4}');
 
   // Toggle back to decimal
   win.useKalmiStore.getState().toggleCalcFraction();

@@ -3,7 +3,8 @@
  * 
  * GoF Adapter / Decorator Pattern.
  * Converts calculator tokens and expressions into textbook-quality LaTeX
- * for rendering in the Natural Textbook Display via KaTeX.
+ * for rendering in the Natural Textbook Display via KaTeX, and exposes
+ * raw LaTeX conversion strings for students, teachers, and CBT exams.
  */
 
 (function (global) {
@@ -12,27 +13,60 @@
   const KalmiCalcFormatter = {
     /**
      * Converts a mathematical expression into clean LaTeX markup.
+     * Natural Casio Display: stacked fractions, radicals, powers, and trig.
      * 
      * @param {string} expr Raw calculator expression
-     * @returns {string} LaTeX representation
+     * @returns {string} Clean LaTeX representation
      */
     toLatex(expr) {
       if (!expr || expr === '0') return '0';
 
-      // Auto-balance parentheses for visually clean radical & grouping rendering
-      let balanced = expr;
-      const opens = (expr.match(/\(/g) || []).length;
-      const closes = (expr.match(/\)/g) || []).length;
+      let s = expr;
+
+      // 1. Stacked fractions: convert A ÷ B to \frac{A}{B}
+      s = s.replace(/([0-9a-zA-Zπe]+|\([^\(\)]+\))\s*[÷/]\s*([0-9a-zA-Zπe]+|\([^\(\)]+\))/g, (m, num, den) => {
+        const cleanNum = num.startsWith('(') && num.endsWith(')') ? num.slice(1, -1) : num;
+        const cleanDen = den.startsWith('(') && den.endsWith(')') ? den.slice(1, -1) : den;
+        return '\\frac{' + cleanNum + '}{' + cleanDen + '}';
+      });
+      // Handle trailing division like '5 ÷' -> \frac{5}{\Box}
+      s = s.replace(/([0-9a-zA-Zπe]+|\([^\(\)]+\))\s*[÷/]$/, (m, num) => {
+        const cleanNum = num.startsWith('(') && num.endsWith(')') ? num.slice(1, -1) : num;
+        return '\\frac{' + cleanNum + '}{\\Box}';
+      });
+
+      // 2. Radicals: sqrt( ... ) and cbrt( ... )
+      s = s.replace(/sqrt\(\s*\)/g, '\\sqrt{\\Box}');
+      s = s.replace(/cbrt\(\s*\)/g, '\\sqrt[3]{\\Box}');
+      s = s.replace(/sqrt\($/, '\\sqrt{\\Box}');
+      s = s.replace(/cbrt\($/, '\\sqrt[3]{\\Box}');
+      s = s.replace(/sqrt\(([^)]+)\)/g, '\\sqrt{$1}');
+      s = s.replace(/cbrt\(([^)]+)\)/g, '\\sqrt[3]{$1}');
+      s = s.replace(/sqrt\(([^)]+)$/g, '\\sqrt{$1}');
+      s = s.replace(/cbrt\(([^)]+)$/g, '\\sqrt[3]{$1}');
+
+      // 3. Powers: ^(x) -> ^{x}, ^2 -> ^{2}, 10^(x) -> 10^{x}
+      s = s.replace(/\^\(([^)]+)\)/g, '^{$1}');
+      s = s.replace(/\^\(([^)]+)$/g, '^{$1}');
+      s = s.replace(/\^\($/, '^{\\Box}');
+      s = s.replace(/\^2/g, '^{2}');
+      s = s.replace(/10\^/g, '10^');
+
+      // 4. Auto-balance any remaining unclosed parentheses
+      const opens = (s.match(/\(/g) || []).length;
+      const closes = (s.match(/\)/g) || []).length;
       if (opens > closes) {
-        balanced += ')'.repeat(opens - closes);
+        s += ')'.repeat(opens - closes);
       }
 
-      let tex = balanced
+      // 5. Operators, functions & constants
+      s = s
         .replace(/×/g, ' \\times ')
         .replace(/÷/g, ' \\div ')
         .replace(/−/g, ' - ')
         .replace(/π/g, ' \\pi ')
         .replace(/Ans/gi, ' \\text{Ans} ')
+        .replace(/EXP/g, ' \\times 10^')
         .replace(/asin\(/g, '\\sin^{-1}(')
         .replace(/acos\(/g, '\\cos^{-1}(')
         .replace(/atan\(/g, '\\tan^{-1}(')
@@ -40,38 +74,25 @@
         .replace(/cos\(/g, '\\cos(')
         .replace(/tan\(/g, '\\tan(')
         .replace(/ln\(/g, '\\ln(')
-        .replace(/log\(/g, '\\log(')
-        .replace(/\^2/g, '^{2}')
-        .replace(/\^\(/g, '^{(')
-        .replace(/10\^\(/g, '10^{(')
-        .replace(/EXP/g, ' \\times 10^')
-        .replace(/sqrt\(/g, '\\sqrt{')
-        .replace(/cbrt\(/g, '\\sqrt[3]{');
+        .replace(/log\(/g, '\\log(');
 
-      // Convert matching ')' to '}' for opened radicals (\sqrt{ and \sqrt[3]{)
-      let output = '';
-      let stack = [];
-      for (let i = 0; i < tex.length; i++) {
-        if (tex.startsWith('\\sqrt{', i) || tex.startsWith('\\sqrt[3]{', i)) {
-          const braceIdx = tex.indexOf('{', i);
-          output += tex.slice(i, braceIdx + 1);
-          stack.push('}');
-          i = braceIdx;
-        } else if (tex[i] === '(') {
-          output += '(';
-          stack.push(')');
-        } else if (tex[i] === ')') {
-          const expected = stack.pop();
-          output += expected || ')';
-        } else {
-          output += tex[i];
-        }
-      }
-      while (stack.length > 0) {
-        output += stack.pop();
-      }
+      return s;
+    },
 
-      return output;
+    /**
+     * Builds the complete LaTeX formula equation string (e.g. \frac{1}{2} + \sqrt{16} = 4.5).
+     */
+    buildFullLatex(expression, result, isFractionMode, currentFraction) {
+      if (!expression || expression === '0') return '0';
+      const exprLatex = this.toLatex(expression);
+      if (!result || result === '0' || result === 'Error' || result === 'Math ERROR') {
+        return exprLatex;
+      }
+      let resLatex = result;
+      if (isFractionMode && currentFraction && currentFraction.latex) {
+        resLatex = currentFraction.latex;
+      }
+      return `${exprLatex} = ${resLatex}`;
     },
 
     /**
