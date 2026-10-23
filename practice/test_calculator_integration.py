@@ -11,7 +11,7 @@ from practice.models import PracticeQuestionResponse, PracticeSession
 from questions.models import Option, Question
 
 MODAL_MARKER = 'id="scientific-calculator-modal"'
-CALC_ASSETS = ("js/calculator/engine.js", "js/calculator/ui.js", "vendor/mathlive/mathlive.min.js")
+CALC_ASSETS = ("vendor/mathjs/math.min.js", "js/store.js")
 
 
 class CalculatorPageRestrictionTests(TestCase):

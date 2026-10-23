@@ -1,239 +1,185 @@
 {% load static %}
-{#
-  Scientific calculator modal. Rendered ONLY through the `calculator_modal` block of base.html by
-  active test / practice templates (cbt_exam.html, topic_practice.html). Never include this elsewhere.
-  State: static/js/calculator/ui.js (+ engine.js). Visibility: global store (store.js).
-#}
-<link rel="stylesheet" href="{% static 'vendor/mathlive/mathlive-static.css' %}">
-<link rel="stylesheet" href="{% static 'vendor/mathlive/mathlive-fonts.css' %}">
-
+<!-- On-Screen Scientific Calculator Modal (JAMB UTME / WAEC CBT Standard) -->
 <div id="scientific-calculator-modal"
-     class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/65 backdrop-blur-sm hidden p-0 sm:p-4 select-none"
+     class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm hidden p-0 sm:p-4 transition-opacity select-none"
      role="dialog" aria-modal="true" aria-label="Scientific calculator" aria-hidden="true">
-
-  <!-- Backdrop click closes (does not touch the exam) -->
+  
+  <!-- Backdrop click to close (does not touch the exam) -->
   <div class="fixed inset-0" onclick="useKalmiStore.getState().closeCalc()" aria-hidden="true"></div>
 
-  <div class="calc-chassis relative z-10 w-full sm:max-w-[440px] bg-slate-900 border-t sm:border border-slate-700 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[96vh] text-slate-200">
-
-    <!-- Header -->
-    <div class="flex items-center justify-between px-4 py-2 bg-slate-800/80 border-b border-slate-700">
-      <div class="flex items-baseline gap-2">
-        <span class="text-xs font-bold tracking-wider text-slate-100">KALMI&middot;CALC</span>
-        <span class="text-[10px] font-mono text-teal-400 uppercase tracking-widest">Natural display</span>
-      </div>
-      <button type="button" onclick="useKalmiStore.getState().closeCalc()"
-              class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-              aria-label="Close calculator (Esc)" title="Close (Esc or Alt+C)">
-        <i data-lucide="x" class="w-4 h-4"></i>
-      </button>
-    </div>
-
-    <!-- LCD -->
-    <div class="p-3 bg-slate-950/70">
-      <div class="calc-lcd rounded-xl p-3 border-2 border-[#7a8a69] bg-[#b9c8a5] text-slate-950 shadow-inner font-mono min-h-[118px] flex flex-col justify-between">
-
-        <div class="flex items-center justify-between text-[10px] border-b border-black/15 pb-1 font-bold">
-          <div class="flex items-center gap-1.5">
-            <span id="calc-badge-shift" class="px-1 rounded bg-amber-600 text-white hidden" title="SHIFT active">S</span>
-            <span id="calc-badge-alpha" class="px-1 rounded bg-rose-600 text-white hidden" title="ALPHA active">A</span>
-            <span id="calc-badge-hyp" class="px-1 rounded bg-teal-700 text-white hidden" title="Hyperbolic: next sin/cos/tan">hyp</span>
-            <span id="calc-badge-sto" class="px-1 rounded bg-indigo-700 text-white hidden" title="Press a red variable key to store the answer">STO</span>
-            <span id="calc-badge-mem" class="px-1 rounded bg-slate-700 text-white hidden" title="Memory holds a value">M</span>
-            <button type="button" id="calc-badge-angle" onclick="KalmiCalcUI.handleKeyPress('ANGLE_TOGGLE')"
-                    class="px-1.5 rounded hover:bg-black/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-700"
-                    title="Toggle degrees / radians">DEG</button>
-            <button type="button" id="calc-badge-mode" onclick="KalmiCalcUI.handleKeyPress('MODE_TOGGLE')"
-                    class="px-1.5 rounded bg-black/10 hover:bg-black/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-700"
-                    title="Change mode">COMP</button>
-          </div>
-          <div class="flex items-center gap-2">
-            <span id="calc-badge-replay" class="opacity-70 hidden" title="Use the REPLAY ring (up/down) to recall earlier calculations">history &#9650;&#9660;</span>
-            <button type="button" id="calc-sd-indicator" onclick="KalmiCalcUI.handleKeyPress('SD_TOGGLE')"
-                    class="px-1 rounded bg-emerald-800/20 text-emerald-900 hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-800"
-                    title="Toggle exact / decimal result">S&#8660;D</button>
-          </div>
+  <!-- Calculator Window Card (Solid Accessible Modal) -->
+  <div class="calc-window relative z-10 w-full sm:max-w-md bg-white dark:bg-navy-900 border-t sm:border border-slate-200 dark:border-navy-700 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] select-none"
+       style="max-width: 440px; width: 100%;">
+    
+    <!-- Header Bar with Title, Angle Mode & Close -->
+    <div class="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-navy-950 border-b border-slate-200 dark:border-navy-800">
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-brand-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
         </div>
-
-        <!-- Editable natural-notation expression (MathLive) -->
-        <div id="calc-mathfield-container" class="calc-expression my-1 overflow-x-auto overflow-y-hidden flex items-center min-h-[48px]" aria-live="off"></div>
-
-        <!-- Result (separate from the editable expression) -->
-        <div class="flex items-end justify-end pt-1 overflow-x-auto min-h-[34px] text-right border-t border-black/10">
-          <div id="calc-result-output" class="text-xl sm:text-2xl font-bold tracking-tight" aria-live="polite">0</div>
+        <div class="flex flex-col">
+          <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight">Scientific Calculator</span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">JAMB &middot; WAEC Standard</span>
         </div>
       </div>
-    </div>
 
-    <!-- Mode selector (only modes that are fully implemented) -->
-    <div id="calc-mode-selector-modal" class="hidden absolute inset-x-3 top-14 z-30 p-3 rounded-xl bg-slate-800 border border-slate-600 shadow-2xl text-xs space-y-2">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-700">
-        <span class="font-bold text-slate-200">Calculator mode</span>
-        <button type="button" onclick="KalmiCalcUI.toggleModeModal()" class="text-slate-400 hover:text-white p-1" aria-label="Close mode menu">
-          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      <div class="flex items-center gap-2">
+        <button type="button" 
+                id="calc-angle-mode-btn" 
+                onclick="useKalmiStore.getState().setCalcAngleMode(useKalmiStore.getState().calc.angleMode === 'DEG' ? 'RAD' : 'DEG')" 
+                class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-200 dark:bg-navy-800 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-navy-700 border border-slate-300 dark:border-navy-700 transition-colors"
+                title="Toggle Degrees / Radians">
+          DEG
+        </button>
+        <button type="button" 
+                onclick="useKalmiStore.getState().closeCalc()" 
+                class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors"
+                aria-label="Close Calculator (Esc or Alt+C)"
+                title="Close (Esc or Alt+C)">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-      <div class="grid grid-cols-2 gap-2">
-        <button type="button" onclick="KalmiCalcUI.selectMode('COMP')" class="calc-mode-btn"><b>COMP</b><span>Scientific calculation</span></button>
-        <button type="button" onclick="KalmiCalcUI.selectMode('CMPLX')" class="calc-mode-btn"><b>CMPLX</b><span>Complex results (&radic;&minus;4 = 2i)</span></button>
-        <button type="button" onclick="KalmiCalcUI.selectMode('EQN')" class="calc-mode-btn"><b>EQN</b><span>Solve an equation in x</span></button>
-        <button type="button" onclick="KalmiCalcUI.selectMode('STAT')" class="calc-mode-btn"><b>STAT</b><span>Type stat(1,2,3&hellip;)</span></button>
+    </div>
+
+    <!-- LCD Display -->
+    <div class="p-3.5 bg-slate-900 border-b border-slate-800 text-slate-100 space-y-1">
+      <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
+        <div class="flex items-center gap-1.5">
+          <span id="calc-memory-indicator" class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold hidden text-[10px]">M</span>
+          <span id="calc-ans-indicator" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-bold hidden text-[10px]">Ans</span>
+        </div>
+        <div id="calc-expression-display" class="w-full text-right overflow-x-auto no-scrollbar whitespace-nowrap text-slate-400 font-mono text-xs min-h-[18px]">
+          0
+        </div>
+      </div>
+      <div id="calc-result-display" class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 text-right overflow-x-auto no-scrollbar whitespace-nowrap tracking-tight min-h-[38px]">
+        0
       </div>
     </div>
 
-    <!-- Keypad -->
-    <div class="p-2.5 sm:p-3 bg-slate-950 flex flex-col gap-2 overflow-y-auto">
+    <!-- Scientific Keypad Grid (Solid, Accessible Touch Targets) -->
+    <div class="p-3 grid grid-cols-6 gap-1.5 sm:gap-2 text-xs font-semibold select-none bg-slate-50/50 dark:bg-navy-900 overflow-y-auto">
+      
+      <!-- Row 1: Memory & Clear -->
+      <button type="button" onclick="useKalmiStore.getState().memoryClear()" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800" title="Memory Clear">MC</button>
+      <button type="button" onclick="useKalmiStore.getState().memoryRecall()" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800" title="Memory Recall">MR</button>
+      <button type="button" onclick="useKalmiStore.getState().memorySubtract()" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800" title="Memory Subtract">M&minus;</button>
+      <button type="button" onclick="useKalmiStore.getState().memoryAdd()" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800" title="Memory Add">M+</button>
+      <button type="button" onclick="useKalmiStore.getState().backspaceCalc()" class="calc-btn text-amber-600 dark:text-amber-400 bg-white dark:bg-navy-800 font-bold flex items-center justify-center" title="Backspace (DEL)">
+        <i data-lucide="delete" class="w-4 h-4"></i>
+      </button>
+      <button type="button" onclick="useKalmiStore.getState().clearCalc()" class="calc-btn text-rose-600 dark:text-rose-400 bg-white dark:bg-navy-800 font-bold" title="All Clear (AC)">C</button>
 
-      <!-- Modifiers + REPLAY ring -->
-      <div class="flex items-center justify-between gap-2 px-1">
-        <div class="flex flex-col gap-1.5">
-          <button type="button" id="calc-key-shift" aria-pressed="false" onclick="KalmiCalcUI.handleKeyPress('SHIFT')" class="calc-mod text-amber-400 border-amber-500/50" title="SHIFT: gold functions">SHIFT</button>
-          <button type="button" id="calc-key-alpha" aria-pressed="false" onclick="KalmiCalcUI.handleKeyPress('ALPHA')" class="calc-mod text-rose-400 border-rose-500/50" title="ALPHA: red variables A-F, X, Y">ALPHA</button>
-        </div>
+      <!-- Row 2: Trig & Logarithms -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('sin(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">sin</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('cos(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">cos</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('tan(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">tan</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('ln(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">ln</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('log(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">log</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('sqrt(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">&radic;</button>
 
-        <div class="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-b from-slate-600 to-slate-800 border-2 border-slate-500/70 shadow-lg" role="group" aria-label="Replay ring">
-          <div class="absolute inset-0 m-auto w-9 h-9 rounded-full bg-slate-900 border border-slate-600 flex items-center justify-center text-[8px] font-bold text-slate-400">REPLAY</div>
-          <button type="button" onclick="KalmiCalcUI.handleKeyPress('NAV_UP')" class="calc-nav top-1 left-1/2 -translate-x-1/2" aria-label="Previous calculation" title="Previous calculation"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
-          <button type="button" onclick="KalmiCalcUI.handleKeyPress('NAV_DOWN')" class="calc-nav bottom-1 left-1/2 -translate-x-1/2" aria-label="Next calculation" title="Next calculation"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
-          <button type="button" onclick="KalmiCalcUI.handleKeyPress('NAV_LEFT')" class="calc-nav left-1 top-1/2 -translate-y-1/2" aria-label="Cursor left" title="Cursor left"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-          <button type="button" onclick="KalmiCalcUI.handleKeyPress('NAV_RIGHT')" class="calc-nav right-1 top-1/2 -translate-y-1/2" aria-label="Cursor right" title="Cursor right"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-        </div>
+      <!-- Row 3: Inverse Trig & Roots -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('asin(')" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800 font-mono text-[11px]">sin&minus;&sup1;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('acos(')" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800 font-mono text-[11px]">cos&minus;&sup1;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('atan(')" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800 font-mono text-[11px]">tan&minus;&sup1;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('^(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">xʸ</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('(')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-sm">(</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc(')')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-sm">)</button>
 
-        <div class="flex flex-col gap-1.5">
-          <button type="button" onclick="KalmiCalcUI.handleKeyPress('MODE_TOGGLE')" class="calc-mod text-slate-200 border-slate-600" title="Choose mode">MODE</button>
-          <button type="button" onclick="KalmiCalcUI.handleKeyPress('MEM_CLEAR')" class="calc-mod text-slate-200 border-slate-600" title="Clear memory (M)">MC</button>
-        </div>
-      </div>
+      <!-- Row 4: Digits 7,8,9 & Division -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('cbrt(')" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800 font-mono text-[11px]">&xcup;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&divide;')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-base">&divide;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('7')" class="calc-btn-digit">7</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('8')" class="calc-btn-digit">8</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('9')" class="calc-btn-digit">9</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&minus;')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-base">&minus;</button>
 
-      <!-- Function keys: data-sec marks which modifier arms the small gold/red label -->
-      <div class="grid grid-cols-6 gap-1 sm:gap-1.5 text-xs font-semibold">
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('FRAC')" class="calc-fn" title="Fraction"><span>&#9633;/&#9633;</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('SQRT')" class="calc-fn" data-sec="shift" title="Square root (SHIFT: cube root)"><small class="sec-gold">&#8731;</small><span>&radic;&#9633;</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('SQUARE')" class="calc-fn" data-sec="shift" title="Square (SHIFT: cube)"><small class="sec-gold">x&sup3;</small><span>x&sup2;</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('POWER')" class="calc-fn" data-sec="shift" title="Power (SHIFT: nth root)"><small class="sec-gold">&#8319;&radic;</small><span>x<sup>&#9633;</sup></span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('LOG')" class="calc-fn" data-sec="shift" title="Common logarithm (SHIFT: 10^x)"><small class="sec-gold">10&#739;</small><span>log</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('LN')" class="calc-fn" data-sec="shift" title="Natural logarithm (SHIFT: e^x)"><small class="sec-gold">e&#739;</small><span>ln</span></button>
+      <!-- Row 5: Square, Powers & Digits 4,5,6 -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('^2')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">x&sup2;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('10^(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">10&#739;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('4')" class="calc-btn-digit">4</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('5')" class="calc-btn-digit">5</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('6')" class="calc-btn-digit">6</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('+')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-base">+</button>
 
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('NEG')" class="calc-fn" data-sec="shift" title="Negative sign (SHIFT: absolute value, ALPHA: A)"><small class="sec-gold">|x|</small><span>(&minus;)</span><small class="sec-red">A</small></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DEGREE')" class="calc-fn" title="Degree symbol (ALPHA: B)"><span>&deg;</span><small class="sec-red">B</small></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('HYP')" class="calc-fn" title="Hyperbolic: then press sin / cos / tan (ALPHA: C)"><span>hyp</span><small class="sec-red">C</small></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('SIN')" class="calc-fn" data-sec="shift" title="Sine (SHIFT: arcsin, ALPHA: D)"><small class="sec-gold">sin&#8315;&sup1;</small><span>sin</span><small class="sec-red">D</small></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('COS')" class="calc-fn" data-sec="shift" title="Cosine (SHIFT: arccos, ALPHA: E)"><small class="sec-gold">cos&#8315;&sup1;</small><span>cos</span><small class="sec-red">E</small></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('TAN')" class="calc-fn" data-sec="shift" title="Tangent (SHIFT: arctan, ALPHA: F)"><small class="sec-gold">tan&#8315;&sup1;</small><span>tan</span><small class="sec-red">F</small></button>
+      <!-- Row 6: Constants, Digits 1,2,3 & Multiplication -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&pi;')" class="calc-btn text-purple-600 dark:text-purple-400 bg-white dark:bg-navy-800 font-mono">&pi;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('e')" class="calc-btn text-purple-600 dark:text-purple-400 bg-white dark:bg-navy-800 font-mono">e</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('1')" class="calc-btn-digit">1</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('2')" class="calc-btn-digit">2</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('3')" class="calc-btn-digit">3</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&times;')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-base">&times;</button>
 
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('RCL')" class="calc-fn" data-sec="shift" title="Recall memory M (SHIFT: STO, then an ALPHA variable)"><small class="sec-gold">STO</small><span>RCL</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('IMAG')" class="calc-fn" title="Imaginary unit i"><span>i</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('LPAREN')" class="calc-fn" title="Open bracket (ALPHA: X)"><span>(</span><small class="sec-red">X</small></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('RPAREN')" class="calc-fn" title="Close bracket / step out (ALPHA: Y)"><span>)</span><small class="sec-red">Y</small></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('SD_TOGGLE')" class="calc-fn calc-fn-accent" title="Toggle exact / decimal result"><span>S&#8660;D</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('MEM_PLUS')" class="calc-fn" data-sec="shift" title="Add result to memory (SHIFT: M-)"><small class="sec-gold">M&minus;</small><span>M+</span></button>
+      <!-- Row 7: Factorial, EXP, %, 0, Dot, Equals -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('!')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">n!</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('EXP')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono" title="Scientific Exponential (e.g. 1.6 &times; 10^-19)">EXP</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('%')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">%</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('0')" class="calc-btn-digit">0</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('.')" class="calc-btn-digit font-bold text-base">.</button>
+      <button type="button" onclick="useKalmiStore.getState().evaluateCalc(true)" class="calc-btn bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-bold text-lg shadow-md shadow-brand-600/30 flex items-center justify-center" title="Equals (=)">=</button>
 
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('FACT')" class="calc-fn" title="Factorial"><span>x!</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('PI')" class="calc-fn" title="Pi"><span>&pi;</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('EULER')" class="calc-fn" title="Euler's number e"><span>e</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('PERM')" class="calc-fn" title="Permutations: 5 P 3"><span>nPr</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('COMB')" class="calc-fn" title="Combinations: 5 C 3"><span>nCr</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('EXP')" class="calc-fn" data-sec="shift" title="Scientific notation x10^n (SHIFT: pi, ALPHA: e)"><small class="sec-gold">&pi;</small><span>&times;10<sup>&#9633;</sup></span></button>
-      </div>
-
-      <!-- EQN / STAT helper keys (hidden in other modes) -->
-      <div id="calc-eqn-keys" class="hidden grid grid-cols-3 gap-1.5 text-sm font-bold">
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('HELPER', 'x')" class="calc-fn" title="Unknown x"><span>x</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('HELPER', '=')" class="calc-fn" title="Equals sign (for equations)"><span>=</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('HELPER', ',')" class="calc-fn" title="Separator (for stat data)"><span>,</span></button>
-      </div>
-
-      <!-- Number pad -->
-      <div class="grid grid-cols-5 gap-1.5 sm:gap-2 text-sm font-bold pt-2 border-t border-slate-800">
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '7')" class="calc-num">7</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '8')" class="calc-num">8</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '9')" class="calc-num">9</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DEL')" class="calc-act bg-amber-600 hover:bg-amber-500 text-white" title="Delete at cursor" aria-label="Delete">DEL</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('AC')" class="calc-act bg-rose-700 hover:bg-rose-600 text-white" title="Clear everything" aria-label="All clear">AC</button>
-
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '4')" class="calc-num">4</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '5')" class="calc-num">5</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '6')" class="calc-num">6</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('MUL')" class="calc-op" data-sec="shift" title="Multiply (SHIFT: nPr)"><small class="sec-gold">nPr</small><span>&times;</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIV')" class="calc-op" data-sec="shift" title="Divide (SHIFT: nCr)"><small class="sec-gold">nCr</small><span>&divide;</span></button>
-
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '1')" class="calc-num">1</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '2')" class="calc-num">2</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '3')" class="calc-num">3</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('ADD')" class="calc-op"><span>+</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('SUB')" class="calc-op"><span>&minus;</span></button>
-
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DIGIT', '0')" class="calc-num">0</button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('DOT')" class="calc-num" data-sec="shift" title="Decimal point (SHIFT: random number)"><small class="sec-gold">Ran#</small><span>.</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('ANS')" class="calc-fn font-mono" data-sec="shift" title="Previous answer (SHIFT: %)"><small class="sec-gold">%</small><span>Ans</span></button>
-        <button type="button" onclick="KalmiCalcUI.handleKeyPress('EQUALS')" class="calc-act col-span-2 bg-brand-600 hover:bg-brand-500 text-white text-lg" title="Evaluate (Enter)" aria-label="Equals, evaluate">=</button>
-      </div>
     </div>
   </div>
 </div>
 
 <style>
-  .calc-fn, .calc-num, .calc-op, .calc-act, .calc-mod, .calc-nav { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: transform .08s ease, background-color .08s ease, box-shadow .08s ease; }
-  .calc-fn:focus-visible, .calc-num:focus-visible, .calc-op:focus-visible, .calc-act:focus-visible, .calc-mod:focus-visible, .calc-nav:focus-visible, .calc-mode-btn:focus-visible { outline: 2px solid #34d399; outline-offset: 1px; }
-
-  .calc-fn { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 44px; padding: .25rem .1rem; border-radius: .5rem; background: #1e293b; color: #f1f5f9; border: 1px solid rgba(71,85,105,.6); box-shadow: 0 2px 0 #0f172a; line-height: 1; }
-  .calc-fn:hover { background: #334155; }
-  .calc-fn:active, .calc-num:active, .calc-op:active, .calc-act:active { transform: translateY(2px); box-shadow: none; }
-  .calc-fn-accent { color: #5eead4; border-color: rgba(13,148,136,.6); background: rgba(19,78,74,.4); }
-  .calc-fn small { font-size: 9px; font-weight: 700; line-height: 1; }
-  .sec-gold { color: #fbbf24; }
-  .sec-red { color: #fb7185; }
-
-  .calc-num { display: inline-flex; align-items: center; justify-content: center; flex-direction: column; min-height: 46px; border-radius: .6rem; background: #fff; color: #0f172a; font-size: 1.15rem; border: 1px solid rgba(100,116,139,.4); box-shadow: 0 2.5px 0 #475569; }
-  .calc-num:hover { background: #f1f5f9; }
-  .calc-num small { font-size: 9px; line-height: 1; }
-  .calc-op { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-height: 46px; border-radius: .6rem; background: #334155; color: #f8fafc; font-size: 1.15rem; border: 1px solid rgba(71,85,105,.8); box-shadow: 0 2.5px 0 #0f172a; }
-  .calc-op:hover { background: #475569; }
-  .calc-op small { font-size: 9px; line-height: 1; }
-  .calc-act { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: .6rem; font-weight: 700; box-shadow: 0 2.5px 0 rgba(0,0,0,.4); }
-
-  .calc-mod { min-height: 36px; padding: 0 .75rem; border-radius: .5rem; border-width: 1px; background: #1e293b; font-size: 11px; font-weight: 700; box-shadow: 0 1.5px 0 #0f172a; }
-  .calc-mod:hover { background: #334155; }
-  .calc-mod[aria-pressed="true"] { background: #fbbf24; color: #0f172a; }
-  #calc-key-alpha[aria-pressed="true"] { background: #fb7185; color: #0f172a; }
-
-  .calc-nav { position: absolute; padding: .4rem; color: #cbd5e1; border-radius: 9999px; }
-  .calc-nav:hover { color: #fff; background: rgba(255,255,255,.08); }
-
-  .calc-sec-armed { box-shadow: inset 0 0 0 1.5px #fbbf24; }
-  .calc-mode-btn { display: flex; flex-direction: column; gap: 2px; padding: .5rem; border-radius: .5rem; background: #334155; text-align: left; }
-  .calc-mode-btn:hover { background: #0d9488; }
-  .calc-mode-btn span { font-size: 10px; font-weight: 400; color: #cbd5e1; }
-
-  #calc-result-output.calc-error { color: #9f1239; }
-
-  /* MathLive field blends into the LCD; never clips nested notation */
-  #calc-mathfield-container math-field { display: block; width: 100%; border: 0; outline: 0; background: transparent; color: #0f172a; font-size: 1.3rem; padding: 0; margin: 0; box-shadow: none; --caret-color: #0f172a; --selection-background-color: rgba(15,23,42,.25); --contains-highlight-background-color: transparent; --placeholder-color: rgba(15,23,42,.45); }
-  #calc-mathfield-container math-field:focus, #calc-mathfield-container math-field:focus-within { outline: 0; box-shadow: none; }
-  #calc-mathfield-container math-field::part(virtual-keyboard-toggle),
-  #calc-mathfield-container math-field::part(menu-toggle) { display: none; }
+  .calc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 0.25rem;
+    min-height: 42px;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.08s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dark .calc-btn {
+    border-color: rgba(30, 41, 59, 0.9);
+  }
+  .calc-btn:hover {
+    filter: brightness(0.97);
+  }
+  .dark .calc-btn:hover {
+    filter: brightness(1.1);
+  }
+  .calc-btn:active {
+    transform: scale(0.95);
+  }
+  .calc-btn-digit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 0.25rem;
+    min-height: 42px;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    background-color: #ffffff;
+    color: #0f172a;
+    font-weight: 700;
+    font-family: monospace;
+    font-size: 1.1rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: all 0.08s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .dark .calc-btn-digit {
+    background-color: #1e293b;
+    border-color: rgba(51, 65, 85, 0.9);
+    color: #f8fafc;
+  }
+  .calc-btn-digit:hover {
+    background-color: #f8fafc;
+  }
+  .dark .calc-btn-digit:hover {
+    background-color: #334155;
+  }
+  .calc-btn-digit:active {
+    transform: scale(0.95);
+  }
 </style>
-
-<script>
-  /* Idempotent, ordered loader: hx-boost body swaps must not re-evaluate vendor bundles. */
-  (function () {
-    if (window.__kalmiCalcLoader) { if (window.KalmiCalcUI) window.KalmiCalcUI.init(); return; }
-    window.__kalmiCalcLoader = true;
-    var chain = [
-      ['{% static "vendor/nerdamer/nerdamer.bundle.js" %}', function () { return !!window.nerdamer; }],
-      ['{% static "vendor/mathlive/mathlive.min.js" %}', function () { return !!(window.customElements && window.customElements.get('math-field')); }],
-      ['{% static "js/calculator/engine.js" %}', function () { return !!window.KalmiCalcEngine; }],
-      ['{% static "js/calculator/ui.js" %}', function () { return !!window.KalmiCalcUI; }]
-    ];
-    function next(i) {
-      if (i >= chain.length) return;
-      if (chain[i][1]()) { next(i + 1); return; }
-      var s = document.createElement('script');
-      s.src = chain[i][0];
-      s.onload = function () { next(i + 1); };
-      s.onerror = function () { console.error('Calculator asset failed to load:', chain[i][0]); };
-      document.body.appendChild(s);
-    }
-    next(0);
-  })();
-</script>
