@@ -83,6 +83,22 @@
       }
       mf.menuItems = [];
 
+      // Ensure cursor is always visible in MathLive shadowRoot
+      if (mf.shadowRoot && !mf.shadowRoot.querySelector('style[data-kalmi-caret]')) {
+        const style = document.createElement('style');
+        style.setAttribute('data-kalmi-caret', 'true');
+        style.textContent = `
+          .ML__caret::after,
+          .ML__text-caret::after {
+            visibility: visible !important;
+            opacity: 1 !important;
+            display: inline-block !important;
+            animation: ML__caret-blink 1.05s step-end forwards infinite !important;
+          }
+        `;
+        mf.shadowRoot.appendChild(style);
+      }
+
       if (!mf._kalmiBound) {
         mf._kalmiBound = true;
         mf.addEventListener('input', () => {
@@ -94,6 +110,34 @@
             this.evaluate(true);
           }
         });
+
+        // Direct clicking anywhere on the screen/mathfield accurately places the cursor
+        // and allows exiting superscripts/exponents directly back down to the baseline
+        const handlePointer = (e) => {
+          mf.focus();
+          if (typeof mf.getOffsetFromPoint === 'function') {
+            const offset = mf.getOffsetFromPoint(e.clientX, e.clientY);
+            if (typeof offset === 'number' && offset >= 0) {
+              mf.position = offset;
+              return;
+            }
+          }
+          if (typeof mf.executeCommand === 'function') {
+            mf.executeCommand('moveToMathfieldEnd');
+          }
+        };
+
+        mf.addEventListener('pointerdown', handlePointer);
+
+        const exprDisplay = document.getElementById('calc-expression-display');
+        if (exprDisplay && !exprDisplay._kalmiBound) {
+          exprDisplay._kalmiBound = true;
+          exprDisplay.addEventListener('pointerdown', (e) => {
+            if (e.target !== mf) {
+              handlePointer(e);
+            }
+          });
+        }
       }
     }
 
@@ -164,6 +208,7 @@
       const mf = this.getMathField();
       if (mf && typeof mf.executeCommand === 'function') {
         mf.executeCommand('moveToPreviousChar');
+        if (typeof mf.focus === 'function') mf.focus();
         return;
       }
       if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
@@ -204,6 +249,7 @@
         if (!moved) {
           mf.executeCommand('moveToNextChar');
         }
+        if (typeof mf.focus === 'function') mf.focus();
         return;
       }
       if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
@@ -241,6 +287,7 @@
       const mf = this.getMathField();
       if (mf && typeof mf.executeCommand === 'function') {
         mf.executeCommand('moveUp');
+        if (typeof mf.focus === 'function') mf.focus();
         return;
       }
       if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
@@ -278,7 +325,13 @@
     navDown() {
       const mf = this.getMathField();
       if (mf && typeof mf.executeCommand === 'function') {
+        const prev = mf.position;
         mf.executeCommand('moveDown');
+        if (mf.position === prev) {
+          // If in an exponent or not in a fraction, step down onto baseline
+          mf.executeCommand('moveToNextChar');
+        }
+        if (typeof mf.focus === 'function') mf.focus();
         return;
       }
       if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
@@ -321,7 +374,10 @@
 
     clear() {
       const mf = this.getMathField();
-      if (mf) mf.value = '';
+      if (mf) {
+        mf.value = '';
+        if (typeof mf.focus === 'function') mf.focus();
+      }
       const mirror = document.getElementById('calc-text-mirror');
       if (mirror) mirror.textContent = '0';
       if (this.ast && typeof this.ast.clear === 'function') {
@@ -347,6 +403,7 @@
       const mf = this.getMathField();
       if (mf && typeof mf.executeCommand === 'function') {
         mf.executeCommand('deleteBackward');
+        if (typeof mf.focus === 'function') mf.focus();
         this.onMathFieldChange(mf.value);
         this.evaluate(false);
         this.syncStore();
@@ -397,6 +454,7 @@
         else if (type === 'nthroot') mf.executeCommand(['insert', '\\sqrt[#?]{#?}']);
         else if (type === 'abs') mf.executeCommand(['insert', '\\left|#?\\right|']);
         this.onMathFieldChange(mf.value);
+        if (typeof mf.focus === 'function') mf.focus();
         this.evaluate(false);
         this.syncStore();
         this.render();
@@ -456,6 +514,7 @@
         else mf.executeCommand(['insert', token]);
 
         this.onMathFieldChange(mf.value);
+        if (typeof mf.focus === 'function') mf.focus();
         this.evaluate(false);
         this.syncStore();
         this.render();
@@ -599,7 +658,9 @@
 
       // 1. Natural Textbook Expression line via MathLive / KaTeX
       const mf = this.getMathField();
-      if (!mf && exprEl) {
+      if (mf) {
+        this.setupMathField();
+      } else if (exprEl) {
         this.formatter.renderExpressionWithCursor(exprEl, expression, cursorPos, this.ast);
       }
 
@@ -724,6 +785,7 @@
         const widget = document.getElementById('scientific-calculator-modal');
         if (!widget) return;
 
+        const isMathField = e.target.tagName === 'MATH-FIELD' || (e.target.closest && e.target.closest('math-field'));
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) {
           return;
         }
@@ -732,6 +794,17 @@
         if (isAltC) {
           e.preventDefault();
           this.toggle();
+          return;
+        }
+
+        if (this.state.isOpen && isMathField) {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            this.close();
+          } else if (e.key === 'Enter' || e.key === '=') {
+            e.preventDefault();
+            this.evaluate(true);
+          }
           return;
         }
 

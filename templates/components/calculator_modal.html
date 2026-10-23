@@ -87,7 +87,8 @@
     </div>
 
     <!-- Casio REPLAY 4-Way Directional Navigation Pad (Up, Down, Left, Right) -->
-    <div class="px-3.5 py-2 bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 border-b border-slate-800 flex items-center justify-between gap-2 select-none">
+    <div class="px-3.5 py-2 bg-gradient-to-b from-slate-900 via-slate-850 to-slate-950 border-b border-slate-800 flex items-center justify-between gap-2 select-none"
+         onmousedown="event.preventDefault()">
       
       <!-- Left Quick Function Buttons -->
       <div class="flex items-center gap-1.5">
@@ -171,7 +172,8 @@
     </div>
 
     <!-- Casio Tactile Keypad (Dual-Tone Accessible Touch Targets) -->
-    <div class="p-2.5 sm:p-3 grid grid-cols-6 gap-1.5 text-xs font-semibold select-none bg-slate-900/95 overflow-y-auto">
+    <div class="p-2.5 sm:p-3 grid grid-cols-6 gap-1.5 text-xs font-semibold select-none bg-slate-900/95 overflow-y-auto"
+         onmousedown="event.preventDefault()">
       
       <!-- Row 1: Memory & Clear Row -->
       <button type="button" onclick="useKalmiStore.getState().memoryClear()" class="casio-fn-btn" title="Memory Clear">MC</button>

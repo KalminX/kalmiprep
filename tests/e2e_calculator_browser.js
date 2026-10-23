@@ -121,11 +121,15 @@ const check = (name, ok, detail = '') => {
 
   // 7b. Casio REPLAY 4-way Directional Pad Navigation
   await modal.locator('button[onclick*="clearCalc"]').click();
+  await page.waitForTimeout(50);
   await page.keyboard.type('12+34');
+  await page.waitForTimeout(50);
   await modal.locator('#calc-nav-left').click();
   await modal.locator('#calc-nav-left').click();
   await modal.locator('#calc-nav-left').click();
+  await page.waitForTimeout(50);
   await page.keyboard.type('5');
+  await page.waitForTimeout(50);
   const midNavExpr = (await page.locator('#calc-expression-display').textContent()).trim();
   check('REPLAY directional navigation inserts in middle: 125+34', midNavExpr.includes('125') && midNavExpr.includes('34'), midNavExpr);
 
