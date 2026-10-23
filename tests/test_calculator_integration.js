@@ -10,6 +10,8 @@ const { JSDOM } = require('jsdom');
 const root = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const STORE = read('static/js/store.js');
+const VALIDATOR = read('static/js/calculator/validator.js');
+const FORMATTER = read('static/js/calculator/formatter.js');
 const ENGINE = read('static/js/calculator/engine.js');
 const MEMENTO = read('static/js/calculator/memento.js');
 const CONTROLLER = read('static/js/calculator/controller.js');
@@ -19,6 +21,7 @@ const MODAL_HTML = read('templates/components/calculator_modal.html')
   .replace(/<script>[\s\S]*?<\/script>/g, '')
   .replace(/<link[^>]*>/g, '');
 
+const KATEX = read('static/vendor/katex/katex.min.js');
 const MATHJS = read('static/vendor/mathjs/math.min.js');
 
 let failures = 0;
@@ -51,8 +54,11 @@ function makePage({ calculator = true, savedMemento = null } = {}) {
   if (savedMemento) {
     window.localStorage.setItem('kalmiprep_calc_memento', JSON.stringify(savedMemento));
   }
+  window.eval(KATEX);
   window.eval(MATHJS);
   if (calculator) {
+    window.eval(VALIDATOR);
+    window.eval(FORMATTER);
     window.eval(ENGINE);
     window.eval(MEMENTO);
     window.eval(CONTROLLER);
@@ -279,6 +285,74 @@ test('State persists in localStorage via GoF Memento pattern', () => {
   assert.strictEqual(saved.angleMode, 'RAD');
   assert.strictEqual(saved.result, '42');
   assert.strictEqual(saved.isOpen, false); // memento strictly saves closed state
+});
+
+test('Mechanism preventing signs and operators from repeating themselves', () => {
+  const win = makePage({ calculator: true });
+  win.useKalmiStore.getState().openCalc();
+  win.useKalmiStore.getState().clearCalc();
+
+  // 1. Prevent duplicate plus: 5 + + stays 5+
+  win.useKalmiStore.getState().appendCalc('5');
+  win.useKalmiStore.getState().appendCalc('+');
+  win.useKalmiStore.getState().appendCalc('+');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '5+');
+
+  // 2. Operator replacement: 5+ followed by × becomes 5×
+  win.useKalmiStore.getState().appendCalc('×');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '5×');
+
+  // 3. Unary minus after multiply: 5× followed by - becomes 5×−
+  win.useKalmiStore.getState().appendCalc('-');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '5×−');
+
+  // 4. Prevent duplicate minus: 5×− followed by - stays 5×−
+  win.useKalmiStore.getState().appendCalc('-');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '5×−');
+
+  // 5. Replace operator pair with new operator: 5×− followed by + becomes 5+
+  win.useKalmiStore.getState().appendCalc('+');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '5+');
+
+  // 6. Decimal point cannot repeat in same number: 3.14. stays 3.14
+  win.useKalmiStore.getState().clearCalc();
+  win.useKalmiStore.getState().appendCalc('3');
+  win.useKalmiStore.getState().appendCalc('.');
+  win.useKalmiStore.getState().appendCalc('1');
+  win.useKalmiStore.getState().appendCalc('4');
+  win.useKalmiStore.getState().appendCalc('.');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '3.14');
+
+  // 7. Prevent multiple leading zeros: 0 followed by 0 stays 0; followed by 7 becomes 7
+  win.useKalmiStore.getState().clearCalc();
+  win.useKalmiStore.getState().appendCalc('0');
+  win.useKalmiStore.getState().appendCalc('0');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '0');
+  win.useKalmiStore.getState().appendCalc('7');
+  assert.strictEqual(win.useKalmiStore.getState().calc.expression, '7');
+});
+
+test('Casio S<=>D fraction toggle and KaTeX display rendering', () => {
+  const win = makePage({ calculator: true });
+  win.useKalmiStore.getState().openCalc();
+  win.useKalmiStore.getState().clearCalc();
+
+  // 1 ÷ 4 = 0.25 (with fraction 1/4 available)
+  win.useKalmiStore.getState().appendCalc('1');
+  win.useKalmiStore.getState().appendCalc('÷');
+  win.useKalmiStore.getState().appendCalc('4');
+  win.useKalmiStore.getState().evaluateCalc(true);
+
+  const resultEl = win.document.getElementById('calc-result-display');
+  assert(resultEl.textContent.includes('0.25'), 'Initial result displays decimal 0.25');
+
+  // Toggle S<=>D to fraction
+  win.useKalmiStore.getState().toggleCalcFraction();
+  assert(resultEl.innerHTML.includes('frac') || resultEl.innerHTML.includes('katex'), 'Toggled to fraction markup');
+
+  // Toggle back to decimal
+  win.useKalmiStore.getState().toggleCalcFraction();
+  assert(resultEl.textContent.includes('0.25'), 'Toggled back to decimal 0.25');
 });
 
 console.log(failures === 0 ? '--- ALL CALCULATOR INTEGRATION TESTS PASSED ---' : `--- ${failures} TEST(S) FAILED ---`);

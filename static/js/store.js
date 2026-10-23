@@ -311,7 +311,12 @@
           return { calc: { ...state.calc, expression: '', result: '0', isEvaluated: false } };
         }
         const fnMatch = expr.match(/(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|ln|log|sqrt|cbrt)\($/);
-        expr = fnMatch ? expr.slice(0, -fnMatch[0].length) : expr.slice(0, -1);
+        if (fnMatch) {
+          expr = expr.slice(0, -fnMatch[0].length);
+          if (expr.endsWith('×') || expr.endsWith('*')) expr = expr.slice(0, -1);
+        } else {
+          expr = expr.slice(0, -1);
+        }
         return { calc: { ...state.calc, expression: expr } };
       });
       get().evaluateCalc(false);
@@ -405,6 +410,13 @@
       if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.memoryClear(); return; }
       set((state) => ({ calc: { ...state.calc, memory: 0 } }));
       get().renderCalcDOM();
+    },
+
+    toggleCalcFraction: () => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) {
+        window.KalmiCalc.toggleFractionMode();
+        return;
+      }
     },
 
     // ----------------------------------------------------

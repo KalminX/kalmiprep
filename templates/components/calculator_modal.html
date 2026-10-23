@@ -1,39 +1,46 @@
 {% load static %}
-<!-- On-Screen Scientific Calculator Modal (JAMB UTME / WAEC CBT Standard) -->
+<!-- On-Screen Scientific Calculator Modal (Casio fx-991ES Plus Natural Textbook Display Standard) -->
 <div id="scientific-calculator-modal"
-     class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/60 backdrop-blur-sm hidden p-0 sm:p-4 transition-opacity select-none"
-     role="dialog" aria-modal="true" aria-label="Scientific calculator" aria-hidden="true">
+     class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-950/65 backdrop-blur-sm hidden p-0 sm:p-4 transition-opacity select-none"
+     role="dialog" aria-modal="true" aria-label="Casio Scientific Calculator" aria-hidden="true">
   
   <!-- Backdrop click to close (does not touch the exam) -->
   <div class="fixed inset-0" onclick="useKalmiStore.getState().closeCalc()" aria-hidden="true"></div>
 
-  <!-- Calculator Window Card (Solid Accessible Modal) -->
-  <div class="calc-window relative z-10 w-full sm:max-w-md bg-white dark:bg-navy-900 border-t sm:border border-slate-200 dark:border-navy-700 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] select-none"
+  <!-- Calculator Window Chassis (Casio fx-991 Curved Titanium Card) -->
+  <div class="calc-window relative z-10 w-full sm:max-w-md bg-slate-900 border-t sm:border border-slate-700/80 rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] select-none text-slate-100"
        style="max-width: 440px; width: 100%;">
     
-    <!-- Header Bar with Title, Angle Mode & Close -->
-    <div class="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-navy-950 border-b border-slate-200 dark:border-navy-800">
-      <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-lg bg-brand-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
-          <i data-lucide="calculator" class="w-4 h-4"></i>
-        </div>
-        <div class="flex flex-col">
-          <span class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white leading-tight">Scientific Calculator</span>
-          <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">JAMB &middot; WAEC Standard</span>
-        </div>
+    <!-- Casio Top Bezel with Branding & Solar Cell Panel -->
+    <div class="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/60">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-black tracking-widest font-sans text-slate-100">CASIO</span>
+        <span class="text-[9px] font-bold text-amber-400 font-mono tracking-tight px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30">NATURAL-V.P.A.M.</span>
+        <span class="text-[10px] text-slate-400 font-mono hidden xs:inline">fx-991ES PLUS</span>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2.5">
+        <!-- Two-Way Power Solar Cell Strip Graphic -->
+        <div class="hidden xs:flex items-center gap-0.5 px-1 py-0.5 rounded bg-amber-950/70 border border-amber-800/50 shadow-inner" title="Two-Way Power Solar Strip">
+          <div class="w-2 h-3.5 bg-amber-900/90 rounded-[1px]"></div>
+          <div class="w-2 h-3.5 bg-amber-900/90 rounded-[1px]"></div>
+          <div class="w-2 h-3.5 bg-amber-900/90 rounded-[1px]"></div>
+          <div class="w-2 h-3.5 bg-amber-900/90 rounded-[1px]"></div>
+        </div>
+
+        <!-- Angle Mode Toggle (DEG / RAD) -->
         <button type="button" 
                 id="calc-angle-mode-btn" 
                 onclick="useKalmiStore.getState().setCalcAngleMode(useKalmiStore.getState().calc.angleMode === 'DEG' ? 'RAD' : 'DEG')" 
-                class="px-2.5 py-1 rounded-lg text-xs font-mono font-bold bg-slate-200 dark:bg-navy-800 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-navy-700 border border-slate-300 dark:border-navy-700 transition-colors"
+                class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-800 hover:bg-slate-700 text-brand-400 border border-slate-700 transition-colors"
                 title="Toggle Degrees / Radians">
           DEG
         </button>
+
+        <!-- Close Button -->
         <button type="button" 
                 onclick="useKalmiStore.getState().closeCalc()" 
-                class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-navy-800 transition-colors"
+                class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                 aria-label="Close Calculator (Esc or Alt+C)"
                 title="Close (Esc or Alt+C)">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -41,150 +48,266 @@
       </div>
     </div>
 
-    <!-- LCD Display -->
-    <div class="p-3.5 bg-slate-900 border-b border-slate-800 text-slate-100 space-y-1">
-      <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
-        <div class="flex items-center gap-1.5">
-          <span id="calc-memory-indicator" class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold hidden text-[10px]">M</span>
-          <span id="calc-ans-indicator" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-bold hidden text-[10px]">Ans</span>
+    <!-- Casio Natural Textbook Display (Two-Line High-Contrast LCD Screen) -->
+    <div class="p-3 bg-[#c2d2bc] dark:bg-[#16221c] border-y-2 border-slate-800 text-slate-900 dark:text-[#a0e49a] shadow-inner font-mono select-none">
+      
+      <!-- Annunciators & Status Row -->
+      <div class="flex items-center justify-between text-[10px] text-slate-700 dark:text-emerald-500/80 mb-1 border-b border-slate-400/30 dark:border-emerald-950/60 pb-0.5">
+        <div class="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[9px]">
+          <span id="calc-m-badge" class="px-1 rounded bg-black/10 dark:bg-emerald-950/80">D</span>
+          <span id="calc-memory-indicator" class="px-1 rounded bg-black/10 dark:bg-emerald-950/80 hidden">M</span>
+          <span id="calc-math-badge" class="px-1 rounded bg-black/10 dark:bg-emerald-950/80 font-serif italic">Math</span>
+          <span id="calc-ans-indicator" class="px-1 rounded bg-black/10 dark:bg-emerald-950/80 hidden">Ans</span>
+          <span id="calc-sd-indicator" class="px-1 rounded bg-amber-500/20 text-amber-800 dark:text-amber-400 hidden">S⇔D</span>
         </div>
-        <div id="calc-expression-display" class="w-full text-right overflow-x-auto no-scrollbar whitespace-nowrap text-slate-400 font-mono text-xs min-h-[18px]">
-          0
-        </div>
+        <div class="text-[9px] opacity-75 font-sans font-semibold">NATURAL DISPLAY</div>
       </div>
-      <div id="calc-result-display" class="text-2xl sm:text-3xl font-bold font-mono text-emerald-400 text-right overflow-x-auto no-scrollbar whitespace-nowrap tracking-tight min-h-[38px]">
+
+      <!-- Line 1: Natural Textbook Expression (LaTeX rendered via KaTeX) -->
+      <div id="calc-expression-display" 
+           class="w-full text-right overflow-x-auto no-scrollbar whitespace-nowrap text-sm sm:text-base font-normal min-h-[26px] flex items-center justify-end leading-tight tracking-tight">
+        0
+      </div>
+
+      <!-- Line 2: Precision Result (Stacked Fraction / Decimal Display) -->
+      <div id="calc-result-display" 
+           class="text-2xl sm:text-3xl font-bold text-right overflow-x-auto no-scrollbar whitespace-nowrap tracking-tight min-h-[40px] flex items-center justify-end">
         0
       </div>
     </div>
 
-    <!-- Scientific Keypad Grid (Solid, Accessible Touch Targets) -->
-    <div class="p-3 grid grid-cols-6 gap-1.5 sm:gap-2 text-xs font-semibold select-none bg-slate-50/50 dark:bg-navy-900 overflow-y-auto">
+    <!-- Casio Tactile Keypad (Dual-Tone Accessible Touch Targets) -->
+    <div class="p-2.5 sm:p-3 grid grid-cols-6 gap-1.5 text-xs font-semibold select-none bg-slate-900/95 overflow-y-auto">
       
-      <!-- Row 1: Memory & Clear -->
-      <button type="button" onclick="useKalmiStore.getState().memoryClear()" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800" title="Memory Clear">MC</button>
-      <button type="button" onclick="useKalmiStore.getState().memoryRecall()" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800" title="Memory Recall">MR</button>
-      <button type="button" onclick="useKalmiStore.getState().memorySubtract()" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800" title="Memory Subtract">M&minus;</button>
-      <button type="button" onclick="useKalmiStore.getState().memoryAdd()" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800" title="Memory Add">M+</button>
-      <button type="button" onclick="useKalmiStore.getState().backspaceCalc()" class="calc-btn text-amber-600 dark:text-amber-400 bg-white dark:bg-navy-800 font-bold flex items-center justify-center" title="Backspace (DEL)">
-        <i data-lucide="delete" class="w-4 h-4"></i>
-      </button>
-      <button type="button" onclick="useKalmiStore.getState().clearCalc()" class="calc-btn text-rose-600 dark:text-rose-400 bg-white dark:bg-navy-800 font-bold" title="All Clear (AC)">C</button>
+      <!-- Row 1: Memory & Clear Row -->
+      <button type="button" onclick="useKalmiStore.getState().memoryClear()" class="casio-fn-btn" title="Memory Clear">MC</button>
+      <button type="button" onclick="useKalmiStore.getState().memoryRecall()" class="casio-fn-btn" title="Memory Recall">MR</button>
+      <button type="button" onclick="useKalmiStore.getState().memorySubtract()" class="casio-fn-btn" title="Memory Subtract">M&minus;</button>
+      <button type="button" onclick="useKalmiStore.getState().memoryAdd()" class="casio-fn-btn" title="Memory Add">M+</button>
+      <button type="button" onclick="useKalmiStore.getState().backspaceCalc()" class="casio-del-btn" title="Backspace (DEL)">DEL</button>
+      <button type="button" onclick="useKalmiStore.getState().clearCalc()" class="casio-ac-btn" title="All Clear (AC)">AC</button>
 
-      <!-- Row 2: Trig & Logarithms -->
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('sin(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">sin</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('cos(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">cos</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('tan(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">tan</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('ln(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">ln</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('log(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">log</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('sqrt(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">&radic;</button>
+      <!-- Row 2: Scientific Functions & Roots -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&divide;')" class="casio-fn-btn font-mono" title="Fraction / Division">&#9632;/&#9633;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('sqrt(')" class="casio-fn-btn font-mono" title="Square Root">&radic;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('^2')" class="casio-fn-btn font-mono" title="Square (x²)">x&sup2;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('^(')" class="casio-fn-btn font-mono" title="Power (xʸ)">xʸ</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('log(')" class="casio-fn-btn font-mono" title="Common Logarithm (log10)">log</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('ln(')" class="casio-fn-btn font-mono" title="Natural Logarithm (ln)">ln</button>
 
-      <!-- Row 3: Inverse Trig & Roots -->
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('asin(')" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800 font-mono text-[11px]">sin&minus;&sup1;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('acos(')" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800 font-mono text-[11px]">cos&minus;&sup1;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('atan(')" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800 font-mono text-[11px]">tan&minus;&sup1;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('^(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">xʸ</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('(')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-sm">(</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc(')')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-sm">)</button>
+      <!-- Row 3: Negative, Trigonometry & Parentheses -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&minus;')" class="casio-fn-btn font-mono" title="Negative Sign (-)">(-)</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('sin(')" class="casio-fn-btn font-mono">sin</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('cos(')" class="casio-fn-btn font-mono">cos</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('tan(')" class="casio-fn-btn font-mono">tan</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('(')" class="casio-fn-btn font-bold text-sm">(</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc(')')" class="casio-fn-btn font-bold text-sm">)</button>
 
-      <!-- Row 4: Digits 7,8,9 & Division -->
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('cbrt(')" class="calc-btn text-slate-600 dark:text-slate-400 bg-white dark:bg-navy-800 font-mono text-[11px]">&xcup;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('&divide;')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-base">&divide;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('7')" class="calc-btn-digit">7</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('8')" class="calc-btn-digit">8</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('9')" class="calc-btn-digit">9</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('&minus;')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-base">&minus;</button>
+      <!-- Row 4: Inverse Trig, S<=>D & Cube Root -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('asin(')" class="casio-fn-btn font-mono text-[10px]">sin&minus;&sup1;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('acos(')" class="casio-fn-btn font-mono text-[10px]">cos&minus;&sup1;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('atan(')" class="casio-fn-btn font-mono text-[10px]">tan&minus;&sup1;</button>
+      <button type="button" id="calc-sd-btn" onclick="useKalmiStore.getState().toggleCalcFraction()" class="casio-fn-btn text-amber-400 font-mono text-[11px] font-bold" title="Toggle Fraction / Decimal (S<=>D)">S&hArr;D</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('cbrt(')" class="casio-fn-btn font-mono text-[11px]" title="Cube Root">&sup3;&radic;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&divide;')" class="casio-op-btn" title="Division (&divide;)">&divide;</button>
 
-      <!-- Row 5: Square, Powers & Digits 4,5,6 -->
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('^2')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">x&sup2;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('10^(')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">10&#739;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('4')" class="calc-btn-digit">4</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('5')" class="calc-btn-digit">5</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('6')" class="calc-btn-digit">6</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('+')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-base">+</button>
+      <!-- Row 5: Digits 7, 8, 9 & Multiplication -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('7')" class="casio-digit-btn">7</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('8')" class="casio-digit-btn">8</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('9')" class="casio-digit-btn">9</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('!')" class="casio-fn-btn font-mono" title="Factorial (n!)">n!</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('%')" class="casio-fn-btn font-mono" title="Percent (%)">%</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&times;')" class="casio-op-btn" title="Multiplication (&times;)">&times;</button>
 
-      <!-- Row 6: Constants, Digits 1,2,3 & Multiplication -->
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('&pi;')" class="calc-btn text-purple-600 dark:text-purple-400 bg-white dark:bg-navy-800 font-mono">&pi;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('e')" class="calc-btn text-purple-600 dark:text-purple-400 bg-white dark:bg-navy-800 font-mono">e</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('1')" class="calc-btn-digit">1</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('2')" class="calc-btn-digit">2</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('3')" class="calc-btn-digit">3</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('&times;')" class="calc-btn text-brand-600 dark:text-brand-400 bg-white dark:bg-navy-800 font-bold text-base">&times;</button>
+      <!-- Row 6: Digits 4, 5, 6 & Subtraction -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('4')" class="casio-digit-btn">4</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('5')" class="casio-digit-btn">5</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('6')" class="casio-digit-btn">6</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('10^(')" class="casio-fn-btn font-mono text-[11px]" title="Power of 10">10&#739;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&pi;')" class="casio-fn-btn font-mono text-purple-400">&pi;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('&minus;')" class="casio-op-btn" title="Subtraction (&minus;)">&minus;</button>
 
-      <!-- Row 7: Factorial, EXP, %, 0, Dot, Equals -->
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('!')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">n!</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('EXP')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono" title="Scientific Exponential (e.g. 1.6 &times; 10^-19)">EXP</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('%')" class="calc-btn text-slate-700 dark:text-slate-200 bg-white dark:bg-navy-800 font-mono">%</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('0')" class="calc-btn-digit">0</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('.')" class="calc-btn-digit font-bold text-base">.</button>
-      <button type="button" onclick="useKalmiStore.getState().evaluateCalc(true)" class="calc-btn bg-brand-600 hover:bg-brand-500 active:bg-brand-700 text-white font-bold text-lg shadow-md shadow-brand-600/30 flex items-center justify-center" title="Equals (=)">=</button>
+      <!-- Row 7: Digits 1, 2, 3 & Addition -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('1')" class="casio-digit-btn">1</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('2')" class="casio-digit-btn">2</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('3')" class="casio-digit-btn">3</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('e')" class="casio-fn-btn font-mono text-purple-400">e</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('EXP')" class="casio-fn-btn font-mono text-[10px]" title="Scientific Exponential (e.g. 1.6 &times; 10^-19)">EXP</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('+')" class="casio-op-btn" title="Addition (+)">+</button>
+
+      <!-- Row 8: Digit 0, Dot, Ans & Equals -->
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('0')" class="casio-digit-btn col-span-2 text-left px-4">0</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('.')" class="casio-digit-btn font-bold text-base">.</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('Ans')" class="casio-fn-btn font-mono font-bold" title="Previous Answer">Ans</button>
+      <button type="button" onclick="useKalmiStore.getState().evaluateCalc(true)" class="casio-equal-btn col-span-2" title="Equals (=)">=</button>
 
     </div>
   </div>
 </div>
 
 <style>
-  .calc-btn {
+  /* Casio fx-991 Style Tactile Keypad Styling */
+  .casio-fn-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.65rem 0.25rem;
-    min-height: 42px;
-    border-radius: 0.75rem;
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    transition: all 0.08s ease;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .dark .calc-btn {
-    border-color: rgba(30, 41, 59, 0.9);
-  }
-  .calc-btn:hover {
-    filter: brightness(0.97);
-  }
-  .dark .calc-btn:hover {
-    filter: brightness(1.1);
-  }
-  .calc-btn:active {
-    transform: scale(0.95);
-  }
-  .calc-btn-digit {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.65rem 0.25rem;
-    min-height: 42px;
-    border-radius: 0.75rem;
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    background-color: #ffffff;
-    color: #0f172a;
-    font-weight: 700;
-    font-family: monospace;
-    font-size: 1.1rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    transition: all 0.08s ease;
-    cursor: pointer;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .dark .calc-btn-digit {
+    padding: 0.5rem 0.2rem;
+    min-height: 38px;
+    border-radius: 0.5rem;
     background-color: #1e293b;
-    border-color: rgba(51, 65, 85, 0.9);
-    color: #f8fafc;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    box-shadow: 0 2px 0 0 #0f172a;
+    transition: all 0.05s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
-  .calc-btn-digit:hover {
-    background-color: #f8fafc;
-  }
-  .dark .calc-btn-digit:hover {
+  .casio-fn-btn:hover {
     background-color: #334155;
+    color: #ffffff;
   }
-  .calc-btn-digit:active {
-    transform: scale(0.95);
+  .casio-fn-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 #0f172a;
+  }
+
+  .casio-digit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.2rem;
+    min-height: 40px;
+    border-radius: 0.5rem;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    font-weight: 800;
+    font-family: monospace;
+    font-size: 1.15rem;
+    box-shadow: 0 2px 0 0 #94a3b8;
+    transition: all 0.05s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .casio-digit-btn:hover {
+    background-color: #ffffff;
+    filter: brightness(1.05);
+  }
+  .casio-digit-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 #94a3b8;
+  }
+
+  .casio-del-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.2rem;
+    min-height: 38px;
+    border-radius: 0.5rem;
+    background-color: #d97706;
+    border: 1px solid #b45309;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 0 0 #78350f;
+    transition: all 0.05s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .casio-del-btn:hover {
+    background-color: #f59e0b;
+  }
+  .casio-del-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 #78350f;
+  }
+
+  .casio-ac-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.2rem;
+    min-height: 38px;
+    border-radius: 0.5rem;
+    background-color: #dc2626;
+    border: 1px solid #b91c1c;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 0 0 #7f1d1d;
+    transition: all 0.05s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .casio-ac-btn:hover {
+    background-color: #ef4444;
+  }
+  .casio-ac-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 #7f1d1d;
+  }
+
+  .casio-op-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.2rem;
+    min-height: 40px;
+    border-radius: 0.5rem;
+    background-color: #3b82f6;
+    border: 1px solid #2563eb;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 0 0 #1d4ed8;
+    transition: all 0.05s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .casio-op-btn:hover {
+    background-color: #60a5fa;
+  }
+  .casio-op-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 #1d4ed8;
+  }
+
+  .casio-equal-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.2rem;
+    min-height: 40px;
+    border-radius: 0.5rem;
+    background-color: #10b981;
+    border: 1px solid #059669;
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 1.3rem;
+    box-shadow: 0 2px 0 0 #047857;
+    transition: all 0.05s ease;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .casio-equal-btn:hover {
+    background-color: #34d399;
+  }
+  .casio-equal-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 #047857;
   }
 </style>
 
-<!-- Decoupled Calculator Runtime (Engine, Memento, and Command Controller) -->
+<!-- Decoupled Casio Calculator Runtime (Validator, Formatter, Engine, Memento, and Command Controller) -->
+<script src="{% static 'js/calculator/validator.js' %}"></script>
+<script src="{% static 'js/calculator/formatter.js' %}"></script>
 <script src="{% static 'js/calculator/engine.js' %}"></script>
 <script src="{% static 'js/calculator/memento.js' %}"></script>
 <script src="{% static 'js/calculator/controller.js' %}"></script>

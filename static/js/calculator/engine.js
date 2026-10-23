@@ -92,6 +92,26 @@
     };
   }
 
+  function extractFraction(raw, mathjs) {
+    if (typeof raw !== 'number' || !isFinite(raw) || Number.isInteger(raw)) return null;
+    try {
+      if (mathjs && typeof mathjs.fraction === 'function') {
+        const f = mathjs.fraction(raw);
+        const num = Number(f.s * f.n);
+        const den = Number(f.d);
+        if (den > 1 && den <= 10000 && Math.abs(raw - (num / den)) < 1e-10) {
+          return {
+            numerator: num,
+            denominator: den,
+            latex: `\\frac{${num}}{${den}}`,
+            text: `${num}/${den}`
+          };
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+
   class KalmiCalcEngine {
     constructor(mathInstance = null) {
       this.math = mathInstance || (typeof global !== 'undefined' && global.math ? global.math : null);
@@ -137,7 +157,7 @@
             return { success: true, result: '0', numericValue: 0 };
           }
           const formatted = parseFloat(raw.toPrecision(12)).toString();
-          return { success: true, result: formatted, numericValue: raw };
+          return { success: true, result: formatted, numericValue: raw, fraction: extractFraction(raw, mathjs) };
         }
 
         if (raw && typeof raw.format === 'function') {

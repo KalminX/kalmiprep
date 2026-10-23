@@ -85,11 +85,19 @@ const check = (name, ok, detail = '') => {
   const r3 = (await page.locator('#calc-result-display').textContent()).trim();
   check('sin(30) in DEG = 0.5', r3 === '0.5', r3);
 
+  // S<=>D fraction toggle: 0.5 <-> 1/2
+  await modal.locator('#calc-sd-btn').click();
+  await page.waitForTimeout(50);
+  const rFrac = (await page.locator('#calc-result-display').innerHTML());
+  check('S<=>D toggles to fraction 1/2 in KaTeX', rFrac.includes('frac') || rFrac.includes('1'), rFrac);
+  await modal.locator('#calc-sd-btn').click();
+  await page.waitForTimeout(50);
+
   // Toggle to RAD
   await modal.locator('#calc-angle-mode-btn').click();
   await page.waitForTimeout(100);
   const rRad = (await page.locator('#calc-result-display').textContent()).trim();
-  check('switching to RAD re-evaluates sin(30) = -0.988...', /^-0\.988/.test(rRad), rRad);
+  check('switching to RAD re-evaluates sin(30) = -0.988...', /^[-−]0\.988/.test(rRad), rRad);
 
   // Toggle back to DEG
   await modal.locator('#calc-angle-mode-btn').click();

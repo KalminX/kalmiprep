@@ -3,7 +3,7 @@
  * 
  * GoF Command Pattern dispatcher & UI Controller.
  * Encapsulates keypad actions, keyboard bindings, DOM synchronization,
- * and seamless integration with the central Zustand store.
+ * sign repetition validation, and LaTeX Natural Textbook rendering via KaTeX.
  */
 
 (function (global) {
@@ -13,6 +13,8 @@
     constructor() {
       this.engine = new (global.KalmiCalcEngine || class { evaluate() { return { success: true, result: '0' }; } })();
       this.memento = global.KalmiCalcMemento || { load: () => null, save: () => {} };
+      this.validator = global.KalmiCalcValidator || { sanitize: (e, t) => (e || '') + t };
+      this.formatter = global.KalmiCalcFormatter || { toLatex: (e) => e, renderToElement: (el, l, f) => { if (el) el.textContent = f || l; } };
 
       const saved = this.memento.load() || {};
       this.state = {
@@ -23,6 +25,8 @@
         lastAns: saved.lastAns || '0',
         memory: typeof saved.memory === 'number' ? saved.memory : 0,
         isEvaluated: Boolean(saved.isEvaluated),
+        isFractionMode: Boolean(saved.isFractionMode),
+        currentFraction: saved.currentFraction || null,
       };
 
       this.boundKeyHandler = null;
@@ -73,10 +77,20 @@
       this.setAngleMode(this.state.angleMode === 'DEG' ? 'RAD' : 'DEG');
     }
 
+    toggleFractionMode() {
+      if (this.state.currentFraction) {
+        this.state.isFractionMode = !this.state.isFractionMode;
+        this.syncStore();
+        this.render();
+      }
+    }
+
     clear() {
       this.state.expression = '';
       this.state.result = '0';
       this.state.isEvaluated = false;
+      this.state.currentFraction = null;
+      this.state.isFractionMode = false;
       this.syncStore();
       this.render();
     }
@@ -91,6 +105,9 @@
       const fnMatch = expr.match(/(sin|cos|tan|asin|acos|atan|sinh|cosh|tanh|ln|log|sqrt|cbrt)\($/);
       if (fnMatch) {
         expr = expr.slice(0, -fnMatch[0].length);
+        if (expr.endsWith('×') || expr.endsWith('*')) {
+          expr = expr.slice(0, -1);
+        }
       } else {
         expr = expr.slice(0, -1);
       }
@@ -107,16 +124,15 @@
 
       if (isEvaluated) {
         if (isOperator) {
-          expression = (lastAns && lastAns !== 'Error' && lastAns !== 'Math ERROR' ? lastAns : '0') + token;
+          expression = (lastAns && lastAns !== 'Error' && lastAns !== 'Math ERROR' ? lastAns : '0');
         } else {
-          expression = token;
+          expression = '';
         }
         this.state.isEvaluated = false;
-      } else {
-        expression = expression + token;
       }
 
-      this.state.expression = expression;
+      // Pass through GoF validator to prevent repeated signs and illegal sequences
+      this.state.expression = this.validator.sanitize(expression, token, lastAns);
       this.evaluate(false);
       this.syncStore();
       this.render();
@@ -128,6 +144,7 @@
         if (isFinal) {
           this.state.result = '0';
           this.state.isEvaluated = false;
+          this.state.currentFraction = null;
           this.syncStore();
           this.render();
         }
@@ -142,9 +159,12 @@
         this.state.result = output;
         this.state.lastAns = isErr ? this.state.lastAns : output;
         this.state.isEvaluated = true;
+        this.state.currentFraction = isErr ? null : (res.fraction || null);
+        this.state.isFractionMode = false;
       } else {
         if (res.success && output !== 'Error' && output !== 'Math ERROR') {
           this.state.result = output;
+          this.state.currentFraction = res.fraction || null;
         }
       }
 
@@ -177,13 +197,13 @@
     }
 
     // ----------------------------------------------------
-    // DOM Synchronization & Memento Persistence
+    // DOM Synchronization & LaTeX Rendering
     // ----------------------------------------------------
     render() {
       const widget = document.getElementById('scientific-calculator-modal');
       if (!widget) return;
 
-      const { isOpen, expression, result, lastAns, angleMode, memory } = this.state;
+      const { isOpen, expression, result, lastAns, angleMode, memory, isFractionMode, currentFraction } = this.state;
 
       widget.classList.toggle('hidden', !isOpen);
       widget.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
@@ -193,13 +213,33 @@
       const angleBtn = document.getElementById('calc-angle-mode-btn');
       const memIndicator = document.getElementById('calc-memory-indicator');
       const ansIndicator = document.getElementById('calc-ans-indicator');
+      const sdBtn = document.getElementById('calc-sd-btn');
+      const sdIndicator = document.getElementById('calc-sd-indicator');
 
-      if (exprEl) exprEl.textContent = expression || '0';
-      if (resultEl) resultEl.textContent = result || '0';
+      // 1. Natural Textbook Expression line via KaTeX LaTeX
+      if (exprEl) {
+        const latexExpr = this.formatter.toLatex(expression || '0');
+        this.formatter.renderToElement(exprEl, latexExpr, expression || '0');
+      }
+
+      // 2. High-precision Result line (Stacked Fraction vs Decimal)
+      if (resultEl) {
+        let resultLatex = result || '0';
+        if (isFractionMode && currentFraction && currentFraction.latex) {
+          resultLatex = currentFraction.latex;
+        }
+        this.formatter.renderToElement(resultEl, resultLatex, result || '0');
+      }
+
+      // 3. Status badges and indicators
       if (angleBtn) angleBtn.textContent = angleMode;
-
       if (memIndicator) memIndicator.classList.toggle('hidden', memory === 0);
       if (ansIndicator) ansIndicator.classList.toggle('hidden', !lastAns || lastAns === '0');
+      if (sdIndicator) sdIndicator.classList.toggle('hidden', !currentFraction);
+      if (sdBtn) {
+        sdBtn.classList.toggle('opacity-50', !currentFraction);
+        sdBtn.classList.toggle('cursor-not-allowed', !currentFraction);
+      }
 
       if (global.lucide && typeof global.lucide.createIcons === 'function') {
         global.lucide.createIcons();
@@ -309,6 +349,7 @@
     evaluate: (f) => getCalcController().evaluate(f),
     setAngleMode: (m) => getCalcController().setAngleMode(m),
     toggleAngleMode: () => getCalcController().toggleAngleMode(),
+    toggleFractionMode: () => getCalcController().toggleFractionMode(),
     memoryAdd: () => getCalcController().memoryAdd(),
     memorySubtract: () => getCalcController().memorySubtract(),
     memoryRecall: () => getCalcController().memoryRecall(),

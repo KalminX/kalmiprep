@@ -4,7 +4,7 @@
  * Protects test sessions and secure areas by passing them directly to the network.
  */
 
-const CACHE_NAME = 'kalmiprep-static-v2';
+const CACHE_NAME = 'kalmiprep-static-v3';
 
 const STATIC_ASSETS = [
   '/static/css/styles.css',
@@ -15,6 +15,8 @@ const STATIC_ASSETS = [
   '/static/vendor/htmx/htmx.min.js',
   '/static/vendor/lucide/lucide.min.js',
   '/static/vendor/mathjs/math.min.js',
+  '/static/js/calculator/validator.js',
+  '/static/js/calculator/formatter.js',
   '/static/js/calculator/engine.js',
   '/static/js/calculator/memento.js',
   '/static/js/calculator/controller.js',
