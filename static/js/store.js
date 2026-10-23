@@ -323,6 +323,10 @@
       get().renderCalcDOM();
     },
 
+    insertCalcTemplate: (type) => {
+      if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.insertTemplate(type); return; }
+    },
+
     appendCalc: (token) => {
       if (typeof window !== 'undefined' && window.KalmiCalc) { window.KalmiCalc.append(token); return; }
       set((state) => {

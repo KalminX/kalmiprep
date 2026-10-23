@@ -48,14 +48,31 @@
       .replace(/π/g, 'pi')
       .replace(/Ans/gi, `(${numericAns})`)
       .replace(/EXP/g, '*10^')
-      .replace(/(\d+(\.\d+)?)%/g, '($1 * 0.01)');
+      .replace(/(\d+(\.\d+)?)%/g, '($1 * 0.01)')
+      .replace(/(\d+)\s*(nPr|P)\s*(\d+)/g, 'nPr($1, $3)')
+      .replace(/(\d+)\s*(nCr|C)\s*(\d+)/g, 'nCr($1, $3)');
   }
 
   function getMathScope(mathjs, angleMode = 'DEG', numericAns = 0) {
+    const baseScope = {
+      Ans: numericAns,
+      ans: numericAns,
+      ln: (x) => Math.log(x),
+      log: (x, base) => (base !== undefined && base !== null ? Math.log(x) / Math.log(base) : Math.log10(x)),
+      sqrt: (x) => Math.sqrt(x),
+      cbrt: (x) => Math.cbrt(x),
+      nthRoot: (x, n) => (mathjs && typeof mathjs.nthRoot === 'function' ? mathjs.nthRoot(x, n) : Math.pow(x, 1 / n)),
+      abs: (x) => Math.abs(x),
+      factorial: (n) => factorial(n),
+      nPr: (n, r) => factorial(n) / factorial(n - r),
+      nCr: (n, r) => factorial(n) / (factorial(r) * factorial(n - r)),
+      permutations: (n, r) => factorial(n) / factorial(n - r),
+      combinations: (n, r) => factorial(n) / (factorial(r) * factorial(n - r)),
+    };
+
     if (angleMode === 'DEG') {
       return {
-        Ans: numericAns,
-        ans: numericAns,
+        ...baseScope,
         sin: (x) => {
           const rad = (x * Math.PI) / 180;
           const s = Math.sin(rad);
@@ -73,22 +90,11 @@
         asin: (x) => (Math.asin(x) * 180) / Math.PI,
         acos: (x) => (Math.acos(x) * 180) / Math.PI,
         atan: (x) => (Math.atan(x) * 180) / Math.PI,
-        ln: (x) => Math.log(x),
-        log: (x) => Math.log10(x),
-        sqrt: (x) => Math.sqrt(x),
-        cbrt: (x) => Math.cbrt(x),
-        factorial: (n) => factorial(n),
       };
     }
 
     return {
-      Ans: numericAns,
-      ans: numericAns,
-      ln: (x) => Math.log(x),
-      log: (x) => Math.log10(x),
-      sqrt: (x) => Math.sqrt(x),
-      cbrt: (x) => Math.cbrt(x),
-      factorial: (n) => factorial(n),
+      ...baseScope,
     };
   }
 

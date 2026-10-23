@@ -10,6 +10,7 @@ const { JSDOM } = require('jsdom');
 const root = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const STORE = read('static/js/store.js');
+const AST = read('static/js/calculator/ast.js');
 const VALIDATOR = read('static/js/calculator/validator.js');
 const FORMATTER = read('static/js/calculator/formatter.js');
 const ENGINE = read('static/js/calculator/engine.js');
@@ -57,6 +58,7 @@ function makePage({ calculator = true, savedMemento = null } = {}) {
   window.eval(KATEX);
   window.eval(MATHJS);
   if (calculator) {
+    window.eval(AST);
     window.eval(VALIDATOR);
     window.eval(FORMATTER);
     window.eval(ENGINE);
@@ -399,6 +401,99 @@ test('Casio REPLAY 4-way directional navigation (Left, Right, Up, Down buttons &
   // Physical keyboard arrow keys work as well
   win.document.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
   assert.strictEqual(win.KalmiCalc.getInstance().state.cursorPos, win.useKalmiStore.getState().calc.expression.length - 1);
+});
+
+test('Casio 2D AST Fraction Template Navigation: num -> den -> baseline', () => {
+  const win = makePage({ calculator: true });
+  win.useKalmiStore.getState().openCalc();
+  win.useKalmiStore.getState().clearCalc();
+
+  // Insert Fraction Template
+  win.KalmiCalc.insertTemplate('fraction');
+  const inst = win.KalmiCalc.getInstance();
+  assert(inst.ast && !inst.ast.isEmpty(), 'AST has fraction');
+
+  // Type numerator: 1
+  win.useKalmiStore.getState().appendCalc('1');
+
+  // Navigate Down to denominator
+  win.KalmiCalc.navDown();
+  const activeSlot = inst.ast.getActiveSlot();
+  assert.strictEqual(activeSlot.slotName, 'den', 'Cursor moved down to denominator slot');
+
+  // Type denominator: 2
+  win.useKalmiStore.getState().appendCalc('2');
+
+  // Navigate Up back to numerator
+  win.KalmiCalc.navUp();
+  assert.strictEqual(inst.ast.getActiveSlot().slotName, 'num', 'Cursor moved up to numerator slot');
+
+  // Navigate Down back to denominator
+  win.KalmiCalc.navDown();
+  assert.strictEqual(inst.ast.getActiveSlot().slotName, 'den', 'Cursor back in denominator');
+
+  // Navigate Right to step out to baseline
+  win.KalmiCalc.navRight();
+  assert.strictEqual(inst.ast.getActiveSlot().slotName, 'root', 'Cursor stepped out to root baseline');
+
+  // Add + and evaluate
+  win.useKalmiStore.getState().appendCalc('+');
+  win.useKalmiStore.getState().appendCalc('4');
+  win.useKalmiStore.getState().evaluateCalc(true);
+
+  // 1/2 + 4 = 4.5
+  assert.strictEqual(win.useKalmiStore.getState().calc.result, '4.5');
+});
+
+test('Casio 2D AST Logarithm with Base (log_b(x)): log_2(8) = 3', () => {
+  const win = makePage({ calculator: true });
+  win.useKalmiStore.getState().openCalc();
+  win.useKalmiStore.getState().clearCalc();
+
+  // Insert LogBase template
+  win.KalmiCalc.insertTemplate('logbase');
+  const inst = win.KalmiCalc.getInstance();
+  assert.strictEqual(inst.ast.getActiveSlot().slotName, 'base', 'Cursor starts in log base slot');
+
+  // Type base: 2
+  win.useKalmiStore.getState().appendCalc('2');
+
+  // Navigate Right into argument slot
+  win.KalmiCalc.navRight();
+  assert.strictEqual(inst.ast.getActiveSlot().slotName, 'arg', 'Cursor stepped into log argument slot');
+
+  // Type argument: 8
+  win.useKalmiStore.getState().appendCalc('8');
+
+  // Evaluate
+  win.useKalmiStore.getState().evaluateCalc(true);
+  assert.strictEqual(win.useKalmiStore.getState().calc.result, '3');
+});
+
+test('Casio 2D AST Nth Root Template: root[3]{27} = 3', () => {
+  const win = makePage({ calculator: true });
+  win.useKalmiStore.getState().openCalc();
+  win.useKalmiStore.getState().clearCalc();
+
+  // Insert NthRoot template
+  win.KalmiCalc.insertTemplate('nthroot');
+  const inst = win.KalmiCalc.getInstance();
+  assert.strictEqual(inst.ast.getActiveSlot().slotName, 'index', 'Cursor starts in root index slot');
+
+  // Type index: 3
+  win.useKalmiStore.getState().appendCalc('3');
+
+  // Navigate Right into radicand slot
+  win.KalmiCalc.navRight();
+  assert.strictEqual(inst.ast.getActiveSlot().slotName, 'radicand', 'Cursor stepped into radicand slot');
+
+  // Type radicand: 27
+  win.useKalmiStore.getState().appendCalc('2');
+  win.useKalmiStore.getState().appendCalc('7');
+
+  // Evaluate
+  win.useKalmiStore.getState().evaluateCalc(true);
+  assert.strictEqual(win.useKalmiStore.getState().calc.result, '3');
 });
 
 console.log(failures === 0 ? '--- ALL CALCULATOR INTEGRATION TESTS PASSED ---' : `--- ${failures} TEST(S) FAILED ---`);

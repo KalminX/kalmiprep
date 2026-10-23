@@ -100,11 +100,26 @@
      * Splits into left and right tokens and inserts <span class="calc-cursor"></span>
      * for authentic Casio Natural Textbook Display navigation.
      */
-    renderExpressionWithCursor(target, expression, cursorPos) {
+    renderExpressionWithCursor(target, expression, cursorPos, ast = null) {
       const el = typeof target === 'string' ? document.getElementById(target) : target;
       if (!el) return;
 
-      if (!expression || expression === '0') {
+      if (ast && typeof ast.toLatex === 'function' && !ast.isEmpty()) {
+        const latexWithCursor = ast.toLatex(true);
+        const katexLib = typeof global !== 'undefined' && global.katex ? global.katex : null;
+        if (katexLib && typeof katexLib.renderToString === 'function') {
+          try {
+            const html = katexLib.renderToString(latexWithCursor, { throwOnError: false, output: 'html' })
+              .replace(/__CALC_CURSOR__/g, '<span class="calc-cursor"></span>');
+            el.innerHTML = html;
+            return;
+          } catch (e) {}
+        }
+        el.textContent = latexWithCursor.replace(/__CALC_CURSOR__/g, '|');
+        return;
+      }
+
+      if (!expression || expression === '0' || (ast && typeof ast.isEmpty === 'function' && ast.isEmpty())) {
         el.innerHTML = '<span class="calc-cursor"></span>0';
         return;
       }

@@ -21,6 +21,19 @@
         renderExpressionWithCursor: (el, expr, pos) => { if (el) el.textContent = expr || '0'; },
         buildFullLatex: (e, r) => e + ' = ' + r
       };
+      this.ast = new (global.KalmiCalcAST || class {
+        clear() {}
+        isEmpty() { return true; }
+        insertText(t) {}
+        insertTemplate(t) {}
+        deleteBackward() {}
+        navLeft() {}
+        navRight() {}
+        navUp() { return false; }
+        navDown() { return false; }
+        toLatex() { return ''; }
+        toMathString() { return ''; }
+      })();
 
       const saved = this.memento.load() || {};
       const initExpr = saved.expression || '';
@@ -99,6 +112,13 @@
     // Casio REPLAY Navigation (Up, Down, Left, Right)
     // ----------------------------------------------------
     navLeft() {
+      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+        this.ast.navLeft();
+        this.state.cursorPos = this.ast.cursor.offset;
+        this.syncStore();
+        this.render();
+        return;
+      }
       let { expression, cursorPos } = this.state;
       if (cursorPos === null || typeof cursorPos !== 'number') {
         cursorPos = expression.length;
@@ -124,6 +144,13 @@
     }
 
     navRight() {
+      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+        this.ast.navRight();
+        this.state.cursorPos = this.ast.cursor.offset;
+        this.syncStore();
+        this.render();
+        return;
+      }
       let { expression, cursorPos } = this.state;
       if (cursorPos === null || typeof cursorPos !== 'number') {
         cursorPos = expression.length;
@@ -149,6 +176,15 @@
     }
 
     navUp() {
+      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+        const handled = this.ast.navUp();
+        this.state.cursorPos = this.ast.cursor.offset;
+        this.syncStore();
+        if (handled) {
+          this.render();
+          return;
+        }
+      }
       // In Casio fx-991: Up cycles through previous calculation history or jumps to start
       if (this.history.length > 0) {
         if (this.historyIndex === -1) {
@@ -173,6 +209,15 @@
     }
 
     navDown() {
+      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+        const handled = this.ast.navDown();
+        this.state.cursorPos = this.ast.cursor.offset;
+        this.syncStore();
+        if (handled) {
+          this.render();
+          return;
+        }
+      }
       // In Casio fx-991: Down cycles forward in history or jumps to end
       if (this.history.length > 0 && this.historyIndex !== -1) {
         if (this.historyIndex < this.history.length - 1) {
@@ -203,6 +248,9 @@
     }
 
     clear() {
+      if (this.ast && typeof this.ast.clear === 'function') {
+        this.ast.clear();
+      }
       this.state.expression = '';
       this.state.cursorPos = 0;
       this.state.result = '0';
@@ -218,6 +266,10 @@
       if (!expression || isEvaluated) {
         this.clear();
         return;
+      }
+
+      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+        this.ast.deleteBackward();
       }
 
       if (cursorPos === null || typeof cursorPos !== 'number' || cursorPos > expression.length) {
@@ -246,18 +298,48 @@
       this.render();
     }
 
+    insertTemplate(type) {
+      if (this.state.isEvaluated) {
+        this.clear();
+      }
+      if (this.ast && typeof this.ast.insertTemplate === 'function') {
+        this.ast.insertTemplate(type);
+        const mathExpr = this.ast.toMathString(this.state.lastAns);
+        this.state.expression = mathExpr && mathExpr !== '0' ? mathExpr : this.state.expression;
+        this.state.cursorPos = this.state.expression.length;
+      }
+      this.evaluate(false);
+      this.syncStore();
+      this.render();
+    }
+
     append(token) {
+      if (['fraction', 'logbase', 'nthroot', 'sqrt', 'power', 'abs'].includes(token)) {
+        return this.insertTemplate(token);
+      }
+
       let { expression, isEvaluated, lastAns, cursorPos } = this.state;
       const isOperator = ['+', '-', '−', '*', '/', '×', '÷', '^', '%'].includes(token);
 
       if (isEvaluated) {
         if (isOperator) {
           expression = (lastAns && lastAns !== 'Error' && lastAns !== 'Math ERROR' ? lastAns : '0');
+          if (this.ast && typeof this.ast.clear === 'function') {
+            this.ast.clear();
+            this.ast.insertText(expression);
+          }
         } else {
           expression = '';
+          if (this.ast && typeof this.ast.clear === 'function') {
+            this.ast.clear();
+          }
         }
         this.state.isEvaluated = false;
         cursorPos = expression.length;
+      }
+
+      if (this.ast && typeof this.ast.insertText === 'function') {
+        this.ast.insertText(token);
       }
 
       if (cursorPos === null || typeof cursorPos !== 'number' || cursorPos >= expression.length) {
@@ -277,7 +359,14 @@
     }
 
     evaluate(isFinal = true) {
-      const { expression, angleMode, lastAns } = this.state;
+      let { expression, angleMode, lastAns } = this.state;
+      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+        const astMath = this.ast.toMathString(lastAns);
+        if (astMath && astMath !== '0') {
+          expression = astMath;
+        }
+      }
+
       if (!expression || !expression.trim()) {
         if (isFinal) {
           this.state.result = '0';
@@ -362,7 +451,7 @@
 
       // 1. Natural Textbook Expression line via KaTeX LaTeX with active blinking cursor
       if (exprEl) {
-        this.formatter.renderExpressionWithCursor(exprEl, expression, cursorPos);
+        this.formatter.renderExpressionWithCursor(exprEl, expression, cursorPos, this.ast);
       }
 
       // 2. High-precision Result line (Stacked Fraction vs Decimal)
@@ -387,7 +476,19 @@
       // 4. Update dedicated LaTeX code conversion bar
       const latexCodeEl = document.getElementById('calc-latex-code');
       if (latexCodeEl) {
-        const fullLatex = this.formatter.buildFullLatex(expression, result, isFractionMode, currentFraction);
+        let fullLatex = '0';
+        if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+          const exprLatex = this.ast.toLatex(false);
+          let resLatex = result || '0';
+          if (isFractionMode && currentFraction && currentFraction.latex) {
+            resLatex = currentFraction.latex;
+          }
+          fullLatex = result && result !== '0' && result !== 'Error' && result !== 'Math ERROR'
+            ? `${exprLatex} = ${resLatex}`
+            : exprLatex;
+        } else {
+          fullLatex = this.formatter.buildFullLatex(expression, result, isFractionMode, currentFraction);
+        }
         latexCodeEl.textContent = fullLatex;
       }
 
@@ -399,12 +500,24 @@
     }
 
     copyLatex() {
-      const fullLatex = this.formatter.buildFullLatex(
-        this.state.expression,
-        this.state.result,
-        this.state.isFractionMode,
-        this.state.currentFraction
-      );
+      let fullLatex = '0';
+      if (this.ast && typeof this.ast.isEmpty === 'function' && !this.ast.isEmpty()) {
+        const exprLatex = this.ast.toLatex(false);
+        let resLatex = this.state.result || '0';
+        if (this.state.isFractionMode && this.state.currentFraction && this.state.currentFraction.latex) {
+          resLatex = this.state.currentFraction.latex;
+        }
+        fullLatex = this.state.result && this.state.result !== '0' && this.state.result !== 'Error'
+          ? `${exprLatex} = ${resLatex}`
+          : exprLatex;
+      } else {
+        fullLatex = this.formatter.buildFullLatex(
+          this.state.expression,
+          this.state.result,
+          this.state.isFractionMode,
+          this.state.currentFraction
+        );
+      }
       if (typeof navigator !== 'undefined' && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         navigator.clipboard.writeText(fullLatex).catch(() => {});
       }
@@ -531,6 +644,7 @@
     clear: () => getCalcController().clear(),
     backspace: () => getCalcController().backspace(),
     append: (t) => getCalcController().append(t),
+    insertTemplate: (type) => getCalcController().insertTemplate(type),
     evaluate: (f) => getCalcController().evaluate(f),
     setAngleMode: (m) => getCalcController().setAngleMode(m),
     toggleAngleMode: () => getCalcController().toggleAngleMode(),

@@ -193,5 +193,50 @@ test('Auto-balancing: sin(30 automatically balances to sin(30) = 0.5', () => {
   assert.strictEqual(res.result, '0.5');
 });
 
+// 11. Casio Natural Display Advanced Functions: Base Log, Nth Root, Permutations, Combinations & Abs
+test('Arbitrary base log: log(8, 2) = 3 and log(81, 3) = 4', () => {
+  const res1 = engine.evaluate('log(8, 2)');
+  assert.strictEqual(res1.success, true);
+  assert.strictEqual(res1.result, '3');
+
+  const res2 = engine.evaluate('log(81, 3)');
+  assert.strictEqual(res2.success, true);
+  assert.strictEqual(res2.result, '4');
+});
+
+test('General nth root: nthRoot(27, 3) = 3 and nthRoot(32, 5) = 2', () => {
+  const res1 = engine.evaluate('nthRoot(27, 3)');
+  assert.strictEqual(res1.success, true);
+  assert.strictEqual(res1.result, '3');
+
+  const res2 = engine.evaluate('nthRoot(32, 5)');
+  assert.strictEqual(res2.success, true);
+  assert.strictEqual(res2.result, '2');
+});
+
+test('Permutations (nPr) and Combinations (nCr): 5P2 = 20, 5C2 = 10', () => {
+  const p1 = engine.evaluate('5 nPr 2');
+  assert.strictEqual(p1.success, true);
+  assert.strictEqual(p1.result, '20');
+
+  const c1 = engine.evaluate('5 nCr 2');
+  assert.strictEqual(c1.success, true);
+  assert.strictEqual(c1.result, '10');
+});
+
+test('Absolute value: abs(-15) = 15', () => {
+  const res = engine.evaluate('abs(-15)');
+  assert.strictEqual(res.success, true);
+  assert.strictEqual(res.result, '15');
+});
+
+test('Complex nested AST expression: ((1)/(2)) + (log(8, 2)) + (nthRoot(27, 3)) = 6.5', () => {
+  const res = engine.evaluate('((1)/(2)) + (log(8, 2)) + (nthRoot(27, 3))');
+  assert.strictEqual(res.success, true);
+  assert.strictEqual(res.result, '6.5');
+  assert(res.fraction !== null, 'Fraction representation exists');
+  assert.strictEqual(res.fraction.latex, '\\frac{13}{2}');
+});
+
 console.log(failures === 0 ? '--- ALL MATHEMATICAL ENGINE TESTS PASSED ---' : `--- ${failures} TEST(S) FAILED ---`);
 process.exit(failures === 0 ? 0 : 1);

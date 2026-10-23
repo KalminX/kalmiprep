@@ -129,6 +129,28 @@ const check = (name, ok, detail = '') => {
   const midNavExpr = (await page.locator('#calc-expression-display').textContent()).trim();
   check('REPLAY directional navigation inserts in middle: 125+34', midNavExpr.includes('125') && midNavExpr.includes('34'), midNavExpr);
 
+  // 7c. Casio 2D LogBase Template: log_2(8) = 3
+  await modal.locator('button[onclick*="clearCalc"]').click();
+  await modal.locator('button[onclick*="logbase"]').click();
+  await page.keyboard.type('2');
+  await modal.locator('#calc-nav-right').click();
+  await page.keyboard.type('8');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(100);
+  const rLogBase = (await page.locator('#calc-result-display').textContent()).trim();
+  check('Casio 2D LogBase: log_2(8) = 3', rLogBase === '3', rLogBase);
+
+  // 7d. Casio 2D NthRoot Template: root[3]{27} = 3
+  await modal.locator('button[onclick*="clearCalc"]').click();
+  await modal.locator('button[onclick*="nthroot"]').click();
+  await page.keyboard.type('3');
+  await modal.locator('#calc-nav-right').click();
+  await page.keyboard.type('27');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(100);
+  const rNthRoot = (await page.locator('#calc-result-display').textContent()).trim();
+  check('Casio 2D NthRoot: root[3]{27} = 3', rNthRoot === '3', rNthRoot);
+
   // 8. Exam isolation & radio buttons untouched
   const selectedDuring = await page.$$eval('input[type=radio]:checked', (els) => els.map((e) => e.value));
   await page.keyboard.press('Escape');

@@ -188,42 +188,42 @@
       <button type="button" onclick="useKalmiStore.getState().clearCalc()" class="casio-ac-btn" title="All Clear (AC)">AC</button>
 
       <!-- Row 2: Scientific Functions & Roots -->
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('&divide;')" class="casio-fn-btn font-mono" title="Fraction / Division">&#9632;/&#9633;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('sqrt(')" class="casio-fn-btn font-mono" title="Square Root">&radic;</button>
+      <button type="button" onclick="KalmiCalc.insertTemplate('fraction')" class="casio-fn-btn font-mono" title="Stacked Fraction (■/□)">&#9632;/&#9633;</button>
+      <button type="button" onclick="KalmiCalc.insertTemplate('sqrt')" class="casio-fn-btn font-mono" title="Square Root (&radic;&Box;)">&radic;</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('^2')" class="casio-fn-btn font-mono" title="Square (x²)">x&sup2;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('^(')" class="casio-fn-btn font-mono" title="Power (xʸ)">xʸ</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('log(')" class="casio-fn-btn font-mono" title="Common Logarithm (log10)">log</button>
+      <button type="button" onclick="KalmiCalc.insertTemplate('power')" class="casio-fn-btn font-mono" title="Power (x^&Box;)">x&#739;</button>
+      <button type="button" onclick="KalmiCalc.insertTemplate('logbase')" class="casio-fn-btn font-mono text-[10px]" title="Logarithm with Base (log_b(x))">log&#9633;</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('ln(')" class="casio-fn-btn font-mono" title="Natural Logarithm (ln)">ln</button>
 
-      <!-- Row 3: Negative, Trigonometry & Parentheses -->
+      <!-- Row 3: Nth Root, Negative & Trigonometry -->
+      <button type="button" onclick="KalmiCalc.insertTemplate('nthroot')" class="casio-fn-btn font-mono text-[10px]" title="General Nth Root (ʸ&radic;x)">&#739;&radic;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('log(')" class="casio-fn-btn font-mono" title="Common Logarithm (log10)">log</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('&minus;')" class="casio-fn-btn font-mono" title="Negative Sign (-)">(-)</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('sin(')" class="casio-fn-btn font-mono">sin</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('cos(')" class="casio-fn-btn font-mono">cos</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('tan(')" class="casio-fn-btn font-mono">tan</button>
+
+      <!-- Row 4: Absolute Value, Parentheses, S<=>D & Combinatorics -->
+      <button type="button" onclick="KalmiCalc.insertTemplate('abs')" class="casio-fn-btn font-mono text-[11px]" title="Absolute Value (|x|)">|x|</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('(')" class="casio-fn-btn font-bold text-sm">(</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc(')')" class="casio-fn-btn font-bold text-sm">)</button>
-
-      <!-- Row 4: Inverse Trig, S<=>D & Cube Root -->
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('asin(')" class="casio-fn-btn font-mono text-[10px]">sin&minus;&sup1;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('acos(')" class="casio-fn-btn font-mono text-[10px]">cos&minus;&sup1;</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('atan(')" class="casio-fn-btn font-mono text-[10px]">tan&minus;&sup1;</button>
       <button type="button" id="calc-sd-btn" onclick="useKalmiStore.getState().toggleCalcFraction()" class="casio-fn-btn text-amber-400 font-mono text-[11px] font-bold" title="Toggle Fraction / Decimal (S<=>D)">S&hArr;D</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('cbrt(')" class="casio-fn-btn font-mono text-[11px]" title="Cube Root">&sup3;&radic;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('nPr')" class="casio-fn-btn font-mono text-[11px]" title="Permutations (nPr)">nPr</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('&divide;')" class="casio-op-btn" title="Division (&divide;)">&divide;</button>
 
-      <!-- Row 5: Digits 7, 8, 9 & Multiplication -->
+      <!-- Row 5: Digits 7, 8, 9, Factorial, Combinations & Multiplication -->
       <button type="button" onclick="useKalmiStore.getState().appendCalc('7')" class="casio-digit-btn">7</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('8')" class="casio-digit-btn">8</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('9')" class="casio-digit-btn">9</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('!')" class="casio-fn-btn font-mono" title="Factorial (n!)">n!</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('%')" class="casio-fn-btn font-mono" title="Percent (%)">%</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('nCr')" class="casio-fn-btn font-mono text-[11px]" title="Combinations (nCr)">nCr</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('&times;')" class="casio-op-btn" title="Multiplication (&times;)">&times;</button>
 
-      <!-- Row 6: Digits 4, 5, 6 & Subtraction -->
+      <!-- Row 6: Digits 4, 5, 6, Percent, Pi & Subtraction -->
       <button type="button" onclick="useKalmiStore.getState().appendCalc('4')" class="casio-digit-btn">4</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('5')" class="casio-digit-btn">5</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('6')" class="casio-digit-btn">6</button>
-      <button type="button" onclick="useKalmiStore.getState().appendCalc('10^(')" class="casio-fn-btn font-mono text-[11px]" title="Power of 10">10&#739;</button>
+      <button type="button" onclick="useKalmiStore.getState().appendCalc('%')" class="casio-fn-btn font-mono" title="Percent (%)">%</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('&pi;')" class="casio-fn-btn font-mono text-purple-400">&pi;</button>
       <button type="button" onclick="useKalmiStore.getState().appendCalc('&minus;')" class="casio-op-btn" title="Subtraction (&minus;)">&minus;</button>
 
@@ -420,7 +420,9 @@
   }
 </style>
 
-<!-- Decoupled Casio Calculator Runtime (Validator, Formatter, Engine, Memento, and Command Controller) -->
+<!-- Decoupled Casio Calculator Runtime (Nerdamer, AST, Validator, Formatter, Engine, Memento, and Command Controller) -->
+<script src="{% static 'vendor/nerdamer/nerdamer.min.js' %}"></script>
+<script src="{% static 'js/calculator/ast.js' %}"></script>
 <script src="{% static 'js/calculator/validator.js' %}"></script>
 <script src="{% static 'js/calculator/formatter.js' %}"></script>
 <script src="{% static 'js/calculator/engine.js' %}"></script>
