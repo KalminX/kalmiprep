@@ -176,6 +176,47 @@
         if (window.lucide) lucide.createIcons();
       }
     }
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDiagramZoom();
+    });
+  </script>
+
+  <!-- Global Diagram Lightbox Modal -->
+  <div id="diagram-lightbox-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6" onclick="closeDiagramZoom(event)">
+    <div class="relative max-w-4xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl p-3 sm:p-5 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col items-center" onclick="event.stopPropagation()">
+      <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
+          <i data-lucide="image" class="w-3.5 h-3.5"></i> Diagram Inspector
+        </span>
+        <button type="button" onclick="closeDiagramZoom()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" aria-label="Close modal">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div class="overflow-auto max-h-[78vh] w-full flex items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-slate-950/50">
+        <img id="diagram-lightbox-img" src="" alt="Enlarged Diagram" class="max-w-full max-h-[72vh] object-contain rounded-lg">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openDiagramZoom(src) {
+      if (!src) return;
+      const modal = document.getElementById('diagram-lightbox-modal');
+      const img = document.getElementById('diagram-lightbox-img');
+      if (modal && img) {
+        img.src = src;
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+    function closeDiagramZoom() {
+      const modal = document.getElementById('diagram-lightbox-modal');
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
   </script>
   {% block extra_js %}{% endblock %}
 </body>

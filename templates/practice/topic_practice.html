@@ -66,12 +66,23 @@
 
     <!-- Diagram if attached -->
     {% if current_resp.question.has_diagram %}
-    <div class="mb-6 p-4 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200 dark:border-navy-800 text-center">
-      {% if current_resp.question.image %}
-      <img src="{{ current_resp.question.image.url }}" alt="Diagram" class="max-h-64 mx-auto rounded-lg">
-      {% elif current_resp.question.image_url %}
-      <img src="{{ current_resp.question.image_url }}" alt="Diagram" class="max-h-64 mx-auto rounded-lg">
-      {% endif %}
+    <div class="mb-6 p-4 bg-slate-50 dark:bg-navy-950 rounded-xl border border-slate-200 dark:border-navy-800 text-center diagram-wrapper relative group">
+      <div class="inline-block relative max-w-full">
+        <img src="{{ current_resp.question.diagram_url }}" 
+             alt="Question Diagram" 
+             loading="lazy" 
+             decoding="async" 
+             class="max-h-60 sm:max-h-72 md:max-h-80 w-auto max-w-full object-contain mx-auto rounded-lg shadow-xs cursor-zoom-in transition-transform duration-200 hover:scale-[1.01]"
+             onclick="openDiagramZoom(this.src)"
+             onerror="this.closest('.diagram-wrapper').style.display='none';">
+        <button type="button" 
+                onclick="openDiagramZoom('{{ current_resp.question.diagram_url }}')" 
+                class="absolute bottom-2 right-2 px-2 py-1 rounded bg-slate-900/75 hover:bg-slate-900 text-white text-xs font-mono flex items-center gap-1 shadow-sm opacity-80 group-hover:opacity-100 transition-opacity"
+                title="Click to enlarge diagram">
+          <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i>
+          <span class="text-[10px] hidden sm:inline">Zoom</span>
+        </button>
+      </div>
     </div>
     {% endif %}
 

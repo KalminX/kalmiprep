@@ -33,6 +33,32 @@ class Question(models.Model):
     image = models.ImageField(upload_to="question_diagrams/", blank=True, null=True)
     image_url = models.URLField(max_length=500, blank=True, null=True)
     
+    @property
+    def diagram_url(self):
+        """
+        Returns a clean, fast diagram URL served directly by Caddy / Django (/media/...),
+        bypassing query-string escaping bugs and signing latency.
+        """
+        if self.image:
+            return f"/media/{self.image.name}"
+        if self.image_url:
+            if "myschool.ng/uploads/" in self.image_url:
+                fname = self.image_url.rstrip("/").split("/")[-1]
+                return f"https://myschool.ng/storage/classroom/{fname}"
+            return self.image_url
+        return ""
+
+    @property
+    def r2_url(self):
+        """Returns the Cloudflare R2 presigned URL."""
+        if self.image:
+            try:
+                return self.image.url
+            except Exception:
+                return ""
+        return ""
+
+    
     explanation = models.TextField(blank=True, help_text="Detailed step-by-step working solution")
     explanation_url = models.URLField(max_length=500, blank=True, null=True)
     

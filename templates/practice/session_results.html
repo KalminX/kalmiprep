@@ -358,9 +358,15 @@
                     </div>
 
                     <!-- Question Diagram if present -->
-                    {% if resp.question.has_image and resp.question.image %}
-                        <div class="my-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 inline-block">
-                            <img src="{{ resp.question.image.url }}" alt="Question Diagram" class="max-h-64 rounded-lg object-contain">
+                    {% if resp.question.has_diagram %}
+                        <div class="my-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 inline-block diagram-wrapper relative group max-w-full">
+                            <img src="{{ resp.question.diagram_url }}" 
+                                 alt="Question Diagram" 
+                                 loading="lazy" 
+                                 decoding="async" 
+                                 class="max-h-60 sm:max-h-72 w-auto max-w-full rounded-lg object-contain cursor-zoom-in hover:scale-[1.01] transition-transform"
+                                 onclick="openDiagramZoom(this.src)"
+                                 onerror="this.closest('.diagram-wrapper').style.display='none';">
                         </div>
                     {% endif %}
 

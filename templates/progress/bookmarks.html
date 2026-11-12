@@ -76,9 +76,15 @@
                         {{ bm.question.question_text|safe }}
                     </div>
 
-                    {% if bm.question.has_image and bm.question.image %}
-                        <div class="p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800 inline-block">
-                            <img src="{{ bm.question.image.url }}" alt="Diagram" class="max-h-32 object-contain rounded">
+                    {% if bm.question.has_diagram %}
+                        <div class="p-2 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-800 inline-block diagram-wrapper max-w-full">
+                            <img src="{{ bm.question.diagram_url }}" 
+                                 alt="Diagram" 
+                                 loading="lazy" 
+                                 decoding="async" 
+                                 class="max-h-36 w-auto max-w-full object-contain rounded cursor-zoom-in hover:scale-[1.01] transition-transform"
+                                 onclick="openDiagramZoom(this.src)"
+                                 onerror="this.closest('.diagram-wrapper').style.display='none';">
                         </div>
                     {% endif %}
                 </div>
