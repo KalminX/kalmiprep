@@ -8,7 +8,9 @@
     "test:blueprints": "node tests/e2e/blueprint_runner.js",
     "test:blueprints:headed": "node tests/e2e/blueprint_runner.js --headed",
     "test:playwright": "node tests/e2e/playwright_blueprint_executor.js",
-    "test:e2e:docker": "docker run --rm --network webproxy -e BASE_URL=http://kalmiprep-app:8000 -v $(pwd):/app kalmiprep-playwright:latest node tests/e2e/playwright_blueprint_executor.js"
+    "test:e2e:docker": "docker run --rm --network webproxy -e BASE_URL=http://kalmiprep-app:8000 -v $(pwd):/app kalmiprep-playwright:latest node tests/e2e/playwright_blueprint_executor.js",
+    "test:dual": "docker run --rm --network webproxy -e BASE_URL=http://kalmiprep-app:8000 -v $(pwd):/app kalmiprep-playwright:latest node tests/e2e/dual_browser_live_test.js",
+    "test:dual:host": "BASE_URL=http://172.18.0.8:8000 node tests/e2e/dual_browser_live_test.js"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",

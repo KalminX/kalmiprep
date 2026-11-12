@@ -83,11 +83,12 @@ def paystack_callback(request):
     if not reference:
         return HttpResponseBadRequest("Missing payment reference.")
     purchase = get_object_or_404(TestPurchase.objects.select_related("test", "test__teacher"), paystack_reference=reference)
-    try:
-        provider_data = verify_paystack_transaction(reference)
-        purchase = record_verified_payment(reference, provider_data)
-    except PaymentError as exc:
-        return render(request, "monetization/payment_status.html", {"purchase": purchase, "error": str(exc)}, status=400)
+    if purchase.status != TestPurchase.Status.PAID:
+        try:
+            provider_data = verify_paystack_transaction(reference)
+            purchase = record_verified_payment(reference, provider_data)
+        except PaymentError as exc:
+            return render(request, "monetization/payment_status.html", {"purchase": purchase, "error": str(exc)}, status=400)
     if purchase.status != TestPurchase.Status.PAID:
         return render(request, "monetization/payment_status.html", {"purchase": purchase, "error": "Payment is not complete."}, status=400)
     return render(request, "monetization/payment_success.html", {

@@ -1,13 +1,18 @@
 FROM node:20-alpine
 
-# Install Chromium and required font/rendering libraries on Alpine
+# Install Chromium, ffmpeg, and required font/rendering libraries on Alpine
 RUN apk add --no-cache \
     chromium \
+    ffmpeg \
     nss \
     freetype \
     harfbuzz \
     ttf-freefont \
     font-noto
+
+# Provide Playwright with the system ffmpeg binary
+RUN mkdir -p /root/.cache/ms-playwright/ffmpeg-1013 && \
+    ln -s /usr/bin/ffmpeg /root/.cache/ms-playwright/ffmpeg-1013/ffmpeg-linux
 
 ENV CHROMIUM_PATH=/usr/bin/chromium-browser
 ENV NODE_ENV=development

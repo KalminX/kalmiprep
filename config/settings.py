@@ -14,7 +14,7 @@ SECRET_KEY = os.getenv(
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY", "").strip()
 PAYSTACK_TEST_MODE = os.getenv("PAYSTACK_TEST_MODE", "True" if DEBUG else "False").lower() in ("true", "1", "yes")
-PAID_TEST_PIN_SECRET = os.getenv("PAID_TEST_PIN_SECRET", SECRET_KEY if DEBUG else "").strip()
+PAID_TEST_PIN_SECRET = os.getenv("PAID_TEST_PIN_SECRET", SECRET_KEY).strip() or SECRET_KEY
 SITE_URL = os.getenv("SITE_URL", "").strip().rstrip("/")
 
 ALLOWED_HOSTS = ["*"]
