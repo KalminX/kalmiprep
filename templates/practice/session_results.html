@@ -88,7 +88,7 @@
                             {% if session.mode == 'JAMB_FULL_MOCK' %}
                                 <span class="font-extrabold text-emerald-600 dark:text-emerald-400">{{ session.score_out_of_400 }}</span> <span class="text-xs font-normal text-slate-400">/ 400</span>
                             {% else %}
-                                {{ session.score }} / {{ session.total_questions }}
+                                {{ session.score|floatformat:0 }} / {{ session.total_questions }}
                             {% endif %}
                         </div>
                     </div>
@@ -98,7 +98,7 @@
                             {% if session.percentage >= 70 %}text-emerald-600 dark:text-emerald-400
                             {% elif session.percentage >= 50 %}text-amber-600 dark:text-amber-400
                             {% else %}text-rose-600 dark:text-rose-400{% endif %}">
-                            {{ session.percentage }}%
+                            {{ session.percentage|floatformat:0 }}%
                         </div>
                     </div>
                     <div>

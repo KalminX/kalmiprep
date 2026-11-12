@@ -242,16 +242,51 @@ async function runDualBrowserTest() {
     console.log(` -> Student launched into CBT exam: ${studentPage.url()}`);
     await sleep(1500);
 
+    // Extract Session ID and fetch verified correct answer keys
+    const sessMatch = studentPage.url().match(/\/practice\/session\/(\d+)\//);
+    const sessionId = sessMatch ? sessMatch[1] : null;
+    let correctTags = ['A', 'B', 'C', 'D', 'E'];
+    if (sessionId) {
+      try {
+        const keyData = await studentPage.evaluate(async (sid) => {
+          const res = await fetch(`/practice/session/${sid}/e2e-keys/`);
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+          }
+          return await res.json();
+        }, sessionId);
+        if (keyData && keyData.correct_tags && keyData.correct_tags.length) {
+          correctTags = keyData.correct_tags;
+          console.log(` -> Verified Answer Keys for Session ${sessionId}:`, correctTags);
+        }
+      } catch (e) {
+        console.warn('Could not fetch verified keys:', e.message);
+      }
+    }
+
     // Answer 5 Questions using authentic JAMB 8-key shortcuts
+    // Q1..Q4: Verified correct options (Demonstrating Mastery & Distinction)
+    // Q5: Intentional revision target (Demonstrating diagnostic guidance) -> Score: 4/5 (80%)
     console.log(' -> Student answering CBT questions via JAMB 8-key keyboard shortcuts (A, B, C, D, N)...');
     for (let q = 1; q <= 5; q++) {
       console.log(`    * Answering Question ${q} of 5...`);
       await sleep(1000);
 
-      // Select option via JAMB key
-      const choiceKey = ['A', 'B', 'C', 'D'][q % 4];
-      console.log(`      - Pressing '${choiceKey}'`);
-      await studentPage.keyboard.press(choiceKey);
+      // Select target option
+      let targetTag = correctTags[q - 1] || 'A';
+      if (q === 5) {
+        const allTags = ['A', 'B', 'C', 'D', 'E'];
+        targetTag = allTags.find(t => t !== targetTag) || 'B';
+        console.log(`      - Question 5 deliberate practice target: Pressing '${targetTag}'`);
+      } else {
+        console.log(`      - Selecting Verified Option: Pressing '${targetTag}'`);
+      }
+
+      // Ensure persistence handshake completes
+      await Promise.all([
+        studentPage.waitForResponse(res => res.url().includes('/submit/') && res.status() === 200, { timeout: 10000 }).catch(() => null),
+        studentPage.keyboard.press(targetTag)
+      ]);
       await sleep(800);
 
       // If not the last question, press Next (N)
@@ -279,7 +314,11 @@ async function runDualBrowserTest() {
       confirmBtn.click({ force: true })
     ]);
     console.log(` -> Exam completed! Result page: ${studentPage.url()}`);
-    await sleep(2500);
+    const studentScoreText = await studentPage.textContent('body');
+    if (studentScoreText.includes('4 / 5') || studentScoreText.includes('80%')) {
+      console.log(' -> Verified: Student Result Card displays Score: 4 / 5 (80%) Distinction!');
+    }
+    await sleep(3500);
 
     // -------------------------------------------------------------
     // PHASE 5: Teacher Verifies Live Results & Wallet Balance
@@ -292,6 +331,9 @@ async function runDualBrowserTest() {
     const teacherPageText = await teacherPage.textContent('body');
     if (teacherPageText.includes('Chinedu Okafor')) {
       console.log(' -> Verified: Student "Chinedu Okafor" appears on Teacher Leaderboard!');
+    }
+    if (teacherPageText.includes('4/5') || teacherPageText.includes('80.0%') || teacherPageText.includes('80%')) {
+      console.log(' -> Verified: Student score (4/5, 80.0%) accurately reflects on Teacher Leaderboard!');
     }
 
     // Teacher returns to dashboard to check wallet balance

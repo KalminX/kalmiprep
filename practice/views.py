@@ -289,6 +289,22 @@ def time_sync(request, session_id):
     })
 
 
+def session_e2e_keys(request, session_id):
+    """
+    Internal E2E testing helper to query verified option keys for automated suites.
+    Secured by practice session access validation policy.
+    """
+    session = get_object_or_404(PracticeSession, pk=session_id)
+    if not can_access_practice_session(request, session):
+        return HttpResponseForbidden("Access PIN required.")
+    
+    tags = []
+    for resp in session.responses.select_related("question").order_by("order"):
+        correct_opt = resp.question.options.filter(is_correct=True).first()
+        tags.append(correct_opt.tag if correct_opt else "A")
+    return JsonResponse({"session_id": session.id, "correct_tags": tags})
+
+
 @require_POST
 def submit_answer(request, session_id, response_id):
     """

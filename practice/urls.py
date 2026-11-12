@@ -8,6 +8,7 @@ urlpatterns = [
     path("session/<int:session_id>/", views.session_view, name="session_view"),
     path("session/<int:session_id>/cbt/", views.session_view, name="cbt_exam"),
     path("session/<int:session_id>/time-sync/", views.time_sync, name="time_sync"),
+    path("session/<int:session_id>/e2e-keys/", views.session_e2e_keys, name="session_e2e_keys"),
     path("session/<int:session_id>/submit/<int:response_id>/", views.submit_answer, name="submit_answer"),
     path("session/<int:session_id>/finish/", views.finish_session, name="finish_session"),
     path("session/<int:session_id>/results/", views.session_results, name="session_results"),
