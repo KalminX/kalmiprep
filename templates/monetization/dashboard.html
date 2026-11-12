@@ -52,7 +52,7 @@
           <a href="https://wa.me/?text=Take%20my%20test%20%22{{ test.title|urlencode }}%22%20on%20KalmiPrep%3A%20{{ request.scheme }}%3A%2F%2F{{ request.get_host }}{% url 'monetization:public_test' test.share_code %}" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors">
             Share WhatsApp
           </a>
-          <span class="text-[11px] text-slate-400 font-mono">{{ request.scheme }}://{{ request.get_host }}{% url 'monetization:public_test' test.share_code %}</span>
+          <span class="text-[11px] text-slate-400 font-mono break-all">{{ request.scheme }}://{{ request.get_host }}{% url 'monetization:public_test' test.share_code %}</span>
         </div>
       </div>
       <div class="flex items-center gap-4 shrink-0">

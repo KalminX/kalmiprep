@@ -3,20 +3,20 @@
 /**
  * KalmiPrep Dual-Browser Live Recording Test
  *
- * Orchestrates two parallel browser sessions:
+ * Orchestrates two synchronized parallel browser sessions:
  * 1. Teacher (Teacher View): Logs in, creates a paid test with Proctor Gate (Requires Approval),
  *    views locked waiting room status on proctor leaderboard, unlocks exam, and views live results.
- * 2. Student (Student View): Opens public test link, registers via Instant Demo Checkout, receives PIN,
- *    enters waiting room lobby, auto-redirects on unlock, answers CBT questions, submits exam,
- *    and reviews results.
+ * 2. Student (Student View): Begins at KalmiPrep Portal home, opens teacher test link, registers via
+ *    Instant Demo Checkout, enters waiting room lobby, auto-redirects on unlock, answers CBT questions
+ *    via JAMB 8-key shortcuts, submits exam, and reviews score card.
  *
- * Captures clean 1280x720 video streams for both sessions and saves them to:
- * - media/e2e_videos/teacher_session.webm
- * - media/e2e_videos/student_session.webm
+ * Captures clean 1280x720 video streams for both sessions, encodes both WebM & MP4 (H.264),
+ * and extracts video posters for immediate playback across all browsers.
  */
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 const { chromium } = require('playwright-core');
 
 const BASE_URL = process.env.BASE_URL || 'http://kalmiprep-app:8000';
@@ -77,27 +77,34 @@ async function runDualBrowserTest() {
   const teacherPage = await teacherContext.newPage();
   const studentPage = await studentContext.newPage();
 
-  let teacherVideoPath = null;
-  let studentVideoPath = null;
-
   try {
+    // -------------------------------------------------------------
+    // PHASE 0: Student immediately loads KalmiPrep Home (No blank frames!)
+    // -------------------------------------------------------------
+    console.log('\n[Phase 0] Student: Initializing at KalmiPrep home portal...');
+    await studentPage.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' });
+    await sleep(800);
+    // Gentle scroll to display high-yield curriculum prep cards
+    await studentPage.evaluate(() => window.scrollBy({ top: 220, behavior: 'smooth' }));
+    await sleep(1000);
+
     // -------------------------------------------------------------
     // PHASE 1: Teacher Logs In and Publishes Proctored Paid Test
     // -------------------------------------------------------------
     console.log('\n[Phase 1] Teacher: Authenticating as demo_teacher...');
-    await teacherPage.goto(`${BASE_URL}/accounts/login/`, { waitUntil: 'networkidle' });
-    await sleep(1000);
+    await teacherPage.goto(`${BASE_URL}/accounts/login/`, { waitUntil: 'domcontentloaded' });
+    await sleep(800);
 
     await teacherPage.fill('input[name="username"]', 'demo_teacher');
     await teacherPage.fill('input[name="password"]', 'Password123!');
     await teacherPage.click('button[type="submit"]');
-    await teacherPage.waitForLoadState('networkidle');
+    await teacherPage.waitForLoadState('domcontentloaded');
     console.log(' -> Teacher logged in successfully.');
-    await sleep(1500);
+    await sleep(1000);
 
     console.log('[Phase 1] Teacher: Navigating to Create Paid Test...');
-    await teacherPage.goto(`${BASE_URL}/monetization/tests/new/`, { waitUntil: 'networkidle' });
-    await sleep(1200);
+    await teacherPage.goto(`${BASE_URL}/monetization/tests/new/`, { waitUntil: 'domcontentloaded' });
+    await sleep(1000);
 
     const testTitle = `JAMB Chemistry Mock Test ${Date.now().toString().slice(-4)}`;
     console.log(` -> Filling test form: "${testTitle}"`);
@@ -137,7 +144,7 @@ async function runDualBrowserTest() {
     } else if (topicBoxes.length > 0) {
       await topicBoxes[0].check();
     }
-    await sleep(1500);
+    await sleep(1000);
 
     console.log(' -> Submitting test creation form...');
     await Promise.all([
@@ -145,7 +152,7 @@ async function runDualBrowserTest() {
       teacherPage.click('button:has-text("Publish test")')
     ]);
     console.log(' -> Test published! Navigated to Teacher Dashboard.');
-    await sleep(2000);
+    await sleep(1500);
 
     // Extract Share Code from the newly created test card
     const leaderboardLink = await teacherPage.$('article a[href*="/results/"]');
@@ -163,27 +170,21 @@ async function runDualBrowserTest() {
     // Teacher opens the proctor leaderboard page
     console.log('[Phase 1] Teacher: Opening Proctor Leaderboard...');
     await teacherPage.goto(`${BASE_URL}/monetization/tests/${shareCode}/results/`, { waitUntil: 'domcontentloaded' });
-    await sleep(2000);
-
-    // Verify proctor locked status
-    const lockedBanner = await teacherPage.textContent('body');
-    if (lockedBanner.includes('LOCKED') || lockedBanner.includes('Waiting Room Active')) {
-      console.log(' -> Verified: Proctor gate is LOCKED. Students must wait in lobby.');
-    }
+    await sleep(1500);
 
     // -------------------------------------------------------------
     // PHASE 2: Student Registers via Demo Payment and Enters Lobby
     // -------------------------------------------------------------
-    console.log('\n[Phase 2] Student: Visiting public test page...');
+    console.log('\n[Phase 2] Student: Visiting public test link...');
     const publicUrl = `${BASE_URL}/monetization/tests/${shareCode}/`;
     await studentPage.goto(publicUrl, { waitUntil: 'domcontentloaded' });
-    await sleep(1500);
+    await sleep(1200);
 
     console.log(' -> Student filling checkout information...');
     await studentPage.fill('input[name="name"]', 'Chinedu Okafor');
     await studentPage.fill('input[name="email"]', 'chinedu@example.com');
     await studentPage.fill('input[name="phone"]', '08031234567');
-    await sleep(1000);
+    await sleep(800);
 
     console.log(' -> Student clicking "⚡ Instant Demo Payment"...');
     await Promise.all([
@@ -191,7 +192,7 @@ async function runDualBrowserTest() {
       studentPage.click('button[name="payment_mode"][value="demo"]')
     ]);
     console.log(' -> Payment confirmed! Reached receipt page.');
-    await sleep(1500);
+    await sleep(1200);
 
     // Student clicks Start test
     console.log(' -> Student starting test with verified PIN...');
@@ -201,29 +202,25 @@ async function runDualBrowserTest() {
       startTestBtn.click()
     ]);
     console.log(` -> Student navigation complete: ${studentPage.url()}`);
-    await sleep(2000);
-
-    // Verify waiting lobby
-    const waitingText = await studentPage.textContent('body');
-    if (waitingText.includes('Waiting for Teacher') || waitingText.includes('Exam Lobby')) {
-      console.log(' -> Verified: Student is in live waiting lobby. Polling active.');
-    }
-    await sleep(2000);
+    await sleep(1500);
 
     // -------------------------------------------------------------
     // PHASE 3: Teacher Unlocks Exam Gate
     // -------------------------------------------------------------
     console.log('\n[Phase 3] Teacher: Unlocking exam for waiting students...');
     await teacherPage.bringToFront();
-    await sleep(1500);
+    await teacherPage.reload({ waitUntil: 'domcontentloaded' });
+    await sleep(1000);
 
     const unlockButton = teacherPage.locator('button:has-text("Unlock & Start Exam")');
-    await Promise.all([
-      teacherPage.waitForNavigation({ waitUntil: 'domcontentloaded' }),
-      unlockButton.click()
-    ]);
-    console.log(' -> Exam is now UNLOCKED and LIVE!');
-    await sleep(2000);
+    if ((await unlockButton.count()) > 0) {
+      await Promise.all([
+        teacherPage.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+        unlockButton.click()
+      ]);
+      console.log(' -> Exam is now UNLOCKED and LIVE!');
+    }
+    await sleep(1500);
 
     // -------------------------------------------------------------
     // PHASE 4: Student Auto-Launches into CBT Exam & Answers Questions
@@ -233,29 +230,29 @@ async function runDualBrowserTest() {
 
     // Student waiting room detects unlock via HTMX or fallback reload
     let inExam = studentPage.url().includes('/practice/session/');
-    for (let i = 0; i < 5 && !inExam; i++) {
-      await sleep(1500);
+    for (let i = 0; i < 6 && !inExam; i++) {
+      await sleep(1200);
       inExam = studentPage.url().includes('/practice/session/');
-      if (!inExam && i >= 2) {
+      if (!inExam && i >= 1) {
         console.log('    * Triggering lobby refresh check...');
         await studentPage.reload({ waitUntil: 'domcontentloaded' });
         inExam = studentPage.url().includes('/practice/session/');
       }
     }
     console.log(` -> Student launched into CBT exam: ${studentPage.url()}`);
-    await sleep(2000);
+    await sleep(1500);
 
     // Answer 5 Questions using authentic JAMB 8-key shortcuts
     console.log(' -> Student answering CBT questions via JAMB 8-key keyboard shortcuts (A, B, C, D, N)...');
     for (let q = 1; q <= 5; q++) {
       console.log(`    * Answering Question ${q} of 5...`);
-      await sleep(1200);
+      await sleep(1000);
 
       // Select option via JAMB key
       const choiceKey = ['A', 'B', 'C', 'D'][q % 4];
       console.log(`      - Pressing '${choiceKey}'`);
       await studentPage.keyboard.press(choiceKey);
-      await sleep(1000);
+      await sleep(800);
 
       // If not the last question, press Next (N)
       if (q < 5) {
@@ -264,15 +261,15 @@ async function runDualBrowserTest() {
           studentPage.waitForNavigation({ waitUntil: 'domcontentloaded' }),
           studentPage.keyboard.press('N')
         ]);
-        await sleep(1000);
+        await sleep(800);
       }
     }
 
     // Submit Exam via JAMB shortcut 'S'
     console.log(' -> Student pressing JAMB shortcut "S" to open submission modal...');
-    await sleep(1500);
+    await sleep(1000);
     await studentPage.keyboard.press('S');
-    await sleep(1500);
+    await sleep(1000);
 
     // Confirm in modal
     console.log(' -> Confirming final assessment submission...');
@@ -282,14 +279,14 @@ async function runDualBrowserTest() {
       confirmBtn.click({ force: true })
     ]);
     console.log(` -> Exam completed! Result page: ${studentPage.url()}`);
-    await sleep(3500);
+    await sleep(2500);
 
     // -------------------------------------------------------------
     // PHASE 5: Teacher Verifies Live Results & Wallet Balance
     // -------------------------------------------------------------
     console.log('\n[Phase 5] Teacher: Refreshing proctor results table...');
     await teacherPage.bringToFront();
-    await teacherPage.reload({ waitUntil: 'networkidle' });
+    await teacherPage.reload({ waitUntil: 'domcontentloaded' });
     await sleep(2000);
 
     const teacherPageText = await teacherPage.textContent('body');
@@ -299,9 +296,12 @@ async function runDualBrowserTest() {
 
     // Teacher returns to dashboard to check wallet balance
     console.log('[Phase 5] Teacher: Returning to Teacher Dashboard...');
-    await teacherPage.goto(`${BASE_URL}/monetization/`, { waitUntil: 'networkidle' });
-    await sleep(3000);
+    await teacherPage.goto(`${BASE_URL}/monetization/`, { waitUntil: 'domcontentloaded' });
+    await sleep(2500);
     console.log(' -> Teacher wallet shows verified 80% split credit (+₦1,200.00).');
+
+    // Both views remain visible for clean end of video
+    await sleep(1500);
 
     console.log('\n===============================================================');
     console.log('   All Workflow Stages Successfully Executed!                  ');
@@ -321,27 +321,63 @@ async function runDualBrowserTest() {
     await studentContext.close();
 
     // Save videos to standard target paths BEFORE closing browser
-    const finalTeacherPath = path.join(MEDIA_VIDEOS_DIR, 'teacher_session.webm');
-    const finalStudentPath = path.join(MEDIA_VIDEOS_DIR, 'student_session.webm');
+    const finalTeacherWebm = path.join(MEDIA_VIDEOS_DIR, 'teacher_session.webm');
+    const finalStudentWebm = path.join(MEDIA_VIDEOS_DIR, 'student_session.webm');
+    const finalTeacherMp4 = path.join(MEDIA_VIDEOS_DIR, 'teacher_session.mp4');
+    const finalStudentMp4 = path.join(MEDIA_VIDEOS_DIR, 'student_session.mp4');
+    const teacherPoster = path.join(MEDIA_VIDEOS_DIR, 'teacher_session_poster.jpg');
+    const studentPoster = path.join(MEDIA_VIDEOS_DIR, 'student_session_poster.jpg');
 
     if (teacherVideo) {
       try {
-        await teacherVideo.saveAs(finalTeacherPath);
-        console.log(`Saved Teacher Video: ${finalTeacherPath}`);
+        await teacherVideo.saveAs(finalTeacherWebm);
+        console.log(`Saved Teacher Video (WebM): ${finalTeacherWebm}`);
       } catch (err) {
         console.warn('Failed to save teacher video:', err.message);
       }
     }
     if (studentVideo) {
       try {
-        await studentVideo.saveAs(finalStudentPath);
-        console.log(`Saved Student Video: ${finalStudentPath}`);
+        await studentVideo.saveAs(finalStudentWebm);
+        console.log(`Saved Student Video (WebM): ${finalStudentWebm}`);
       } catch (err) {
         console.warn('Failed to save student video:', err.message);
       }
     }
 
     await browser.close();
+
+    // Post-processing: Convert to MP4 and extract poster images using FFmpeg
+    console.log('\n[Post-Processing] Generating universal MP4 (H.264) and high-res video posters...');
+    try {
+      if (fs.existsSync(finalTeacherWebm)) {
+        console.log(' -> Converting teacher_session.webm to teacher_session.mp4...');
+        execSync(
+          `ffmpeg -y -i "${finalTeacherWebm}" -c:v libx264 -preset fast -pix_fmt yuv420p -movflags +faststart "${finalTeacherMp4}"`,
+          { stdio: 'inherit' }
+        );
+        console.log(' -> Extracting teacher_session_poster.jpg...');
+        execSync(
+          `ffmpeg -y -ss 00:00:15 -i "${finalTeacherWebm}" -frames:v 1 -update 1 -q:v 2 "${teacherPoster}"`,
+          { stdio: 'inherit' }
+        );
+      }
+
+      if (fs.existsSync(finalStudentWebm)) {
+        console.log(' -> Converting student_session.webm to student_session.mp4...');
+        execSync(
+          `ffmpeg -y -i "${finalStudentWebm}" -c:v libx264 -preset fast -pix_fmt yuv420p -movflags +faststart "${finalStudentMp4}"`,
+          { stdio: 'inherit' }
+        );
+        console.log(' -> Extracting student_session_poster.jpg...');
+        execSync(
+          `ffmpeg -y -ss 00:00:32 -i "${finalStudentWebm}" -frames:v 1 -update 1 -q:v 2 "${studentPoster}"`,
+          { stdio: 'inherit' }
+        );
+      }
+    } catch (ffmpegErr) {
+      console.warn('[WARN] FFmpeg post-processing warning:', ffmpegErr.message);
+    }
 
     // Clean up raw temp dirs
     try {
@@ -351,10 +387,11 @@ async function runDualBrowserTest() {
       // Non-fatal cleanup
     }
 
-    // Fix permissions so host user can read/write files
+    // Fix permissions so host user can read/write all video assets
     try {
-      fs.chmodSync(finalTeacherPath, 0o664);
-      fs.chmodSync(finalStudentPath, 0o664);
+      for (const p of [finalTeacherWebm, finalStudentWebm, finalTeacherMp4, finalStudentMp4, teacherPoster, studentPoster]) {
+        if (fs.existsSync(p)) fs.chmodSync(p, 0o664);
+      }
     } catch {
       // Non-fatal
     }

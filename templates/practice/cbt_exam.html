@@ -550,7 +550,7 @@
 <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-navy-900/95 backdrop-blur-md border-t border-slate-200 dark:border-navy-800 p-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-xl transition-colors">
   <div class="flex items-center justify-between gap-2 max-w-lg mx-auto">
     {% if prev_index %}
-    <a href="?q={{ prev_index }}" class="btn-secondary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1 min-h-[42px]">
+    <a href="?q={{ prev_index }}" class="btn-secondary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1 min-h-[44px]">
       <i data-lucide="arrow-left" class="w-4 h-4"></i>
       <span>Prev</span>
     </a>
@@ -558,23 +558,23 @@
     <div class="flex-1"></div>
     {% endif %}
 
-    <button type="button" onclick="useKalmiStore.getState().toggleCalc()" class="btn-secondary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px]" title="Scientific Calculator">
+    <button type="button" onclick="useKalmiStore.getState().toggleCalc()" class="btn-secondary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px]" title="Scientific Calculator">
       <i data-lucide="calculator" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
       <span>Calc</span>
     </button>
 
-    <button type="button" onclick="toggleFlagReview()" class="flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 min-h-[42px] transition-colors {% if current_resp.is_flagged %}bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700{% else %}bg-slate-100 text-slate-700 dark:bg-navy-800 dark:text-slate-200 border-slate-200 dark:border-navy-700 hover:bg-slate-200{% endif %}">
+    <button type="button" onclick="toggleFlagReview()" class="flex-1 py-2 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 min-h-[44px] transition-colors {% if current_resp.is_flagged %}bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700{% else %}bg-slate-100 text-slate-700 dark:bg-navy-800 dark:text-slate-200 border-slate-200 dark:border-navy-700 hover:bg-slate-200{% endif %}">
       <i data-lucide="flag" class="w-3.5 h-3.5 {% if current_resp.is_flagged %}fill-amber-500 text-amber-500{% endif %}"></i>
       <span>{% if current_resp.is_flagged %}Flagged{% else %}Flag{% endif %}</span>
     </button>
 
     {% if next_index %}
-    <a href="?q={{ next_index }}" class="btn-primary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1 min-h-[42px]">
+    <a href="?q={{ next_index }}" class="btn-primary flex-1 py-2 text-xs font-bold flex items-center justify-center gap-1 min-h-[44px]">
       <span>Next</span>
       <i data-lucide="arrow-right" class="w-4 h-4"></i>
     </a>
     {% else %}
-    <button type="button" onclick="openSubmitModal()" class="btn-primary flex-1 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center gap-1 min-h-[42px]">
+    <button type="button" onclick="openSubmitModal()" class="btn-primary flex-1 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 flex items-center justify-center gap-1 min-h-[44px]">
       <span>Submit</span>
       <i data-lucide="check" class="w-4 h-4"></i>
     </button>

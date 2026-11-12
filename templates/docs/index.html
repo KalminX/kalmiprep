@@ -93,7 +93,9 @@
                  playsinline 
                  muted 
                  controls
+                 poster="/media/e2e_videos/teacher_session_poster.jpg"
                  class="w-full h-full object-contain">
+            <source src="/media/e2e_videos/teacher_session.mp4" type="video/mp4">
             <source src="/media/e2e_videos/teacher_session.webm" type="video/webm">
             Your browser does not support HTML5 video.
           </video>
@@ -103,10 +105,16 @@
         </div>
         <div class="p-3 bg-slate-900/60 border-t border-slate-800 flex items-center justify-between text-xs">
           <span class="text-slate-400 text-[11px]">Creates Paid Test &bull; Locks Gate &bull; Unlocks Exam &bull; Reviews Results</span>
-          <a href="/media/e2e_videos/teacher_session.webm" target="_blank" download class="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1">
-            <span>Download Teacher .webm</span>
-            <i data-lucide="download" class="w-3 h-3"></i>
-          </a>
+          <div class="flex items-center gap-2">
+            <a href="/media/e2e_videos/teacher_session.mp4" target="_blank" download class="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1">
+              <span>MP4</span>
+              <i data-lucide="download" class="w-3 h-3"></i>
+            </a>
+            <span class="text-slate-600">&bull;</span>
+            <a href="/media/e2e_videos/teacher_session.webm" target="_blank" download class="text-[11px] font-semibold text-slate-400 hover:underline flex items-center gap-1">
+              <span>WebM</span>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -125,7 +133,9 @@
                  playsinline 
                  muted 
                  controls
+                 poster="/media/e2e_videos/student_session_poster.jpg"
                  class="w-full h-full object-contain">
+            <source src="/media/e2e_videos/student_session.mp4" type="video/mp4">
             <source src="/media/e2e_videos/student_session.webm" type="video/webm">
             Your browser does not support HTML5 video.
           </video>
@@ -135,10 +145,16 @@
         </div>
         <div class="p-3 bg-slate-900/60 border-t border-slate-800 flex items-center justify-between text-xs">
           <span class="text-slate-400 text-[11px]">Instant Demo Payment &bull; Waiting Room HTMX &bull; CBT Answers &bull; Final Score</span>
-          <a href="/media/e2e_videos/student_session.webm" target="_blank" download class="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1">
-            <span>Download Student .webm</span>
-            <i data-lucide="download" class="w-3 h-3"></i>
-          </a>
+          <div class="flex items-center gap-2">
+            <a href="/media/e2e_videos/student_session.mp4" target="_blank" download class="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1">
+              <span>MP4</span>
+              <i data-lucide="download" class="w-3 h-3"></i>
+            </a>
+            <span class="text-slate-600">&bull;</span>
+            <a href="/media/e2e_videos/student_session.webm" target="_blank" download class="text-[11px] font-semibold text-slate-400 hover:underline flex items-center gap-1">
+              <span>WebM</span>
+            </a>
+          </div>
         </div>
       </div>
 
@@ -351,12 +367,12 @@
     <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Step-by-Step QA Verification</h2>
 
     <!-- Step 1 -->
-    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+    <article class="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
       <div class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-extrabold text-sm">1</span>
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Teacher Publishes Test with Waiting Room Active</h3>
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-extrabold text-sm shrink-0">1</span>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Teacher Publishes Test with Waiting Room Active</h3>
       </div>
-      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-0 sm:pl-11 pt-1 sm:pt-0">
         <p>1. Navigate to <a href="{% url 'monetization:create_test' %}" class="text-brand-600 font-semibold underline">Create Paid Test</a>.</p>
         <p>2. Enter a test title, description, and price (e.g., <code>₦500.00</code>).</p>
         <p>3. Select one or more topics with available questions.</p>
@@ -367,14 +383,14 @@
     </article>
 
     <!-- Step 2 -->
-    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+    <article class="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
       <div class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold text-sm">2</span>
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Student Registration via Demo Payment (Zero Paystack Required)</h3>
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold text-sm shrink-0">2</span>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Student Registration via Demo Payment (Zero Paystack Required)</h3>
       </div>
-      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-0 sm:pl-11 pt-1 sm:pt-0">
         <p>1. Open a new <strong>Incognito or Private Browsing window</strong> (or a different browser) so you test as an unauthenticated or student user.</p>
-        <p>2. Paste the copied test link (e.g., <code>http://localhost:8000/monetization/tests/&lt;share_code&gt;/</code>).</p>
+        <p>2. Paste the copied test link: <code class="break-all font-mono text-xs">/monetization/tests/&lt;share_code&gt;/</code>.</p>
         <p>3. Fill in the student checkout form:</p>
         <ul class="list-disc list-inside space-y-1 font-mono text-xs text-slate-500 pl-2">
           <li>Full Name: e.g. "Ada Lovelace"</li>
@@ -387,12 +403,12 @@
     </article>
 
     <!-- Step 3 -->
-    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+    <article class="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
       <div class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-extrabold text-sm">3</span>
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Student Waiting Lobby Gate</h3>
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-extrabold text-sm shrink-0">3</span>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Student Waiting Lobby Gate</h3>
       </div>
-      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-0 sm:pl-11 pt-1 sm:pt-0">
         <p>1. From the receipt page, the student clicks <strong>"Start Test Now"</strong>, or navigates to <code>/enter/</code> and inputs their PIN.</p>
         <p>2. Because the teacher has not yet unlocked the exam, the student is redirected to the <strong>Waiting Room</strong> (<code>/waiting/</code>).</p>
         <p>3. In the waiting room, students see:</p>
@@ -408,12 +424,12 @@
     </article>
 
     <!-- Step 4 -->
-    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+    <article class="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
       <div class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-extrabold text-sm">4</span>
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Teacher Unlocks Exam (Proctor Control)</h3>
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-extrabold text-sm shrink-0">4</span>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Teacher Unlocks Exam (Proctor Control)</h3>
       </div>
-      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-0 sm:pl-11 pt-1 sm:pt-0">
         <p>1. Switch back to your teacher browser window.</p>
         <p>2. On the <a href="{% url 'monetization:dashboard' %}" class="text-brand-600 font-semibold underline">Teacher Dashboard</a>, click <strong>"View students &amp; scores"</strong> on the test.</p>
         <p>3. Notice the banner: <code>Exam is LOCKED (Waiting Room Active)</code>.</p>
@@ -423,12 +439,12 @@
     </article>
 
     <!-- Step 5 -->
-    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+    <article class="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
       <div class="flex items-center gap-3">
-        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-extrabold text-sm">5</span>
-        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Admin Platform Earnings &amp; Operations</h3>
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-extrabold text-sm shrink-0">5</span>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Admin Platform Earnings &amp; Operations</h3>
       </div>
-      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-0 sm:pl-11 pt-1 sm:pt-0">
         <p>1. As a staff member, visit <a href="{% url 'monetization:admin_earnings' %}" class="text-brand-600 font-semibold underline">Admin Platform Earnings</a>.</p>
         <p>2. Review the financial metrics:</p>
         <ul class="list-disc list-inside space-y-1 text-slate-500 pl-2">
@@ -443,9 +459,9 @@
   </div>
 
   <!-- Quick Reference Table -->
-  <section class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
+  <section class="p-4 sm:p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4 min-w-0 max-w-full overflow-hidden">
     <h3 class="text-base font-bold text-slate-900 dark:text-white">Endpoint &amp; URL Reference</h3>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
       <table class="w-full text-left text-xs font-mono">
         <thead class="bg-white dark:bg-slate-800 text-slate-500 uppercase">
           <tr>

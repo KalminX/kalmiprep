@@ -276,12 +276,15 @@ def start_paid_test_attempt(purchase, session_key=""):
         raise PaymentError("This test does not have enough available questions.")
     random.SystemRandom().shuffle(candidates)
 
+    first_topic = paid_test.topics.select_related("subject").first()
+    subject = first_topic.subject if first_topic else None
+
     session = PracticeSession.objects.create(
         user=purchase.buyer,
         session_key=session_key if not purchase.buyer_id else "",
         mode=PracticeSession.Mode.CBT_MOCK,
         title=paid_test.title,
-        subject=None,
+        subject=subject,
         topic=None,
         exam_type=None,
         total_questions=len(candidates),

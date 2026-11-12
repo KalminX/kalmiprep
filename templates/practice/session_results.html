@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load kalmi_tags %}
 
-{% block title %}Assessment Results & Diagnostics | {{ session.subject.name }} | KalmiPrep{% endblock %}
+{% block title %}Assessment Results & Diagnostics | {{ session.subject.name|default:session.title|default:"Practice Assessment" }} | KalmiPrep{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
@@ -9,8 +9,13 @@
     <!-- Breadcrumb -->
     <nav class="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-400">
         <a href="{% url 'core:landing' %}" class="hover:text-brand-600 dark:hover:text-brand-400">Home</a>
+        {% if session.subject %}
         <i data-lucide="chevron-right" class="w-4 h-4"></i>
         <a href="{% url 'curriculum:subject_detail' session.subject.slug %}" class="hover:text-brand-600 dark:hover:text-brand-400">{{ session.subject.name }}</a>
+        {% elif session.test_purchase and session.test_purchase.test %}
+        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <a href="{% url 'monetization:public_test' session.test_purchase.test.share_code %}" class="hover:text-brand-600 dark:hover:text-brand-400">{{ session.test_purchase.test.title }}</a>
+        {% endif %}
         <i data-lucide="chevron-right" class="w-4 h-4"></i>
         <span class="text-slate-900 dark:text-white font-medium">Assessment Results</span>
     </nav>
@@ -226,9 +231,15 @@
                         {% endif %}
 
                         {% if stats.topic %}
+                            {% if session.subject %}
                             <a href="{% url 'practice:setup' %}?subject={{ session.subject.slug }}&topic={{ stats.topic.id }}" class="inline-flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-400 hover:underline">
                                 Practise Topic <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                             </a>
+                            {% else %}
+                            <a href="{% url 'practice:setup' %}?topic={{ stats.topic.id }}" class="inline-flex items-center gap-1 font-semibold text-brand-600 dark:text-brand-400 hover:underline">
+                                Practise Topic <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>

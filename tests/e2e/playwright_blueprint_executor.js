@@ -111,17 +111,54 @@ async function runPlaywrightSuite() {
       await page.screenshot({ path: path.join(screenshotsDir, 'landing_desktop.png') });
     });
 
-    // 2. Mobile Viewport Blowout & Horizontal Scroll Check (375px)
-    await checkScenario('Mobile Viewport Stability (375px)', async () => {
-      await page.setViewportSize({ width: 375, height: 667 });
-      await page.goto(`${targetBaseUrl}/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    // 2. All-Round Mobile Viewport Invariant Suite (320px, 375px, 412px)
+    await checkScenario('All-Round Mobile Viewport Suite (320px, 375px, 412px)', async () => {
+      const viewports = [
+        { width: 320, height: 568, name: 'ultra_compact_320' },
+        { width: 375, height: 667, name: 'compact_375' },
+        { width: 412, height: 915, name: 'phablet_412' }
+      ];
 
-      const hasHorizontalScroll = await page.evaluate(() => {
-        return document.documentElement.scrollWidth > window.innerWidth;
+      for (const vp of viewports) {
+        await page.setViewportSize({ width: vp.width, height: vp.height });
+        await page.goto(`${targetBaseUrl}/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+
+        // Invariant 1: Zero horizontal window scroll
+        const hasHorizontalScroll = await page.evaluate(() => {
+          return document.documentElement.scrollWidth > window.innerWidth;
+        });
+        if (hasHorizontalScroll) {
+          throw new Error(`Document root has horizontal scroll blowout on ${vp.width}px viewport`);
+        }
+
+        // Invariant 2: Touch targets min-h >= 44px
+        const buttons = await page.$$('.btn-primary, .btn-secondary');
+        for (const btn of buttons.slice(0, 3)) {
+          const box = await btn.boundingBox();
+          if (box && box.height < 43.5) {
+            throw new Error(`Button height (${box.height}px) is below 44px touch target invariant on ${vp.width}px`);
+          }
+        }
+
+        await page.screenshot({ path: path.join(screenshotsDir, `landing_${vp.name}.png`) });
+      }
+
+      // Check /docs/ on 375px for video theater responsive stacking
+      await page.setViewportSize({ width: 375, height: 812 });
+      await page.goto(`${targetBaseUrl}/docs/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+      const docsOverflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+      if (docsOverflow) throw new Error('/docs/ video theater causes horizontal blowout on 375px mobile');
+
+      // Invariant 3: Check iOS 16px font-size zoom prevention on mobile form inputs
+      await page.goto(`${targetBaseUrl}/accounts/login/`, { waitUntil: 'domcontentloaded', timeout: 15000 });
+      const inputFontSize = await page.evaluate(() => {
+        const input = document.querySelector('input[type="text"], input[name="username"]');
+        if (!input) return 16;
+        return parseFloat(window.getComputedStyle(input).fontSize);
       });
-      if (hasHorizontalScroll) throw new Error('Document root has horizontal scroll blowout on 375px viewport');
-
-      await page.screenshot({ path: path.join(screenshotsDir, 'landing_mobile_375.png') });
+      if (inputFontSize < 16) {
+        throw new Error(`Input font-size (${inputFontSize}px) is below 16px, risking iOS Safari auto-zoom`);
+      }
     });
 
     // 3. KaTeX Equation Integrity on Curriculum Page

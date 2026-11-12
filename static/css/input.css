@@ -184,3 +184,68 @@ a:focus-visible {
 .touch-card:active {
   transform: scale(0.985);
 }
+
+/* ==========================================================
+   All-Round Mobile Responsiveness & Touch Invariants
+   ========================================================== */
+
+/* 1. iOS Safari Auto-Zoom Prevention Invariant (Input font >= 16px) */
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* 2. Safe Area Inset Helpers */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* 3. Dynamic Viewport Height (prevents mobile browser address bar jump) */
+.min-h-screen-dvh {
+  min-height: 100dvh;
+}
+.h-screen-dvh {
+  height: 100dvh;
+}
+
+/* 4. Touch Action Manipulation (removes 300ms double-tap delay) */
+button,
+a,
+input,
+select,
+textarea,
+label {
+  touch-action: manipulation;
+}
+
+/* 5. KaTeX Math & Inline Code Overflow Containment */
+.katex-scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+}
+
+code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.overflow-x-auto {
+  max-width: 100%;
+  min-width: 0;
+}
+
