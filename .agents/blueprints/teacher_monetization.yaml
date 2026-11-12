@@ -1,0 +1,118 @@
+version: "1.0"
+domain: "teacher_monetization"
+description: "Authoritative behavioral blueprint for Teacher monetization, Paystack payments, and Access PIN workflows"
+
+invariants:
+  - id: "INV-PAY-01"
+    name: "Revenue Split Precision"
+    rule: "All transactions and earnings must be calculated and stored in integer kobo (smallest currency unit). The 80/20 teacher/platform split must never produce floating point rounding errors."
+    severity: "critical"
+  - id: "INV-PAY-02"
+    name: "Webhook Idempotency"
+    rule: "Paystack charge.success webhook events must be idempotent. Processing duplicate event with identical reference must not duplicate earnings, access PINs, or enrollments."
+    severity: "critical"
+  - id: "INV-PAY-03"
+    name: "Teacher Roster Privacy"
+    rule: "Teacher dashboard student roster must never expose candidate raw phone numbers, plain email addresses, or unmasked access PINs to unauthorized roles."
+    severity: "high"
+  - id: "INV-PAY-04"
+    name: "Access PIN Single-Use Integrity"
+    rule: "An access PIN tied to a paid mock exam cannot be claimed more than once or transferred across student accounts."
+    severity: "critical"
+
+scenarios:
+  - name: "Teacher Verification & Paid Exam Setup"
+    path: "/teachers/exams/create/"
+    prerequisites:
+      authenticated: true
+      role: "teacher"
+      verified: true
+    steps:
+      - action: "navigate"
+        target: "/teachers/exams/create/"
+      - action: "fill"
+        field: "title"
+        value: "JAMB Full Mock Series 2026"
+      - action: "fill"
+        field: "price_ngn"
+        value: "2500"
+      - action: "assert_element"
+        selector: "#teacher-share-preview, [data-preview='teacher-share']"
+        attribute: "text"
+        contains: "2,000"
+      - action: "assert_element"
+        selector: "#platform-fee-preview, [data-preview='platform-fee']"
+        attribute: "text"
+        contains: "500"
+      - action: "assert_nuance"
+        check: "split_calculation_kobo"
+        expected: "price_kobo == 250000, teacher_kobo == 200000, platform_kobo == 50000"
+
+  - name: "Paystack Payment Flow & Access PIN Generation"
+    path: "/payments/checkout/"
+    prerequisites:
+      authenticated: true
+      role: "student"
+    steps:
+      - action: "navigate"
+        target: "/exams/detail/1/checkout/"
+      - action: "assert_visible"
+        selector: "#paystack-pay-btn, [data-action='pay-paystack']"
+      - action: "assert_nuance"
+        check: "paystack_inline_params"
+        expected: "public_key starts with pk_ and amount is integer kobo"
+
+  - name: "Webhook Idempotency Test"
+    path: "/api/webhooks/paystack/"
+    prerequisites:
+      simulated_webhook: true
+    steps:
+      - action: "post_json"
+        target: "/api/webhooks/paystack/"
+        payload:
+          event: "charge.success"
+          data:
+            reference: "KALMI_TEST_REF_001"
+            amount: 250000
+            status: "success"
+            metadata:
+              exam_id: 1
+              user_id: 42
+      - action: "assert_status"
+        expected: 200
+      - action: "post_json"
+        target: "/api/webhooks/paystack/"
+        payload:
+          event: "charge.success"
+          data:
+            reference: "KALMI_TEST_REF_001"
+            amount: 250000
+            status: "success"
+      - action: "assert_status"
+        expected: 200
+      - action: "assert_nuance"
+        check: "no_duplicate_access_granted"
+        expected: "student enrollments for exam 1 count is exactly 1"
+
+  - name: "Access PIN Redemption & Revocation"
+    path: "/cbt/redeem-pin/"
+    prerequisites:
+      authenticated: true
+      role: "student"
+    steps:
+      - action: "fill"
+        field: "pin_code"
+        value: "KP-JAMB-TEST-8899"
+      - action: "click"
+        target: "#redeem-pin-submit"
+      - action: "assert_toast"
+        type: "success"
+        message_contains: "Exam unlocked"
+      - action: "fill"
+        field: "pin_code"
+        value: "KP-JAMB-TEST-8899"
+      - action: "click"
+        target: "#redeem-pin-submit"
+      - action: "assert_toast"
+        type: "error"
+        message_contains: "PIN has already been used"

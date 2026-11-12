@@ -41,7 +41,17 @@ DEBUG=True
 SECRET_KEY=your-secret-key-here
 DATABASE_URL=sqlite:///db.sqlite3
 REDIS_URL=redis://127.0.0.1:6379/1
+PAYSTACK_TEST_MODE=True
+PAYSTACK_SECRET_KEY=sk_test_your_paystack_test_secret
+PAID_TEST_PIN_SECRET=use-a-separate-long-random-secret-and-keep-it-stable
+SITE_URL=http://127.0.0.1:8000
 ```
+
+Paid teacher tests are unavailable until Paystack test credentials and `SITE_URL` are configured. For production, set `DEBUG=False`, `PAYSTACK_TEST_MODE=False`, a Paystack live secret key, a strong stable `PAID_TEST_PIN_SECRET`, and the canonical HTTPS `SITE_URL`. Keep `PAID_TEST_PIN_SECRET` stable: it derives the repeatable access PIN shown after a verified purchase. Configure Paystack to send `charge.success` and refund events to `/monetization/paystack/webhook/`.
+
+Teacher invitations use Django email. Development sends invitation messages to the console; production needs `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `EMAIL_USE_TLS`, and `DEFAULT_FROM_EMAIL` configured through the environment. The optional `TEACHER_TUTORIAL_URL` links the teacher onboarding checklist to a hosted orientation video.
+
+Teacher class results use Django Channels over WebSockets. Production should set `REDIS_URL` so HTTP workers and ASGI workers share the Redis channel layer. The container serves `config.asgi:application` with Daphne; local development can use Django `runserver` and the in-memory channel layer.
 
 ### 3. Setup Virtual Environment
 ```bash
@@ -75,3 +85,7 @@ python manage.py test
 ## 📄 License
 
 Proprietary © 2026 KalmiPrep. Built and operated by Kalmitech. All rights reserved.
+
+## Code map
+
+See [AGENTS.md](AGENTS.md) for the app ownership map, major request flows, and dependency boundaries. Teacher paid test behavior and operations are documented in [docs/teacher-test-monetization.md](docs/teacher-test-monetization.md).

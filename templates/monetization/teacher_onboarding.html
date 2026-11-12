@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Teacher onboarding | KalmiPrep{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+  <header><p class="text-xs uppercase tracking-wider font-bold text-brand-600">Teacher onboarding</p><h1 class="text-3xl font-extrabold mt-1">Teach UTME with KalmiPrep</h1><p class="text-sm text-slate-500 mt-2">Set up your class, assign exam practice, then use your students’ results to focus the next lesson.</p></header>
+  <section class="grid gap-3 sm:grid-cols-3">
+    <article class="rounded-2xl border bg-white dark:bg-slate-900 dark:border-slate-800 p-5"><p class="text-xs text-slate-500">Step 1</p><h2 class="font-bold mt-1">Create a class</h2><p class="text-sm text-slate-500 mt-2">Group learners and share a secure join code.</p><a class="inline-block mt-4 text-sm font-bold text-brand-700 dark:text-brand-300" href="{% url 'classrooms:index' %}">Open classrooms →</a></article>
+    <article class="rounded-2xl border bg-white dark:bg-slate-900 dark:border-slate-800 p-5"><p class="text-xs text-slate-500">Step 2</p><h2 class="font-bold mt-1">Assign UTME practice</h2><p class="text-sm text-slate-500 mt-2">Set topic drills or a full four-subject UTME mock.</p><a class="inline-block mt-4 text-sm font-bold text-brand-700 dark:text-brand-300" href="{% url 'classrooms:index' %}">Create an assignment →</a></article>
+    <article class="rounded-2xl border bg-white dark:bg-slate-900 dark:border-slate-800 p-5"><p class="text-xs text-slate-500">Step 3</p><h2 class="font-bold mt-1">Review learning gaps</h2><p class="text-sm text-slate-500 mt-2">See participation, best scores, class rank and weak subjects.</p><a class="inline-block mt-4 text-sm font-bold text-brand-700 dark:text-brand-300" href="{% url 'monetization:dashboard' %}">Teacher dashboard →</a></article>
+  </section>
+  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-3">
+    <h2 class="font-bold">Your setup checklist</h2>
+    <p class="text-sm {% if has_class %}text-emerald-700{% else %}text-slate-500{% endif %}">{% if has_class %}✓{% else %}○{% endif %} Create your first class</p>
+    <p class="text-sm {% if has_assignment %}text-emerald-700{% else %}text-slate-500{% endif %}">{% if has_assignment %}✓{% else %}○{% endif %} Publish your first assignment</p>
+    {% if tutorial_url %}<a class="inline-flex mt-3 rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2 text-sm font-bold" href="{{ tutorial_url }}" target="_blank" rel="noopener noreferrer">Watch teacher orientation</a>{% else %}<p class="text-xs text-slate-500 mt-3">For cohort or live onboarding, coordinate a session with the KalmiPrep team.</p>{% endif %}
+  </section>
+  <section class="rounded-2xl border border-brand-200 dark:border-brand-900 bg-brand-50/50 dark:bg-brand-950/20 p-6"><h2 class="font-bold">Classroom assignments are free</h2><p class="text-sm text-slate-600 dark:text-slate-300 mt-1">Free assignments are for your enrolled students. Paid public tests remain separate in Teacher earnings.</p><a class="inline-block mt-3 text-sm font-bold text-brand-700 dark:text-brand-300" href="{% url 'monetization:dashboard' %}">Manage paid tests and earnings →</a></section>
+</div>
+{% endblock %}

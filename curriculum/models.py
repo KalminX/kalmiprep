@@ -72,6 +72,8 @@ class Topic(models.Model):
 
     @property
     def question_count(self):
+        if hasattr(self, "pub_question_count"):
+            return self.pub_question_count
         return self.questions.filter(is_published=True).count()
 
     @property
@@ -102,4 +104,6 @@ class Subtopic(models.Model):
 
     @property
     def question_count(self):
+        if hasattr(self, "pub_question_count"):
+            return self.pub_question_count
         return self.questions.filter(is_published=True).count()

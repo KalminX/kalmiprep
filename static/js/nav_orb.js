@@ -16,6 +16,9 @@
     if (pathname.startsWith('/questions')) return 'questions';
     if (pathname.startsWith('/practice')) return 'practice';
     if (pathname.startsWith('/progress') || pathname.startsWith('/accounts')) return 'progress';
+    if (pathname.startsWith('/classrooms')) return 'classrooms';
+    if (pathname.startsWith('/monetization')) return 'monetization';
+    if (pathname.startsWith('/docs')) return 'docs';
     return '';
   }
 
@@ -167,9 +170,13 @@
       }
 
       // Close mobile hamburger menu if open
-      const mobileMenu = document.getElementById('mobile-menu');
-      if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
-        mobileMenu.classList.add('hidden');
+      if (typeof window.closeMobileMenu === 'function') {
+        window.closeMobileMenu();
+      } else {
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.add('hidden');
+        }
       }
     }
   });

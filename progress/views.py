@@ -90,9 +90,21 @@ def dashboard(request):
     # Available subjects for quick-launch
     subjects = Subject.objects.all()
 
+    # Active/pending class assignments for enrolled student
+    class_assignments = []
+    if request.user.is_authenticated:
+        from classrooms.models import ClassAssignment
+        class_assignments = (
+            ClassAssignment.objects.filter(classroom__memberships__student=request.user)
+            .exclude(attempts__membership__student=request.user, attempts__session__status=PracticeSession.Status.COMPLETED)
+            .select_related("classroom", "subject", "topic")
+            .order_by("due_at", "-created_at")[:4]
+        )
+
     context = {
         "recent_sessions": recent_sessions,
         "active_session": active_session,
+        "class_assignments": class_assignments,
         "total_sessions_count": total_sessions_count,
         "total_time_minutes": total_time_minutes,
         "total_questions_answered": total_questions_answered,

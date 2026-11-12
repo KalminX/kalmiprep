@@ -343,9 +343,24 @@ def ingest_question_batch_task(records: List[Dict[str, Any]]):
         exam_year = rec.get("exam_year", 2024)
         q_num = rec.get("question_number", 1)
 
-        # Fallback topic: assign first topic if no classifier matches
+        # Classify topic using multi-field weighted classifier + ground-truth lookup
+        from questions.classifier import classify_question_topic
+
         subj_topics = topics_by_subj.get(subject.id, [])
-        topic = subj_topics[0] if subj_topics else None
+        opts_text = " | ".join(
+            str(o.get("text") or "") for o in (rec.get("options") or []) if isinstance(o, dict)
+        )
+        best_slug, _, _ = classify_question_topic(
+            subject_slug=subject.slug,
+            question_text=q_text,
+            explanation=exp_text,
+            options_text=opts_text,
+            source_id=str(q_id) if q_id else None,
+            raw_topic_slug=rec.get("topic") or rec.get("topic_slug"),
+        )
+        topic = next((t for t in subj_topics if t.slug == best_slug), None)
+        if not topic and subj_topics:
+            topic = subj_topics[0]
 
         # Upsert Question
         q_obj, created = Question.objects.update_or_create(

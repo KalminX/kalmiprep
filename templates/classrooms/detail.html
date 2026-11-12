@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ classroom.name }} | KalmiPrep{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+  <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <div>
+      <a class="text-xs font-bold text-brand-700 dark:text-brand-300" href="{% url 'classrooms:index' %}">← Classes</a>
+      <h1 class="text-3xl font-extrabold mt-2">{{ classroom.name }}</h1>
+      <p class="text-sm text-slate-500 mt-1">Teacher: {{ classroom.teacher.display_name }}</p>
+    </div>
+    {% if is_teacher %}
+    <div class="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3 flex items-center gap-4">
+      <div>
+        <p class="text-[10px] uppercase tracking-wider text-slate-500">Student join code</p>
+        <p id="class-join-code" class="font-mono text-xl font-extrabold tracking-[0.2em]">{{ classroom.join_code }}</p>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button type="button" onclick="navigator.clipboard.writeText('{{ classroom.join_code }}').then(() => { const prev = this.innerText; this.innerText = 'Copied!'; setTimeout(() => this.innerText = prev, 2000); })" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs font-semibold hover:bg-slate-100 transition-colors">
+          Copy Code
+        </button>
+        <a href="https://wa.me/?text=Join%20our%20KalmiPrep%20class%20%22{{ classroom.name|urlencode }}%22%20on%20KalmiPrep.%20Enter%20join%20code%3A%20{{ classroom.join_code }}%20at%20https%3A%2F%2Fkalmiprep.kalmitech.app%2Fclassrooms%2F" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors inline-flex items-center gap-1">
+          WhatsApp
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </header>
+
+  {% if is_teacher %}
+  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
+    <h2 class="font-bold text-lg">Publish an assignment</h2>
+    <p class="text-sm text-slate-500 mt-1">Each student gets the same question set in a different order. Assignments are free for this class.</p>
+    <form method="post" action="{% url 'classrooms:create_assignment' %}" class="mt-5 grid gap-4 sm:grid-cols-2">{% csrf_token %}
+      {% if assignment_form.non_field_errors %}<div class="sm:col-span-2 rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{{ assignment_form.non_field_errors }}</div>{% endif %}
+      {% for field in assignment_form %}
+      <div data-assignment-field="{{ field.name }}" class="{% if field.name == 'elective_subjects' %}sm:col-span-2{% endif %}">
+        <label class="block text-xs font-semibold mb-1">{{ field.label }}</label>
+        {% if field.name == 'classroom' %}
+          <select name="classroom" class="w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm px-4 py-2.5">
+            <option value="{{ classroom.pk }}" selected>{{ classroom.name }}</option>
+            {% for other in classroom.teacher.classrooms.all %}
+              {% if other.pk != classroom.pk %}<option value="{{ other.pk }}">{{ other.name }}</option>{% endif %}
+            {% endfor %}
+          </select>
+        {% else %}
+          {{ field }}
+        {% endif %}
+        {% for error in field.errors %}<p class="text-xs text-rose-600 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+      {% endfor %}
+      <div class="sm:col-span-2">
+        <button class="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-700 transition-colors">Publish assignment</button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+
+  <section class="space-y-3">
+    <h2 class="text-xl font-bold">Assignments</h2>
+    <div class="grid gap-3 sm:grid-cols-2">
+      {% for assignment in classroom.assignments.all %}
+      <a href="{% url 'classrooms:assignment_detail' assignment.pk %}" class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 hover:border-brand-500/50 transition-colors">
+        <h3 class="font-bold">{{ assignment.title }}</h3>
+        <p class="text-xs text-slate-500 mt-1">{{ assignment.get_kind_display }} · {{ assignment.question_count }} questions{% if assignment.due_at %} · Due {{ assignment.due_at|date:"M j, Y H:i" }}{% else %} · Open deadline{% endif %}</p>
+      </a>
+      {% empty %}
+      <p class="text-sm text-slate-500">No assignments have been published yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if is_teacher %}
+  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
+    <h2 class="font-bold">Student roster <span class="text-sm text-slate-500">({{ members|length }})</span></h2>
+    <div class="mt-3 grid gap-2 sm:grid-cols-2">
+      {% for member in members %}
+      <p class="text-sm">{{ member.student.get_full_name|default:member.student.username }}</p>
+      {% empty %}
+      <p class="text-sm text-slate-500">Students who use the join code will appear here.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {{ topics_json|json_script:"topics-json" }}
+  <script>
+    (() => {
+      const kind = document.getElementById("id_kind");
+      if (kind) {
+        const updateAssignmentFields = () => {
+          const fullMock = kind.value === "UTME_MOCK";
+          document.querySelectorAll("[data-assignment-field]").forEach((wrapper) => {
+            const name = wrapper.dataset.assignmentField;
+            const hide = fullMock
+              ? ["subject", "topic", "question_count", "time_limit_minutes"].includes(name)
+              : name === "elective_subjects";
+            wrapper.hidden = hide;
+          });
+        };
+        kind.addEventListener("change", updateAssignmentFields);
+        updateAssignmentFields();
+      }
+
+      // Dynamic Subject -> Topic dependent filtering
+      const subjectSelect = document.getElementById("id_subject");
+      const topicSelect = document.getElementById("id_topic");
+      const topicsJsonEl = document.getElementById("topics-json");
+      if (subjectSelect && topicSelect && topicsJsonEl) {
+        let topicsData = [];
+        try { topicsData = JSON.parse(topicsJsonEl.textContent); } catch (_) {}
+        if (topicsData.length) {
+          const initialTopic = topicSelect.value;
+          const filterTopics = () => {
+            const selectedSubject = subjectSelect.value;
+            const currentVal = topicSelect.value || initialTopic;
+            topicSelect.innerHTML = '<option value="">---------</option>';
+            const filtered = selectedSubject
+              ? topicsData.filter(t => String(t.subject_id) === String(selectedSubject))
+              : topicsData;
+            filtered.forEach(t => {
+              const opt = document.createElement("option");
+              opt.value = t.id;
+              opt.textContent = t.name;
+              if (String(t.id) === String(currentVal)) {
+                opt.selected = true;
+              }
+              topicSelect.appendChild(opt);
+            });
+          };
+          subjectSelect.addEventListener("change", () => {
+            topicSelect.value = "";
+            filterTopics();
+          });
+          filterTopics();
+        }
+      }
+    })();
+  </script>
+  {% endif %}
+</div>
+{% endblock %}

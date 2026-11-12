@@ -1,17 +1,17 @@
 import random
-from decimal import Decimal
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import HttpResponseForbidden, JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Q
 
 from core.cache_utils import get_cached_practice_setup_data
 from curriculum.models import Subject, Topic
 from questions.models import Question, Option
 from practice.models import PracticeSession, PracticeQuestionResponse
 from progress.models import TopicMastery
+from practice.access import can_access_practice_session
 
 
 def practice_setup(request):
@@ -197,6 +197,8 @@ def session_view(request, session_id):
         PracticeSession.objects.select_related("subject", "topic"),
         pk=session_id,
     )
+    if not can_access_practice_session(request, session):
+        return HttpResponseForbidden("Use the test access PIN to continue.")
 
     if session.status == PracticeSession.Status.COMPLETED:
         return redirect("practice:session_results", session_id=session.id)
@@ -272,6 +274,8 @@ def time_sync(request, session_id):
     Accepts both GET and POST requests.
     """
     session = get_object_or_404(PracticeSession, pk=session_id)
+    if not can_access_practice_session(request, session):
+        return HttpResponseForbidden("Use the test access PIN to continue.")
     is_expired = session.is_expired
 
     if is_expired and session.status != PracticeSession.Status.COMPLETED:
@@ -291,6 +295,12 @@ def submit_answer(request, session_id, response_id):
     Handles student answer submission for a specific question in a session.
     """
     session = get_object_or_404(PracticeSession, pk=session_id)
+    if not can_access_practice_session(request, session):
+        return HttpResponseForbidden("Use the test access PIN to continue.")
+    if session.is_completed or session.is_expired:
+        if not session.is_completed:
+            session.calculate_results()
+        return HttpResponseForbidden("Exam session deadline has expired.")
     resp = get_object_or_404(PracticeQuestionResponse, pk=response_id, session=session)
 
     option_id = request.POST.get("option_id")
@@ -376,6 +386,8 @@ def finish_session(request, session_id):
     Finalizes an assessment, runs server-side scoring, records topic diagnostics, and shows results.
     """
     session = get_object_or_404(PracticeSession, pk=session_id)
+    if not can_access_practice_session(request, session):
+        return HttpResponseForbidden("Use the test access PIN to continue.")
     if session.started_at:
         elapsed_seconds = int((timezone.now() - session.started_at).total_seconds())
         if session.time_limit_seconds > 0:
@@ -414,6 +426,8 @@ def session_results(request, session_id):
         PracticeSession.objects.select_related("subject", "topic"),
         pk=session_id,
     )
+    if not can_access_practice_session(request, session):
+        return HttpResponseForbidden("Use the test access PIN to continue.")
 
     responses = (
         session.responses.all()
@@ -451,11 +465,14 @@ def session_results(request, session_id):
         stats["percentage"] = int((stats["correct"] / stats["attempted"]) * 100)
         stats["is_weak"] = stats["percentage"] < 60
 
+    assignment_attempt = getattr(session, "class_assignment_attempt", None)
+
     context = {
         "session": session,
         "responses": responses,
         "grade": grade,
         "grade_color": grade_color,
         "topic_scores": topic_scores,
+        "assignment_attempt": assignment_attempt,
     }
     return render(request, "practice/session_results.html", context)

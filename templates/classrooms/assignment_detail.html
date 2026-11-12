@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ assignment.title }} | KalmiPrep{% endblock %}
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+  <header><a class="text-xs font-bold text-brand-700 dark:text-brand-300" href="{% url 'classrooms:detail' assignment.classroom_id %}">← {{ assignment.classroom.name }}</a><h1 class="text-3xl font-extrabold mt-2">{{ assignment.title }}</h1><p class="text-sm text-slate-500 mt-1">{{ assignment.get_kind_display }} · {{ assignment.question_count }} questions{% if assignment.due_at %} · Due {{ assignment.due_at|date:"M j, Y H:i" }}{% else %} · No deadline{% endif %}</p>
+    {% if assignment.topic %}<p class="text-sm text-slate-500 mt-2">{{ assignment.subject.name }} · {{ assignment.topic.name }}</p>{% elif assignment.kind == 'UTME_MOCK' %}<p class="text-sm text-slate-500 mt-2">English Language + {% for subject in assignment.elective_subjects.all %}{{ subject.name }}{% if not forloop.last %}, {% endif %}{% endfor %} · 120 minutes</p>{% endif %}
+  </header>
+  {% if not is_teacher %}<section class="rounded-2xl border border-brand-200 dark:border-brand-900 bg-white dark:bg-slate-900 p-6"><p class="text-sm">Complete the assignment in your own KalmiPrep account. You can retake it; your teacher ranks your best completed score.</p><form method="post" action="{% url 'classrooms:start_assignment' assignment.pk %}" class="mt-4">{% csrf_token %}<button class="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white">{% if student_attempts %}Start / resume attempt{% else %}Start assignment{% endif %}</button></form><div class="mt-4 space-y-2">{% for attempt in student_attempts %}<p class="text-sm text-slate-500">Attempt {{ forloop.counter }} · {{ attempt.session.get_status_display }}{% if attempt.session.status == 'COMPLETED' %} · {{ attempt.session.percentage|floatformat:1 }}%{% if attempt.is_late %} · Late{% endif %}{% endif %}</p>{% endfor %}</div></section>
+  {% else %}<section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6"><div class="flex items-start justify-between gap-3"><div><h2 class="font-bold">Class results</h2><p class="text-xs text-slate-500 mt-1">Rank uses each student’s best completed score. Ties share a rank. Only student names and learning data are shown.</p></div><span id="results-live-status" class="shrink-0 text-[11px] text-slate-500">Connecting live updates…</span></div><div class="overflow-x-auto mt-4"><table class="w-full text-sm"><thead><tr class="text-left text-xs text-slate-500 border-b"><th class="py-2 pr-4">Rank</th><th class="py-2 pr-4">Student</th><th class="py-2 pr-4">Status</th><th class="py-2 pr-4">Best score</th><th class="py-2 pr-4">Attempts</th><th class="py-2">Areas to review</th></tr></thead><tbody id="assignment-results-body">{% for row in rows %}<tr class="border-b border-slate-100 dark:border-slate-800"><td class="py-3 pr-4 font-bold">{% if row.rank %}{{ row.rank }}{% else %}—{% endif %}</td><td class="py-3 pr-4">{{ row.student_name }}</td><td class="py-3 pr-4">{% if row.latest_attempt %}{{ row.latest_attempt.session.get_status_display }}{% if row.latest_attempt.is_late %} · Late{% endif %}{% else %}Not started{% endif %}</td><td class="py-3 pr-4">{% if row.best_attempt %}{{ row.best_attempt.session.percentage|floatformat:1 }}%{% if assignment.kind == 'UTME_MOCK' %} · {{ row.best_attempt.session.score_out_of_400 }}/400{% endif %}{% else %}—{% endif %}</td><td class="py-3 pr-4">{{ row.attempt_count }}</td><td class="py-3">{% if row.weak_areas %}{{ row.weak_areas|join:", " }}{% elif row.best_attempt %}No subject below 60%{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="6" class="py-4 text-slate-500">No students have joined this class yet.</td></tr>{% endfor %}</tbody></table></div></section>
+  <script>
+    (() => {
+      const body = document.getElementById("assignment-results-body");
+      const status = document.getElementById("results-live-status");
+      if (!body || !status || !window.WebSocket) return;
+      const assignmentId = "{{ assignment.pk }}";
+      const scheme = window.location.protocol === "https:" ? "wss:" : "ws:";
+      let socket;
+      let retryDelay = 1000;
+      let stopped = false;
+      const cell = (row, value, bold = false) => {
+        const td = document.createElement("td");
+        td.className = "py-3 pr-4" + (bold ? " font-bold" : "");
+        td.textContent = value;
+        row.appendChild(td);
+      };
+      const renderRows = (rows) => {
+        body.replaceChildren();
+        if (!rows.length) {
+          const row = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 6;
+          td.className = "py-4 text-slate-500";
+          td.textContent = "No students have joined this class yet.";
+          row.appendChild(td);
+          body.appendChild(row);
+          return;
+        }
+        rows.forEach((item) => {
+          const row = document.createElement("tr");
+          row.className = "border-b border-slate-100 dark:border-slate-800";
+          cell(row, item.rank || "—", true);
+          cell(row, item.name);
+          cell(row, item.status + (item.late ? " · Late" : ""));
+          cell(row, [item.score, item.utme_score].filter(Boolean).join(" · "));
+          cell(row, item.attempts);
+          cell(row, item.weak_areas.join(", ") || "—");
+          body.appendChild(row);
+        });
+      };
+      const connect = () => {
+        if (stopped) return;
+        socket = new WebSocket(`${scheme}//${window.location.host}/ws/classrooms/assignments/${assignmentId}/`);
+        socket.onopen = () => { retryDelay = 1000; status.textContent = "Live results connected"; };
+        socket.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            if (message.type === "results.updated" && Array.isArray(message.rows)) renderRows(message.rows);
+          } catch (_) { status.textContent = "Live update received with an invalid format"; }
+        };
+        socket.onerror = () => { status.textContent = "Live updates reconnecting…"; };
+        socket.onclose = () => {
+          status.textContent = "Live updates reconnecting…";
+          if (!stopped) {
+            window.setTimeout(connect, retryDelay);
+            retryDelay = Math.min(retryDelay * 2, 15000);
+          }
+        };
+      };
+      connect();
+      window.addEventListener("pagehide", () => { stopped = true; if (socket) socket.close(); }, { once: true });
+    })();
+  </script>{% endif %}
+</div>
+{% endblock %}

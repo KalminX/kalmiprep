@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Curriculum Subjects — KalmiPrep by Kalmitech{% endblock %}
+{% block title %}Curriculum Subjects & Syllabus Topics — KalmiPrep{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -9,22 +9,30 @@
   <nav class="flex items-center gap-2 text-xs text-slate-500 mb-6">
     <a href="{% url 'core:landing' %}" class="hover:text-slate-800 dark:hover:text-slate-200">Home</a>
     <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-    <span class="text-slate-800 dark:text-slate-200 font-medium">Subjects</span>
+    <span class="text-slate-800 dark:text-slate-200 font-medium">Subjects &amp; Syllabus</span>
   </nav>
 
   <!-- Page Header -->
-  <div class="max-w-3xl mb-12">
-    <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Curriculum Catalog</span>
-    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-      Examination Subjects
-    </h1>
-    <p class="text-base text-slate-600 dark:text-slate-300 mt-2">
-      Explore the complete syllabus for each subject. All topics are mapped to official Nigerian senior secondary and tertiary entrance standards.
-    </p>
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10">
+    <div class="max-w-3xl">
+      <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Curriculum Catalog</span>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+        Examination Subjects &amp; Topic Directory
+      </h1>
+      <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-2">
+        Explore the complete UTME, WAEC, and NECO syllabus across all 5 subjects, ordered sequentially by topic with verified question counts.
+      </p>
+    </div>
+    <div class="shrink-0">
+      <a href="#syllabus-directory" class="btn-secondary text-xs sm:text-sm py-2.5 px-4 inline-flex items-center gap-2">
+        <i data-lucide="list-ordered" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+        <span>Jump to Full Topic Breakdown</span>
+      </a>
+    </div>
   </div>
 
   <!-- Subjects Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
     {% for subj in subjects %}
     <div class="card-premium p-6 flex flex-col justify-between group hover:-translate-y-1 transition-all">
       <div>
@@ -38,14 +46,14 @@
         </div>
 
         <h2 class="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
-          {{ subj.name }}
+          <a href="{% url 'curriculum:subject_detail' subj.slug %}">{{ subj.name }}</a>
         </h2>
         <p class="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
           {{ subj.description }}
         </p>
 
-        <!-- Topic Breakdown -->
-        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-navy-800 space-y-2">
+        <!-- Topic Breakdown Summary -->
+        <div class="mt-5 pt-4 border-t border-slate-100 dark:border-navy-800 space-y-2">
           <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
             <span>Syllabus Topics</span>
             <span class="font-bold text-slate-900 dark:text-white">{{ subj.topic_count }} topics</span>
@@ -57,16 +65,206 @@
         </div>
       </div>
 
-      <!-- Action Button -->
-      <div class="mt-8 pt-4 border-t border-slate-100 dark:border-navy-800">
-        <a href="{% url 'curriculum:subject_detail' subj.slug %}" class="w-full btn-secondary text-xs sm:text-sm py-2.5 flex items-center justify-center gap-2 group-hover:border-brand-500 group-hover:text-brand-600">
-          <span>Explore {{ subj.name }} Syllabus</span>
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      <!-- Action Buttons -->
+      <div class="mt-6 pt-4 border-t border-slate-100 dark:border-navy-800 flex items-center gap-2">
+        <a href="{% url 'curriculum:subject_detail' subj.slug %}" class="w-full btn-secondary text-xs py-2.5 flex items-center justify-center gap-1.5 group-hover:border-brand-500 group-hover:text-brand-600">
+          <span>View {{ subj.topic_count }} Topics</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </a>
+        <a href="{% url 'practice:setup' %}?subject={{ subj.slug }}" class="btn-primary text-xs py-2.5 px-3.5 shrink-0 flex items-center justify-center gap-1">
+          <i data-lucide="play" class="w-3.5 h-3.5"></i>
+          <span>Practise</span>
         </a>
       </div>
     </div>
     {% endfor %}
   </div>
 
+  <!-- Complete Syllabus & Topic Directory Section -->
+  <div id="syllabus-directory" class="pt-8 border-t border-slate-200 dark:border-navy-800">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+      <div>
+        <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Complete Syllabus Breakdown</span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+          All Topics &amp; Question Counts by Subject
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          Every question in KalmiPrep is classified into its canonical UTME/WAEC syllabus topic in logical study order.
+        </p>
+      </div>
+
+      <!-- Quick Topic Filter Input -->
+      <div class="w-full sm:w-auto">
+        <div class="relative w-full">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+            <i data-lucide="search" class="w-4 h-4"></i>
+          </div>
+          <input type="text"
+                 id="syllabus-topic-search"
+                 oninput="filterSyllabusTopics()"
+                 placeholder="Filter 84 topics (e.g. Electrolysis, Surds)..."
+                 class="w-full pl-10 pr-4 py-2 text-xs rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all box-border">
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject Filter Tabs -->
+    <div class="flex flex-wrap items-center gap-2 mb-8" id="syllabus-subject-tabs">
+      <button type="button"
+              onclick="selectSyllabusSubject('all')"
+              data-subject-tab="all"
+              class="syllabus-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-sm">
+        All Subjects (84 Topics)
+      </button>
+      {% for subj in subjects %}
+      <button type="button"
+              onclick="selectSyllabusSubject('{{ subj.slug }}')"
+              data-subject-tab="{{ subj.slug }}"
+              class="syllabus-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-navy-800 hover:border-brand-500">
+        {{ subj.name }} ({{ subj.topic_count }})
+      </button>
+      {% endfor %}
+    </div>
+
+    <!-- Subject Topic Tables -->
+    <div class="space-y-10">
+      {% for subj in subjects %}
+      <section class="syllabus-subject-block card-premium overflow-hidden" data-subject-block="{{ subj.slug }}">
+        <!-- Subject Banner Header -->
+        <div class="p-5 sm:p-6 bg-slate-50 dark:bg-navy-950 border-b border-slate-200 dark:border-navy-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 {% if subj.color_theme == 'math' %}bg-blue-600 text-white{% elif subj.color_theme == 'chem' %}bg-emerald-600 text-white{% else %}bg-purple-600 text-white{% endif %}">
+              <i data-lucide="{{ subj.icon_name }}" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">
+                  <a href="{% url 'curriculum:subject_detail' subj.slug %}" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                    {{ subj.name }}
+                  </a>
+                </h3>
+                <span class="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-slate-200 dark:bg-navy-800 text-slate-700 dark:text-slate-300">
+                  {{ subj.code }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                {{ subj.topic_count }} canonical syllabus topics &bull; <span class="font-mono font-semibold text-slate-700 dark:text-slate-300">{{ subj.question_count }}</span> verified past questions
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <a href="{% url 'questions:question_list' %}?subject={{ subj.slug }}" class="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5">
+              <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+              <span>All {{ subj.name }} Questions</span>
+            </a>
+            <a href="{% url 'practice:setup' %}?subject={{ subj.slug }}" class="btn-primary text-xs py-2 px-3 flex items-center gap-1.5">
+              <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+              <span>Practise {{ subj.code }}</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Ordered Topics Rows -->
+        <div class="divide-y divide-slate-100 dark:divide-navy-800">
+          {% for topic in subj.topics.all %}
+          <div class="syllabus-topic-row p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 dark:hover:bg-navy-800/40 transition-colors"
+               data-topic-search="{{ topic.name|lower }} {{ topic.description|lower }} {{ subj.name|lower }}">
+            <div class="flex items-start gap-3.5 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 font-mono text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                {{ topic.order }}
+              </span>
+              <div class="min-w-0">
+                <a href="{% url 'curriculum:topic_detail' subj.slug topic.slug %}" class="text-sm sm:text-base font-bold text-slate-900 dark:text-white hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                  {{ topic.name }}
+                </a>
+                {% if topic.description %}
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
+                  {{ topic.description }}
+                </p>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Question Count Badge & Action Links -->
+            <div class="flex items-center justify-between sm:justify-end gap-3 pl-10 sm:pl-0 shrink-0">
+              <a href="{% url 'questions:question_list' %}?subject={{ subj.slug }}&topic={{ topic.slug }}"
+                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-slate-100 dark:bg-navy-800 text-slate-800 dark:text-slate-200 hover:bg-brand-50 dark:hover:bg-navy-700 hover:text-brand-700 dark:hover:text-brand-400 transition-colors"
+                 title="Browse all {{ topic.question_count }} questions in {{ topic.name }}">
+                <span>{{ topic.question_count }}</span>
+                <span class="font-sans font-medium text-[11px] text-slate-500">questions</span>
+              </a>
+
+              <div class="flex items-center gap-1.5">
+                <a href="{% url 'questions:question_list' %}?subject={{ subj.slug }}&topic={{ topic.slug }}"
+                   class="btn-secondary text-xs py-1.5 px-2.5">
+                  Browse
+                </a>
+                <a href="{% url 'practice:setup' %}?subject={{ subj.slug }}&topic={{ topic.slug }}"
+                   class="btn-primary text-xs py-1.5 px-2.5 flex items-center gap-1">
+                  <i data-lucide="play" class="w-3 h-3"></i>
+                  <span>Practise</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endfor %}
+    </div>
+  </div>
+
 </div>
+
+<script>
+  window.activeSyllabusSubject = 'all';
+
+  window.selectSyllabusSubject = function(slug) {
+    window.activeSyllabusSubject = slug;
+    const tabs = document.querySelectorAll('.syllabus-tab-btn');
+    tabs.forEach(function(btn) {
+      if (btn.getAttribute('data-subject-tab') === slug) {
+        btn.className = 'syllabus-tab-btn px-3.5 py-2 rounded-xl text-xs font-bold transition-all bg-brand-600 text-white shadow-sm';
+      } else {
+        btn.className = 'syllabus-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition-all bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-navy-800 hover:border-brand-500';
+      }
+    });
+    window.filterSyllabusTopics();
+  };
+
+  window.filterSyllabusTopics = function() {
+    const input = document.getElementById('syllabus-topic-search');
+    const query = (input ? input.value : '').trim().toLowerCase();
+    const blocks = document.querySelectorAll('.syllabus-subject-block');
+
+    blocks.forEach(function(block) {
+      const subjSlug = block.getAttribute('data-subject-block');
+      const matchesTab = (window.activeSyllabusSubject === 'all' || window.activeSyllabusSubject === subjSlug);
+
+      if (!matchesTab) {
+        block.classList.add('hidden');
+        return;
+      }
+
+      const rows = block.querySelectorAll('.syllabus-topic-row');
+      let visibleRows = 0;
+      rows.forEach(function(row) {
+        const text = row.getAttribute('data-topic-search') || '';
+        if (!query || text.indexOf(query) !== -1) {
+          row.classList.remove('hidden');
+          visibleRows += 1;
+        } else {
+          row.classList.add('hidden');
+        }
+      });
+
+      if (visibleRows > 0) {
+        block.classList.remove('hidden');
+      } else {
+        block.classList.add('hidden');
+      }
+    });
+  };
+</script>
 {% endblock %}

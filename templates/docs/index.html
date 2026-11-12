@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Testing Guide & Documentation | KalmiPrep{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+  <!-- Header -->
+  <header class="border-b border-slate-200 dark:border-slate-800 pb-8">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 text-xs font-semibold uppercase tracking-wider mb-3">
+      Developer &amp; QA Documentation
+    </div>
+    <h1 class="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+      Teacher &amp; Student Testing Flow
+    </h1>
+    <p class="text-base text-slate-600 dark:text-slate-300 mt-2 max-w-3xl leading-relaxed">
+      Complete walkthrough for testing teacher test authoring, the proctor waiting room gate, instant database demo payments (no Paystack required), and the admin platform revenue ledger.
+    </p>
+
+    <!-- Fast Action Links -->
+    <div class="flex flex-wrap items-center gap-3 mt-6">
+      <a href="{% url 'accounts:login' %}" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-sm">
+        Go to Login (1-Click Test Chips) &rarr;
+      </a>
+      <a href="{% url 'monetization:dashboard' %}" class="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 transition">
+        Teacher Dashboard
+      </a>
+      <a href="{% url 'monetization:create_test' %}" class="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 transition">
+        Create Paid Test
+      </a>
+      {% if user.is_staff %}
+      <a href="{% url 'monetization:admin_earnings' %}" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm">
+        Admin Platform Earnings &rarr;
+      </a>
+      {% endif %}
+      <a href="/admin/" target="_blank" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold transition">
+        Django Admin
+      </a>
+    </div>
+  </header>
+
+  <!-- Ready-to-Use Test Logins Matrix -->
+  <section class="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-brand-50/80 via-white to-emerald-50/50 dark:from-slate-900 dark:via-navy-950 dark:to-slate-900 border border-brand-200/80 dark:border-navy-800 space-y-4 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-brand-100 dark:border-navy-800 pb-4">
+      <div>
+        <h2 class="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+          <span>🔑</span> Pre-Configured Test Credentials
+        </h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">All test accounts use the password <code class="px-1.5 py-0.5 rounded bg-brand-100 dark:bg-navy-800 font-mono text-brand-700 dark:text-brand-300 font-bold">Password123!</code>. You can also click the 1-click login chips on <a href="{% url 'accounts:login' %}" class="underline font-bold text-brand-600">the login page</a>.</p>
+      </div>
+      <a href="{% url 'accounts:login' %}" class="shrink-0 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs">
+        Open Sign In
+      </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <!-- Admin Account -->
+      <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-700/80 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 uppercase">Platform Admin</span>
+          <span class="text-sm">👑</span>
+        </div>
+        <div>
+          <div class="font-mono text-xs font-bold text-slate-900 dark:text-white">username: admin</div>
+          <div class="font-mono text-xs text-slate-500">password: Password123!</div>
+        </div>
+        <p class="text-[11px] text-slate-500 leading-relaxed">
+          Access the 20% platform revenue ledger, review &amp; approve teacher applications, invite teachers, and Django Admin.
+        </p>
+      </div>
+
+      <!-- Teacher Account -->
+      <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-700/80 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 uppercase">Approved Tutor</span>
+          <span class="text-sm">🧑‍🏫</span>
+        </div>
+        <div>
+          <div class="font-mono text-xs font-bold text-slate-900 dark:text-white">username: demo_teacher</div>
+          <div class="font-mono text-xs text-slate-500">password: Password123!</div>
+        </div>
+        <p class="text-[11px] text-slate-500 leading-relaxed">
+          Create paid topic tests, configure waiting room approval lock, unlock exams for students, view leaderboards, and manage classes.
+        </p>
+      </div>
+
+      <!-- Student Account -->
+      <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-700/80 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 uppercase">Learner</span>
+          <span class="text-sm">🎓</span>
+        </div>
+        <div>
+          <div class="font-mono text-xs font-bold text-slate-900 dark:text-white">username: demo_student_01</div>
+          <div class="font-mono text-xs text-slate-500">password: Password123!</div>
+        </div>
+        <p class="text-[11px] text-slate-500 leading-relaxed">
+          Browse syllabus, take timed CBT mocks with scientific calculator, star bookmarks, and join classes.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- High-Level Flow Architecture -->
+  <section class="p-6 sm:p-8 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-6">
+    <h2 class="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+      <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-white text-xs font-bold">1</span>
+      System Architecture &amp; Lifecycle
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+        <span class="font-bold text-brand-600 uppercase">Phase 1</span>
+        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Teacher Setup</h3>
+        <p class="text-slate-500">Teacher creates a paid test, sets price (min ₦200), selects topics, and checks <em>"Require Teacher Approval to Start"</em>.</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+        <span class="font-bold text-emerald-600 uppercase">Phase 2</span>
+        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Demo Checkout</h3>
+        <p class="text-slate-500">Student visits the public share link. Clicks <em>"⚡ Instant Demo Payment"</em>. Verified directly in the DB; 10-character PIN issued instantly.</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+        <span class="font-bold text-amber-600 uppercase">Phase 3</span>
+        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Waiting Lobby Gate</h3>
+        <p class="text-slate-500">Student enters PIN and is held in the waiting lobby. HTMX polls every 3s. Student cannot view questions until teacher starts exam.</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2">
+        <span class="font-bold text-purple-600 uppercase">Phase 4</span>
+        <h3 class="font-bold text-sm text-slate-900 dark:text-white">Proctor Unlock &amp; Exam</h3>
+        <p class="text-slate-500">Teacher clicks <em>"Unlock &amp; Start Exam"</em>. Student auto-redirects into CBT test. 20% platform cut &amp; 80% teacher wallet update in real time.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Step-by-Step Testing Guide -->
+  <div class="space-y-8">
+    <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">Step-by-Step QA Verification</h2>
+
+    <!-- Step 1 -->
+    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-extrabold text-sm">1</span>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Teacher Publishes Test with Waiting Room Active</h3>
+      </div>
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+        <p>1. Navigate to <a href="{% url 'monetization:create_test' %}" class="text-brand-600 font-semibold underline">Create Paid Test</a>.</p>
+        <p>2. Enter a test title, description, and price (e.g., <code>₦500.00</code>).</p>
+        <p>3. Select one or more topics with available questions.</p>
+        <p>4. Check the box labeled <strong>"Require Teacher Approval to Start"</strong> (this activates the waiting room gate).</p>
+        <p>5. Click <strong>Publish Test</strong>. You will be redirected to the <a href="{% url 'monetization:dashboard' %}" class="text-brand-600 font-semibold underline">Teacher Dashboard</a> where you can see the test with a status badge <code>Locked (Waiting Room)</code>.</p>
+        <p>6. Click <strong>Copy Link</strong> next to your newly created test.</p>
+      </div>
+    </article>
+
+    <!-- Step 2 -->
+    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold text-sm">2</span>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Student Registration via Demo Payment (Zero Paystack Required)</h3>
+      </div>
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+        <p>1. Open a new <strong>Incognito or Private Browsing window</strong> (or a different browser) so you test as an unauthenticated or student user.</p>
+        <p>2. Paste the copied test link (e.g., <code>http://localhost:8000/monetization/tests/&lt;share_code&gt;/</code>).</p>
+        <p>3. Fill in the student checkout form:</p>
+        <ul class="list-disc list-inside space-y-1 font-mono text-xs text-slate-500 pl-2">
+          <li>Full Name: e.g. "Ada Lovelace"</li>
+          <li>Email: e.g. "ada@example.com"</li>
+          <li>Phone Number: e.g. "08012345678"</li>
+        </ul>
+        <p>4. Click the green button: <strong>"⚡ Instant Demo Payment (Database Only — Zero Setup)"</strong>.</p>
+        <p>5. Payment is recorded and verified cleanly in the database without hitting external Paystack servers. The student is immediately presented with their <strong>Purchase Receipt</strong> and their secret <strong>10-character Test PIN</strong>.</p>
+      </div>
+    </article>
+
+    <!-- Step 3 -->
+    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-extrabold text-sm">3</span>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Student Waiting Lobby Gate</h3>
+      </div>
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+        <p>1. From the receipt page, the student clicks <strong>"Start Test Now"</strong>, or navigates to <code>/enter/</code> and inputs their PIN.</p>
+        <p>2. Because the teacher has not yet unlocked the exam, the student is redirected to the <strong>Waiting Room</strong> (<code>/waiting/</code>).</p>
+        <p>3. In the waiting room, students see:</p>
+        <ul class="list-disc list-inside space-y-1 text-slate-500 pl-2">
+          <li>A pulsing radar indicator: <em>"Waiting for teacher to start the exam..."</em></li>
+          <li>Their saved <strong>Access PIN</strong> in bold mono font so they don't lose it.</li>
+          <li>Real-time HTMX polling checking every 3 seconds for the teacher's start trigger.</li>
+        </ul>
+        <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-xs text-amber-800 dark:text-amber-300">
+          <strong>Security note:</strong> Direct attempts to bypass the waiting room or call the practice session URL before approval are rejected with a redirect back to the waiting room.
+        </div>
+      </div>
+    </article>
+
+    <!-- Step 4 -->
+    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-extrabold text-sm">4</span>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Teacher Unlocks Exam (Proctor Control)</h3>
+      </div>
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+        <p>1. Switch back to your teacher browser window.</p>
+        <p>2. On the <a href="{% url 'monetization:dashboard' %}" class="text-brand-600 font-semibold underline">Teacher Dashboard</a>, click <strong>"View students &amp; scores"</strong> on the test.</p>
+        <p>3. Notice the banner: <code>Exam is LOCKED (Waiting Room Active)</code>.</p>
+        <p>4. Click <strong>"Unlock &amp; Start Exam for Students"</strong>.</p>
+        <p>5. Switch to the student's browser window. Within 3 seconds, without refreshing, the student's waiting room automatically launches them into the active CBT test session!</p>
+      </div>
+    </article>
+
+    <!-- Step 5 -->
+    <article class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-extrabold text-sm">5</span>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Admin Platform Earnings &amp; Operations</h3>
+      </div>
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-11">
+        <p>1. As a staff member, visit <a href="{% url 'monetization:admin_earnings' %}" class="text-brand-600 font-semibold underline">Admin Platform Earnings</a>.</p>
+        <p>2. Review the financial metrics:</p>
+        <ul class="list-disc list-inside space-y-1 text-slate-500 pl-2">
+          <li><strong>Gross Sales Volume:</strong> Total ₦ generated from all purchases.</li>
+          <li><strong>Platform Cut (20%):</strong> Automatic revenue retention for KalmiPrep.</li>
+          <li><strong>Teacher Share (80%):</strong> Credited directly into teacher wallets.</li>
+          <li><strong>Pending Applications:</strong> Approve or reject tutor and lecture house applications with one click.</li>
+          <li><strong>Recent Purchases:</strong> Real-time audit log of student email, amount, and reference.</li>
+        </ul>
+      </div>
+    </article>
+  </div>
+
+  <!-- Quick Reference Table -->
+  <section class="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
+    <h3 class="text-base font-bold text-slate-900 dark:text-white">Endpoint &amp; URL Reference</h3>
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs font-mono">
+        <thead class="bg-white dark:bg-slate-800 text-slate-500 uppercase">
+          <tr>
+            <th class="px-3 py-2">Route</th>
+            <th class="px-3 py-2">Role</th>
+            <th class="px-3 py-2">Description</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher</td>
+            <td class="px-3 py-2 text-slate-500">Teacher dashboard, wallet balance, published tests, copy links</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/new/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher</td>
+            <td class="px-3 py-2 text-slate-500">Create new paid test with optional approval gate</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/&lt;uuid&gt;/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Student</td>
+            <td class="px-3 py-2 text-slate-500">Public checkout page with Demo DB payment &amp; Paystack options</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/&lt;uuid&gt;/waiting/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Student</td>
+            <td class="px-3 py-2 text-slate-500">Waiting room polling lobby while teacher has not yet unlocked test</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/&lt;uuid&gt;/results/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher</td>
+            <td class="px-3 py-2 text-slate-500">Leaderboard &amp; Proctor Controls (Unlock &amp; Start Exam / Lock Gate)</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/staff/earnings/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Admin/Staff</td>
+            <td class="px-3 py-2 text-slate-500">Platform 20% cut ledger, gross volume, teacher application reviews</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/docs/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">All</td>
+            <td class="px-3 py-2 text-slate-500">This interactive testing &amp; architecture documentation page</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

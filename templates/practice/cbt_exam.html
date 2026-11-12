@@ -147,16 +147,17 @@
         {% endif %}
 
         <!-- Options List Form -->
-        <form id="cbt-question-form" method="post" action="{% url 'practice:submit_answer' session.id current_resp.id %}" class="space-y-3 mb-8">
+        <form id="cbt-question-form" method="post" action="{% url 'practice:submit_answer' session.id current_resp.id %}" class="space-y-3 mb-8" role="radiogroup" aria-label="Question answer options">
           {% csrf_token %}
           <input type="hidden" name="is_flagged" id="input-is-flagged" value="{{ current_resp.is_flagged|yesno:'true,false' }}">
 
           {% for opt in current_resp.question.options.all %}
-          <label class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer transition-all cbt-option-item {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}border-brand-500 bg-brand-50/70 dark:bg-brand-950/40 ring-2 ring-brand-500{% else %}border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 hover:bg-slate-50 dark:hover:bg-navy-800{% endif %}">
+          <label class="flex items-center gap-3.5 p-4 rounded-xl border cursor-pointer transition-all cbt-option-item focus-within:ring-2 focus-within:ring-brand-500 focus-within:border-brand-500 {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}border-brand-500 bg-brand-50/70 dark:bg-brand-950/40 ring-2 ring-brand-500{% else %}border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 hover:bg-slate-50 dark:hover:bg-navy-800{% endif %}">
             <input type="radio" 
                    name="option_id" 
                    value="{{ opt.id }}" 
                    class="text-brand-600 focus:ring-brand-500 w-4 h-4 sr-only"
+                   aria-label="Option {{ opt.tag }}: {{ opt.text|striptags }}"
                    {% if current_resp.selected_option and current_resp.selected_option.id == opt.id %}checked{% endif %}
                    onchange="onSelectCBTOption(this, '{{ opt.tag }}')">
             <span class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-navy-800 text-slate-900 dark:text-slate-100 font-bold font-mono text-xs flex items-center justify-center shrink-0 border border-slate-200 dark:border-navy-700">
@@ -228,15 +229,16 @@
         </div>
 
         <!-- Numbers Grid (1 to N) -->
-        <div class="grid grid-cols-5 gap-2 max-h-72 overflow-y-auto p-1">
+        <div class="grid grid-cols-5 gap-2 max-h-72 overflow-y-auto p-1" role="navigation" aria-label="Question palette navigation">
           {% for r in responses %}
           <a href="?q={{ r.order }}" 
              id="grid-item-{{ r.order }}"
              class="w-full aspect-square rounded-lg flex items-center justify-center font-mono text-xs font-bold transition-all relative {% if r.order == current_index %}ring-2 ring-blue-500 bg-blue-600 text-white shadow-sm{% elif r.is_flagged %}bg-amber-500 text-white{% elif r.selected_option %}bg-emerald-600 text-white{% else %}bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-navy-700{% endif %}"
-             title="Question #{{ r.order }}">
+             title="Question #{{ r.order }}"
+             aria-label="Question {{ r.order }}{% if r.order == current_index %}, current{% endif %}{% if r.selected_option %}, answered{% elif r.is_flagged %}, flagged{% else %}, unanswered{% endif %}">
             {{ r.order }}
             {% if r.is_flagged and r.order != current_index %}
-            <span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-amber-300 rounded-full"></span>
+            <span class="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-amber-300 rounded-full" aria-hidden="true"></span>
             {% endif %}
           </a>
           {% endfor %}
@@ -448,14 +450,50 @@
     document.getElementById('submit-modal').classList.add('hidden');
   }
 
-  // Keyboard shortcut listener (A, B, C, D, E or 1, 2, 3, 4, 5)
+  // Full JAMB 8-Key Standard Shortcuts (A, B, C, D, P, N, S, R)
   document.addEventListener('keydown', (e) => {
     if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
-    // Never treat calculator typing (digits / letters) as an answer choice
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     if (e.target && e.target.closest && e.target.closest('#scientific-calculator-modal')) return;
     if (window.useKalmiStore && window.useKalmiStore.getState().calc.isOpen) return;
+
     const key = e.key.toUpperCase();
+
+    // 1. Previous Question (P or Left Arrow)
+    if (key === 'P' || e.key === 'ArrowLeft') {
+      const prevBtn = document.querySelector('a[href*="?q={{ prev_index }}"]');
+      if (prevBtn) {
+        e.preventDefault();
+        window.location.href = prevBtn.getAttribute('href');
+      }
+      return;
+    }
+
+    // 2. Next Question (N or Right Arrow)
+    if (key === 'N' || e.key === 'ArrowRight') {
+      const nextBtn = document.querySelector('a[href*="?q={{ next_index }}"]');
+      if (nextBtn) {
+        e.preventDefault();
+        window.location.href = nextBtn.getAttribute('href');
+      }
+      return;
+    }
+
+    // 3. Submit Assessment (S)
+    if (key === 'S') {
+      e.preventDefault();
+      openSubmitModal();
+      return;
+    }
+
+    // 4. Reverse / Flag Question (R)
+    if (key === 'R') {
+      e.preventDefault();
+      toggleFlagReview();
+      return;
+    }
+
+    // 5. Option Selection (A, B, C, D, E or 1, 2, 3, 4, 5)
     const tagMap = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E' };
     const targetTag = tagMap[key] || key;
 
@@ -465,12 +503,45 @@
       if (tagSpan && tagSpan.innerText.trim().toUpperCase() === targetTag) {
         const radio = opt.querySelector('input[type="radio"]');
         if (radio) {
+          e.preventDefault();
           radio.checked = true;
           onSelectCBTOption(radio, targetTag);
         }
       }
     });
   });
+
+  // Anti-Exit Guard: Warn before accidental tab closure / back button
+  window.addEventListener('beforeunload', (e) => {
+    // Only warn if exam session is still active
+    const isExpired = window.useKalmiStore && window.useKalmiStore.getState().timer.isExpired;
+    if (!isExpired) {
+      e.preventDefault();
+      e.returnValue = 'Your examination session is still in progress. Leaving this page will not stop the timer.';
+      return e.returnValue;
+    }
+  });
+
+  // Offline / Online Network State Resiliency
+  function updateNetworkStatus() {
+    let banner = document.getElementById('cbt-offline-banner');
+    if (!navigator.onLine) {
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'cbt-offline-banner';
+        banner.className = 'fixed top-0 inset-x-0 z-50 bg-amber-600 text-white text-xs font-bold py-1.5 px-4 text-center shadow-md flex items-center justify-center gap-2';
+        banner.innerHTML = '<i data-lucide="wifi-off" class="w-4 h-4"></i> Network disconnected. Your answers are buffered locally and will sync once connection returns.';
+        document.body.prepend(banner);
+        if (window.lucide) lucide.createIcons();
+      }
+      banner.classList.remove('hidden');
+    } else if (banner) {
+      banner.classList.add('hidden');
+    }
+  }
+  window.addEventListener('online', updateNetworkStatus);
+  window.addEventListener('offline', updateNetworkStatus);
+  updateNetworkStatus();
 </script>
 {% endblock %}
 

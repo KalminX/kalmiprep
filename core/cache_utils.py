@@ -1,6 +1,6 @@
 import logging
 from django.core.cache import cache
-from django.db.models import Count, Q
+from django.db.models import Count, Prefetch, Q
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +43,15 @@ def get_cached_landing_metrics():
         from curriculum.models import Subject, Topic
         from questions.models import Question
 
+        topics_prefetch = Prefetch(
+            "topics",
+            queryset=Topic.objects.annotate(
+                pub_question_count=Count("questions", filter=Q(questions__is_published=True))
+            ).order_by("order", "name"),
+        )
         subjects = list(
             Subject.objects.filter(is_active=True)
-            .prefetch_related("topics")
+            .prefetch_related(topics_prefetch)
             .annotate(
                 total_pub_questions=Count("questions", filter=Q(questions__is_published=True)),
                 total_pub_solutions=Count(
@@ -53,6 +59,7 @@ def get_cached_landing_metrics():
                     filter=Q(questions__is_published=True) & ~Q(questions__explanation="")
                 )
             )
+            .order_by("order", "name")
         )
         total_questions = Question.objects.filter(is_published=True).count()
         total_topics = Topic.objects.count()
@@ -78,14 +85,22 @@ def get_cached_landing_metrics():
 
 def get_cached_subject_list():
     """
-    Returns subjects annotated with topic_count and question_count for the curriculum subject catalog.
+    Returns subjects annotated with topic_count, question_count, and prefetched ordered topics
+    with per-topic question counts for the curriculum subject catalog and syllabus directory.
     Cached in Redis.
     """
     subjects = cache.get(CACHE_KEY_SUBJECT_LIST)
     if subjects is None:
-        from curriculum.models import Subject
+        from curriculum.models import Subject, Topic
+        topics_prefetch = Prefetch(
+            "topics",
+            queryset=Topic.objects.annotate(
+                pub_question_count=Count("questions", filter=Q(questions__is_published=True))
+            ).order_by("order", "name"),
+        )
         subjects = list(
             Subject.objects.filter(is_active=True)
+            .prefetch_related(topics_prefetch)
             .annotate(
                 num_topics=Count("topics", distinct=True),
                 pub_question_count=Count("questions", filter=Q(questions__is_published=True), distinct=True)
@@ -107,7 +122,12 @@ def get_cached_subject_detail(slug):
         from curriculum.models import Subject
 
         subject = get_object_or_404(Subject, slug=slug, is_active=True)
-        topics = list(subject.topics.all().prefetch_related("subtopics", "questions"))
+        topics = list(
+            subject.topics.all()
+            .annotate(pub_question_count=Count("questions", filter=Q(questions__is_published=True)))
+            .order_by("order", "name")
+            .prefetch_related("subtopics")
+        )
 
         exam_breakdown = {
             "UTME": subject.questions.filter(exam_type="UTME", is_published=True).count(),
@@ -179,7 +199,7 @@ def get_cached_filter_choices():
     if data is None:
         from curriculum.models import Subject, Topic
         subjects = list(Subject.objects.filter(is_active=True).order_by("order", "name").values_list("id", "slug", "name"))
-        raw_topics = list(Topic.objects.all().order_by("subject__name", "name").values_list("id", "slug", "name", "subject_id", "subject__slug"))
+        raw_topics = list(Topic.objects.all().order_by("subject__order", "order", "name").values_list("id", "slug", "name", "subject_id", "subject__slug"))
 
         topics_by_subject = {}
         for tid, tslug, tname, sid, sslug in raw_topics:

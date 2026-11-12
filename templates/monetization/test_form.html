@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Create a Paid Test | KalmiPrep{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 py-8">
+  <div class="mb-6">
+    <a href="{% url 'monetization:dashboard' %}" class="text-xs font-bold text-brand-700 dark:text-brand-300">← Teacher Dashboard</a>
+    <h1 class="text-2xl font-extrabold mt-2">Create a paid test</h1>
+    <p class="text-sm text-slate-500 mt-1">Set a price of at least ₦200 and select topics from the published question library.</p>
+  </div>
+  <form method="post" class="space-y-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-7">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="text-sm text-rose-600 rounded-xl bg-rose-50 p-3">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}
+      {% if field.name == 'topics' %}
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-semibold">{{ field.label }}</label>
+            <span id="selected-topics-count" class="text-xs text-brand-600 dark:text-brand-400 font-medium">0 topics selected</span>
+          </div>
+          <input type="text" id="topic-search-input" placeholder="Search topics or subjects (e.g. Algebra, Physics, Genetics)..." class="w-full mb-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs px-3.5 py-2.5">
+          <div id="topics-checkbox-list" class="max-h-64 overflow-y-auto space-y-1.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs">
+            {{ field }}
+          </div>
+          {% if field.help_text %}<p class="text-xs text-slate-500 mt-1">{{ field.help_text }}</p>{% endif %}
+          {% for error in field.errors %}<p class="text-xs text-rose-600 mt-1">{{ error }}</p>{% endfor %}
+        </div>
+      {% else %}
+        <div>
+          <label class="block text-xs font-semibold mb-1">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="text-xs text-slate-500 mt-1">{{ field.help_text }}</p>{% endif %}
+          {% for error in field.errors %}<p class="text-xs text-rose-600 mt-1">{{ error }}</p>{% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+    <p class="text-sm p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+      Each verified sale allocates <strong>80%</strong> to your teacher wallet and <strong>20%</strong> to KalmiPrep platform operations.
+    </p>
+    <div class="flex justify-end gap-2">
+      <a href="{% url 'monetization:dashboard' %}" class="px-4 py-2.5 rounded-xl border text-sm font-semibold">Cancel</a>
+      <button class="px-5 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-bold hover:bg-brand-700 transition-colors">Publish test</button>
+    </div>
+  </form>
+</div>
+<script>
+  (() => {
+    const searchInput = document.getElementById("topic-search-input");
+    const listContainer = document.getElementById("topics-checkbox-list");
+    const countDisplay = document.getElementById("selected-topics-count");
+    if (listContainer && countDisplay) {
+      const updateCount = () => {
+        const count = listContainer.querySelectorAll('input[type="checkbox"]:checked').length;
+        countDisplay.textContent = `${count} topic${count === 1 ? '' : 's'} selected`;
+      };
+      listContainer.addEventListener("change", updateCount);
+      updateCount();
+
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          const query = e.target.value.toLowerCase().trim();
+          const items = listContainer.querySelectorAll("li, div > label, label");
+          items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            const match = !query || text.includes(query);
+            item.style.display = match ? "" : "none";
+          });
+        });
+      }
+    }
+  })();
+</script>
+{% endblock %}

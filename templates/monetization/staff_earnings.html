@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Platform Earnings & Operations | KalmiPrep{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 text-xs font-semibold uppercase tracking-wider mb-2">
+        Platform Operations
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">Admin Platform Earnings</h1>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time ledger overview: 20% platform revenue share, 80% teacher cut, and teacher management.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <a href="{% url 'monetization:invite_teacher' %}" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold transition">
+        Invite Teacher
+      </a>
+      <a href="{% url 'docs' %}" class="px-4 py-2 rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300 text-xs font-bold transition">
+        Testing Guide &amp; Docs
+      </a>
+      <a href="/admin/" target="_blank" class="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold transition">
+        Django Admin &rarr;
+      </a>
+    </div>
+  </div>
+
+  <!-- Key Financial Metrics -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+      <p class="text-xs uppercase font-semibold tracking-wider text-slate-500">Gross Sales Volume</p>
+      <p class="text-3xl font-extrabold text-slate-900 dark:text-white mt-2">₦{{ gross_naira|floatformat:2 }}</p>
+      <p class="text-xs text-slate-500 mt-1">{{ total_sales_count }} paid transaction{{ total_sales_count|pluralize }}</p>
+    </div>
+
+    <div class="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 shadow-sm">
+      <p class="text-xs uppercase font-semibold tracking-wider text-emerald-800 dark:text-emerald-300">Platform Cut (20%)</p>
+      <p class="text-3xl font-extrabold text-emerald-900 dark:text-emerald-100 mt-2">₦{{ platform_naira|floatformat:2 }}</p>
+      <p class="text-xs text-emerald-700 dark:text-emerald-400 mt-1">Net: ₦{{ net_platform_naira|floatformat:2 }} (after ₦{{ fees_naira|floatformat:2 }} gateway fees)</p>
+    </div>
+
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+      <p class="text-xs uppercase font-semibold tracking-wider text-slate-500">Teacher Allocation (80%)</p>
+      <p class="text-3xl font-extrabold text-slate-900 dark:text-white mt-2">₦{{ teacher_naira|floatformat:2 }}</p>
+      <p class="text-xs text-slate-500 mt-1">Credited directly to teacher wallets</p>
+    </div>
+
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+      <p class="text-xs uppercase font-semibold tracking-wider text-slate-500">Pending Approvals</p>
+      <p class="text-3xl font-extrabold text-amber-600 dark:text-amber-400 mt-2">{{ pending_teachers.count }}</p>
+      <p class="text-xs text-slate-500 mt-1">{{ pending_withdrawals.count }} withdrawal request{{ pending_withdrawals.count|pluralize }}</p>
+    </div>
+  </div>
+
+  <!-- Pending Teacher Applications -->
+  {% if pending_teachers %}
+  <section class="rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 p-6 space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-lg font-bold text-amber-950 dark:text-amber-200">Pending Teacher Applications ({{ pending_teachers.count }})</h2>
+        <p class="text-xs text-amber-800/80 dark:text-amber-300/80">Review and approve teachers so they can create and publish paid tests.</p>
+      </div>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-amber-200 dark:border-amber-900 bg-white dark:bg-slate-900">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-amber-100/50 dark:bg-slate-800 text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
+          <tr>
+            <th class="px-4 py-3">Teacher / Institution</th>
+            <th class="px-4 py-3">User Email</th>
+            <th class="px-4 py-3">Type</th>
+            <th class="px-4 py-3">Submitted</th>
+            <th class="px-4 py-3 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          {% for teacher in pending_teachers %}
+          <tr>
+            <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">{{ teacher.display_name }}</td>
+            <td class="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">{{ teacher.user.email }}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-800 font-medium">{{ teacher.get_kind_display }}</span></td>
+            <td class="px-4 py-3 text-xs text-slate-500">{{ teacher.created_at|date:"M j, Y H:i" }}</td>
+            <td class="px-4 py-3 text-right space-x-2">
+              <form method="post" action="{% url 'monetization:approve_teacher' teacher.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">Approve</button>
+              </form>
+              <form method="post" action="{% url 'monetization:reject_teacher' teacher.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition">Reject</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Active Teachers & Balances -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-white">Active Teachers &amp; Ledgers</h2>
+      <span class="text-xs text-slate-500">{{ active_teachers.count }} active teacher{{ active_teachers.count|pluralize }}</span>
+    </div>
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-800/70 text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th class="px-4 py-3">Teacher</th>
+            <th class="px-4 py-3">Account Email</th>
+            <th class="px-4 py-3">Published Tests</th>
+            <th class="px-4 py-3 text-right">Wallet Balance</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          {% for teacher in active_teachers %}
+          <tr>
+            <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">{{ teacher.display_name }}</td>
+            <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ teacher.user.email }}</td>
+            <td class="px-4 py-3 text-xs">{{ teacher.published_tests_count }} test{{ teacher.published_tests_count|pluralize }}</td>
+            <td class="px-4 py-3 text-right font-extrabold text-slate-900 dark:text-white">
+              ₦{{ teacher.wallet.balance_naira|default:0|floatformat:2 }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs">No active teachers registered yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Recent Transactions -->
+  <section class="space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-white">Recent Paid Test Purchases</h2>
+      <span class="text-xs text-slate-500">Showing last {{ recent_transactions.count }}</span>
+    </div>
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-800/70 text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th class="px-4 py-3">Date</th>
+            <th class="px-4 py-3">Test</th>
+            <th class="px-4 py-3">Teacher</th>
+            <th class="px-4 py-3">Student</th>
+            <th class="px-4 py-3 text-right">Gross</th>
+            <th class="px-4 py-3 text-right">Teacher (80%)</th>
+            <th class="px-4 py-3 text-right">Platform (20%)</th>
+            <th class="px-4 py-3">Reference</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          {% for p in recent_transactions %}
+          <tr>
+            <td class="px-4 py-3 text-xs text-slate-500">{{ p.paid_at|default:p.created_at|date:"M j, H:i" }}</td>
+            <td class="px-4 py-3 font-semibold text-slate-900 dark:text-white">{{ p.test.title }}</td>
+            <td class="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">{{ p.teacher.display_name }}</td>
+            <td class="px-4 py-3 text-xs">
+              <span class="font-medium text-slate-900 dark:text-white">{{ p.buyer_name }}</span>
+              <span class="block text-[11px] text-slate-400">{{ p.buyer_email }}</span>
+            </td>
+            <td class="px-4 py-3 text-right font-bold tabular-nums">₦{{ p.amount_naira|floatformat:2 }}</td>
+            <td class="px-4 py-3 text-right text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
+              ₦{{ p.teacher_share_naira|floatformat:2 }}
+            </td>
+            <td class="px-4 py-3 text-right text-brand-600 dark:text-brand-400 font-bold tabular-nums">
+              ₦{{ p.platform_share_naira|floatformat:2 }}
+            </td>
+            <td class="px-4 py-3 font-mono text-[11px] text-slate-400 truncate max-w-[120px]">{{ p.paystack_reference }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="px-4 py-8 text-center text-slate-500 text-xs">No paid purchases recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

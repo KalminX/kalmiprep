@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Payment confirmed | KalmiPrep{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto px-4 sm:px-6 py-12">
+  <section class="bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900 rounded-2xl p-6 sm:p-8 text-center">
+    <i data-lucide="badge-check" class="w-12 h-12 mx-auto text-emerald-600"></i>
+    <h1 class="text-2xl font-extrabold mt-3">Payment confirmed</h1>
+    <p class="text-sm text-slate-500 mt-2">Your payment was verified with Paystack. Keep this PIN to return to your test.</p>
+    <div class="my-6 py-4 rounded-xl bg-slate-50 dark:bg-slate-800 flex flex-col items-center">
+      <p class="text-xs uppercase tracking-wider text-slate-500">Test access PIN</p>
+      <p id="access-pin-val" class="font-mono text-3xl font-extrabold tracking-[0.25em] mt-2 select-all">{{ pin }}</p>
+      <button type="button" onclick="navigator.clipboard.writeText('{{ pin }}').then(() => { const prev = this.innerText; this.innerText = 'Copied to Clipboard!'; setTimeout(() => this.innerText = prev, 2500); })" class="mt-3 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+        Copy PIN
+      </button>
+    </div>
+    <p class="text-xs text-slate-500 mb-5">{{ purchase.test.title }} · ₦{{ purchase.amount_naira|floatformat:2 }}</p>
+    <form method="post" action="{% url 'monetization:enter_test' purchase.test.share_code %}">{% csrf_token %}<input type="hidden" name="pin" value="{{ pin }}"><button class="inline-flex justify-center px-6 py-3 rounded-xl bg-brand-600 text-white text-sm font-bold">Start test</button></form>
+  </section>
+</div>
+{% endblock %}

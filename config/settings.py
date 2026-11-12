@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -11,6 +12,10 @@ SECRET_KEY = os.getenv(
 )
 
 DEBUG = os.getenv("DEBUG", "True").lower() in ("true", "1", "yes")
+PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY", "").strip()
+PAYSTACK_TEST_MODE = os.getenv("PAYSTACK_TEST_MODE", "True" if DEBUG else "False").lower() in ("true", "1", "yes")
+PAID_TEST_PIN_SECRET = os.getenv("PAID_TEST_PIN_SECRET", SECRET_KEY if DEBUG else "").strip()
+SITE_URL = os.getenv("SITE_URL", "").strip().rstrip("/")
 
 ALLOWED_HOSTS = ["*"]
 
@@ -18,10 +23,28 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.kalmitech.app",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "http://0.0.0.0:8000",
+    "http://localhost",
+    "http://127.0.0.1",
+    "http://0.0.0.0",
+    "http://*.localhost:8000",
+    "http://*.localhost",
+    "https://*.ngrok-free.app",
+    "https://*.ngrok.io",
+    "https://*.loca.lt",
 ]
+
+# Add any custom origins provided in environment variables
+_extra_csrf = os.getenv("CSRF_TRUSTED_ORIGINS", "").strip()
+if _extra_csrf:
+    for _origin in _extra_csrf.split(","):
+        _origin = _origin.strip()
+        if _origin and _origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(_origin)
 
 # Application definition
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -30,6 +53,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Third-party
     "django_filters",
+    "channels",
     # Local KalmiPrep apps
     "core.apps.CoreConfig",
     "curriculum.apps.CurriculumConfig",
@@ -37,6 +61,8 @@ INSTALLED_APPS = [
     "practice.apps.PracticeConfig",
     "progress.apps.ProgressConfig",
     "accounts.apps.AccountsConfig",
+    "monetization.apps.MonetizationConfig",
+    "classrooms.apps.ClassroomsConfig",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +77,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
+ASGI_APPLICATION = "config.asgi.application"
 
 TEMPLATES = [
     {
@@ -120,6 +147,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+if "test" in sys.argv or os.getenv("TESTING", "").lower() in ("true", "1"):
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Lagos"
 USE_I18N = True
@@ -187,6 +218,20 @@ if USE_S3_STORAGE and R2_BUCKET_NAME and R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_K
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Email is printed to the console in development and sent through deployment
+# configured SMTP in production. Credentials only come from environment values.
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() in ("true", "1", "yes")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "KalmiPrep <noreply@kalmiprep.com>")
+TEACHER_TUTORIAL_URL = os.getenv("TEACHER_TUTORIAL_URL", "").strip()
+
 # WhiteNoise storage for efficient static file serving
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
@@ -201,6 +246,7 @@ if REDIS_URL:
             "TIMEOUT": 1800,  # 30 minutes default
         }
     }
+
     # Fast cached database sessions: Redis for read speed, Postgres for persistent write-through
     SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 else:
@@ -212,6 +258,18 @@ else:
         }
     }
 
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {"hosts": [REDIS_URL], "prefix": "kalmiprep:channels"},
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}
+    }
+
 # Celery & RabbitMQ Distributed Ingestion Engine
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "amqp://kalmin:iamasaint@global-rabbitmq:5672//")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://kalmiprep-redis:6379/2")
@@ -220,3 +278,75 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_DEFAULT_QUEUE = "default"
+
+# ==============================================================================
+# Structured Logging & Error Diagnostics
+# ==============================================================================
+LOGS_DIR = BASE_DIR / "logs"
+os.makedirs(LOGS_DIR, exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
+        "simple": {
+            "format": "%(levelname)s %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "app_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "kalmiprep_app.log",
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 5,
+            "formatter": "verbose",
+            "encoding": "utf-8",
+        },
+        "payment_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "payment_errors.log",
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 5,
+            "formatter": "verbose",
+            "encoding": "utf-8",
+        },
+        "exam_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": LOGS_DIR / "exam_errors.log",
+            "maxBytes": 5 * 1024 * 1024,
+            "backupCount": 5,
+            "formatter": "verbose",
+            "encoding": "utf-8",
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console", "app_file"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "monetization": {
+            "handlers": ["console", "payment_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "practice": {
+            "handlers": ["console", "exam_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "core.telemetry": {
+            "handlers": ["console", "app_file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}

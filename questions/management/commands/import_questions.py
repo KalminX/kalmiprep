@@ -9,6 +9,7 @@ from django.core.files.base import ContentFile
 from django.utils.text import slugify
 
 from curriculum.models import Subject, Topic, Subtopic
+from questions.classifier import classify_question_topic
 from questions.models import Question, Option
 
 
@@ -46,79 +47,33 @@ def normalize_latex(text: str) -> str:
     return text.strip()
 
 
-def classify_topic(subject: Subject, text: str, preloaded_topics: list = None) -> Topic:
-    """Classifies a question into a curriculum topic based on keywords in its text and explanation."""
-    text_lower = text.lower()
+def classify_topic(
+    subject: Subject,
+    text: str,
+    preloaded_topics: list = None,
+    explanation: str = "",
+    options_text: str = "",
+    source_id: str = None,
+    raw_topic_slug: str = None,
+) -> Topic:
+    """Classifies a question into its canonical curriculum topic using the multi-field weighted classifier."""
     topics = preloaded_topics if preloaded_topics is not None else list(subject.topics.all())
     if not topics:
         return None
 
-    scores = {}
-    for t in topics:
-        scores[t] = 0
-
-    subj_code = subject.code.upper()
-    if subj_code == "MATH":
-        if any(w in text_lower for w in ["base", "logarithm", "indices", "surd", "sets", "venn", "modulo", "prime", "fraction", "ratio", "percent"]):
-            t = next((t for t in topics if "Number" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["polynomial", "quadratic", "equation", "inequalit", "variation", "sequence", "series", "progression", "g.p", "a.p", "matrix", "determinant", "binary"]):
-            t = next((t for t in topics if "Algebra" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["triangle", "circle", "chord", "tangent", "angle", "bearing", "sin", "cos", "tan", "elevation", "depression", "polygon", "gradient", "geometry", "rhombus", "parallelogram"]):
-            t = next((t for t in topics if "Geometry" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["derivative", "differentiate", "integral", "integrate", "limit", "maxima", "minima", "dy/dx"]):
-            t = next((t for t in topics if "Calculus" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["mean", "median", "mode", "probability", "variance", "deviation", "frequency", "permutation", "combination", "dice", "coin"]):
-            t = next((t for t in topics if "Statistics" in t.name), None)
-            if t: scores[t] += 5
-
-    elif subj_code == "CHEM":
-        if any(w in text_lower for w in ["distillation", "chromatography", "filtration", "crystallization", "mixture", "purification", "sublimation"]):
-            t = next((t for t in topics if "Separation" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["electron", "proton", "neutron", "isotope", "orbital", "covalent", "ionic", "electrovalent", "periodic", "bond", "valency"]):
-            t = next((t for t in topics if "Atomic" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["mole", "avogadro", "molar", "empirical", "molecular formula", "titration", "mass", "volume of gas", "stoichiometry"]):
-            t = next((t for t in topics if "Stoichiometry" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["acid", "base", "salt", "ph", "neutralization", "deliquescent", "efflorescent", "indicator", "litmus", "buffer"]):
-            t = next((t for t in topics if "Acids" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["enthalpy", "exothermic", "endothermic", "catalyst", "equilibrium", "le chatelier", "activation energy", "kinetics"]):
-            t = next((t for t in topics if "Kinetics" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["electrolysis", "faraday", "anode", "cathode", "oxidation", "reduction", "redox", "electrode"]):
-            t = next((t for t in topics if "Electrochemistry" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["hydrocarbon", "alkane", "alkene", "alkyne", "benzene", "alcohol", "alkanol", "ester", "saponification", "polymer", "isomer"]):
-            t = next((t for t in topics if "Organic" in t.name), None)
-            if t: scores[t] += 5
-
-    elif subj_code == "PHYS":
-        if any(w in text_lower for w in ["velocity", "acceleration", "force", "newton", "momentum", "work", "energy", "power", "gravity", "circular", "elasticity", "pressure", "density", "archimedes"]):
-            t = next((t for t in topics if "Mechanics" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["temperature", "thermometer", "expansion", "heat capacity", "latent heat", "boyle", "charles", "gas law", "conduction", "radiation"]):
-            t = next((t for t in topics if "Thermal" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["wave", "sound", "frequency", "wavelength", "resonance", "echo", "reflection", "refraction", "lens", "mirror", "focal length", "light", "prism"]):
-            t = next((t for t in topics if "Waves" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["charge", "coulomb", "electric", "current", "voltage", "resistance", "ohm", "magnetic", "solenoid", "transformer", "induction", "alternating"]):
-            t = next((t for t in topics if "Electricity" in t.name), None)
-            if t: scores[t] += 5
-        if any(w in text_lower for w in ["nucleus", "quanta", "photon", "photoelectric", "half-life", "radioactive", "alpha", "beta", "gamma", "decay", "x-ray", "atomic"]):
-            t = next((t for t in topics if "Modern" in t.name), None)
-            if t: scores[t] += 5
-
-    best_topic = max(scores, key=scores.get)
-    if scores[best_topic] > 0:
-        return best_topic
-    return topics[0]  # default fallback
+    best_slug, _, _ = classify_question_topic(
+        subject_slug=subject.slug,
+        question_text=text,
+        explanation=explanation,
+        options_text=options_text,
+        source_id=source_id,
+        raw_topic_slug=raw_topic_slug,
+    )
+    if best_slug:
+        matched = next((t for t in topics if t.slug == best_slug), None)
+        if matched:
+            return matched
+    return topics[0]
 
 
 class Command(BaseCommand):
@@ -266,13 +221,21 @@ class Command(BaseCommand):
                 skipped_count += 1
                 continue
 
-            # Classify topic using in-memory cache
+            # Classify topic using multi-field weighted classifier + ground-truth lookup
             topic_raw = raw.get("topic") or raw.get("topic_slug")
-            topic = None
-            if topic_raw:
-                topic = topic_lookup.get((subject.id, str(topic_raw).lower().strip()))
-            if not topic:
-                topic = classify_topic(subject, q_text + " " + explanation, preloaded_topics=topics_by_subject.get(subject.id, []))
+            raw_options_for_cls = raw.get("options") or []
+            opts_text_for_cls = " | ".join(
+                str(o.get("text") or "") for o in raw_options_for_cls if isinstance(o, dict)
+            )
+            topic = classify_topic(
+                subject,
+                q_text,
+                preloaded_topics=topics_by_subject.get(subject.id, []),
+                explanation=explanation,
+                options_text=opts_text_for_cls,
+                source_id=source_id,
+                raw_topic_slug=str(topic_raw).lower().strip() if topic_raw else None,
+            )
 
             has_image = bool(raw.get("has_image") or raw.get("image_url") or raw.get("local_image"))
             image_url = raw.get("image_url") or ""

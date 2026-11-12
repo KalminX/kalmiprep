@@ -1,0 +1,77 @@
+version: "1.0"
+domain: "responsive_ui_invariants"
+description: "Authoritative design and UX invariants for KalmiPrep: dark mode contrast, touch targets, and mobile layout"
+
+invariants:
+  - id: "INV-UI-01"
+    name: "WCAG AA Contrast Ratio"
+    rule: "Text contrast ratio against its effective background must be at least 4.5:1 for normal text and 3:1 for large text (>= 18pt or bold >= 14pt) in both light and dark modes."
+    severity: "high"
+  - id: "INV-UI-02"
+    name: "Pure Black Background Prohibition"
+    rule: "Dark mode body and large surface containers must use rich dark shades (e.g., slate-900 #0f172a, zinc-950 #09090b, or #0b0f19) rather than pure pitch black #000000."
+    severity: "medium"
+  - id: "INV-UI-03"
+    name: "Minimum Touch Target Size"
+    rule: "Interactive controls (buttons, links, form toggles, palette numbers) must have a bounding box of at least 44x44 CSS pixels on mobile viewports."
+    severity: "high"
+  - id: "INV-UI-04"
+    name: "Horizontal Viewport Stability"
+    rule: "Page root must never exhibit horizontal overflow scroll on standard mobile viewports (375px, 390px, 412px, 428px). scrollWidth must equal clientWidth."
+    severity: "critical"
+  - id: "INV-UI-05"
+    name: "Safe Area Bottom Inset"
+    rule: "Fixed mobile dock or navigation controls must respect env(safe-area-inset-bottom) to prevent obstruction by modern mobile gesture home bars."
+    severity: "medium"
+  - id: "INV-UI-06"
+    name: "Anti-AI UI Slop Prohibition"
+    rule: "Templates and UI components must not contain ungrounded decorative gradient text, sparkle emojis (✨), or empty AI marketing buzzwords."
+    severity: "high"
+
+scenarios:
+  - name: "Mobile Viewport Overflow Audit"
+    path: "/"
+    viewports:
+      - { width: 375, height: 667, name: "iPhone SE" }
+      - { width: 390, height: 844, name: "iPhone 12/13/14" }
+      - { width: 412, height: 915, name: "Pixel 7" }
+    steps:
+      - action: "navigate"
+        target: "/"
+      - action: "assert_nuance"
+        check: "no_horizontal_scroll"
+        expected: "document.documentElement.scrollWidth <= window.innerWidth"
+
+  - name: "Touch Target Audit"
+    path: "/"
+    viewports:
+      - { width: 375, height: 812, name: "Mobile" }
+    steps:
+      - action: "navigate"
+        target: "/"
+      - action: "assert_nuance"
+        check: "touch_target_dimensions"
+        target: "button, a.btn, [role='button']"
+        min_width: 44
+        min_height: 44
+
+  - name: "Dark Mode Surface & Contrast Audit"
+    path: "/"
+    theme: "dark"
+    steps:
+      - action: "set_theme"
+        value: "dark"
+      - action: "assert_nuance"
+        check: "no_pure_black_body"
+        expected: "body computed background is not rgb(0,0,0) / #000000"
+      - action: "assert_nuance"
+        check: "wcag_contrast"
+        target: "h1, h2, h3, p, button, .text-content"
+        min_ratio: 4.5
+
+  - name: "Anti-AI UI Slop Audit"
+    path: "/"
+    steps:
+      - action: "assert_nuance"
+        check: "anti_ai_slop_prohibition"
+        expected: "0 sparkle emojis, 0 neon rainbow gradients, 0 buzzwords"

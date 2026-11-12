@@ -4,11 +4,16 @@
   "description": "KalmiPrep by Kalmitech - Premium Exam Preparation Platform",
   "scripts": {
     "build:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/styles.css --minify",
-    "watch:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/styles.css --watch"
+    "watch:css": "npx tailwindcss -i ./static/css/input.css -o ./static/css/styles.css --watch",
+    "test:blueprints": "node tests/e2e/blueprint_runner.js",
+    "test:blueprints:headed": "node tests/e2e/blueprint_runner.js --headed",
+    "test:playwright": "node tests/e2e/playwright_blueprint_executor.js",
+    "test:e2e:docker": "docker run --rm --network webproxy -e BASE_URL=http://kalmiprep-app:8000 -v $(pwd):/app kalmiprep-playwright:latest node tests/e2e/playwright_blueprint_executor.js"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
+    "js-yaml": "^5.5.0",
     "jsdom": "^29.1.1",
     "playwright-core": "^1.64.1",
     "tailwindcss": "^3.4.17"

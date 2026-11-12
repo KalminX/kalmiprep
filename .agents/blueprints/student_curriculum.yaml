@@ -1,0 +1,65 @@
+version: "1.0"
+domain: "student_curriculum"
+description: "Authoritative behavioral blueprint for Student Curriculum, Question Bank, and Study Progress workflows"
+
+invariants:
+  - id: "INV-CURR-01"
+    name: "Search Filter Responsiveness"
+    rule: "Question bank filter queries must debounce input by at least 300ms to prevent rapid server thrashing and race conditions in HTMX swaps."
+    severity: "medium"
+  - id: "INV-CURR-02"
+    name: "Math Explanation Formatting"
+    rule: "All question body and step-by-step solutions must render math symbols cleanly via KaTeX with correct display mode."
+    severity: "high"
+  - id: "INV-CURR-03"
+    name: "Bookmark Toggle Idempotency"
+    rule: "Toggling question bookmark must provide immediate optimistic UI feedback and persist correctly to user saved questions list."
+    severity: "low"
+  - id: "INV-CURR-04"
+    name: "Curriculum Progress Monotonicity"
+    rule: "Completing practice questions must increase or maintain topic mastery score; score must never drop due to out-of-order async sync."
+    severity: "medium"
+
+scenarios:
+  - name: "Subject & Topic Navigation"
+    path: "/curriculum/"
+    prerequisites:
+      authenticated: true
+      role: "student"
+    steps:
+      - action: "navigate"
+        target: "/curriculum/jamb/physics/"
+      - action: "assert_element"
+        selector: "#topic-tree, [data-component='topic-tree']"
+        attribute: "children_count_greater_than"
+        value: 0
+      - action: "click"
+        target: "[data-topic-id='mechanics']"
+      - action: "assert_visible"
+        selector: "#subtopics-list, [data-component='subtopics']"
+
+  - name: "Question Bank Filter Debouncing"
+    path: "/questions/practice/"
+    steps:
+      - action: "fill"
+        field: "search"
+        value: "projectile"
+      - action: "assert_nuance"
+        check: "htmx_debounce"
+        target: "input[name='search']"
+        expected: "has hx-trigger with delay:300ms or higher"
+      - action: "assert_visible"
+        selector: "#questions-container .question-card"
+
+  - name: "Bookmark Persistence"
+    path: "/questions/practice/"
+    steps:
+      - action: "click"
+        target: "[data-question-card='1'] [data-action='bookmark']"
+      - action: "assert_element"
+        selector: "[data-question-card='1'] [data-action='bookmark']"
+        has_class: "text-amber-500, fill-amber-500, active"
+      - action: "reload"
+      - action: "assert_element"
+        selector: "[data-question-card='1'] [data-action='bookmark']"
+        has_class: "text-amber-500, fill-amber-500, active"

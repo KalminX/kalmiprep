@@ -70,12 +70,79 @@
   color: #f8fafc;
 }
 
-/* High-contrast fallback for muted text in dark mode */
+/* ==========================================================
+   WCAG AA/AAA ARIA & Color Contrast Invariants
+   ========================================================== */
+
+/* 1. High-Contrast Text in Light & Dark Mode */
+.text-slate-400 {
+  color: #475569; /* Upgrade light-mode slate-400 to slate-600 (7.5:1 contrast against white) */
+}
+.text-slate-500 {
+  color: #334155; /* Upgrade light-mode slate-500 to slate-700 (10.3:1 contrast against white) */
+}
+
+.dark .text-slate-400 {
+  color: #cbd5e1 !important; /* slate-300: 12.6:1 contrast against navy-900/950 */
+}
 .dark .text-slate-500 {
-  color: #94a3b8;
+  color: #cbd5e1 !important; /* slate-300: 12.6:1 contrast */
 }
 .dark .text-slate-600 {
-  color: #cbd5e1;
+  color: #e2e8f0 !important; /* slate-200: 15.2:1 contrast */
+}
+
+/* 2. WCAG 2.2 Focus Visible Invariant (SC 2.4.7 / 2.4.11) */
+:focus-visible {
+  outline: 2px solid #059669 !important; /* Emerald-600 (4.5:1 against light surfaces) */
+  outline-offset: 2px !important;
+}
+
+.dark :focus-visible {
+  outline: 2px solid #34d399 !important; /* Emerald-400 (9.8:1 against dark surfaces) */
+  outline-offset: 2px !important;
+}
+
+/* Form controls focus-visible ring */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none !important;
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.3) !important;
+}
+
+.dark input:focus-visible,
+.dark select:focus-visible,
+.dark textarea:focus-visible {
+  outline: none !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.35) !important;
+}
+
+/* 3. Placeholder Text High Contrast (WCAG AA 4.5:1+) */
+::placeholder {
+  color: #475569 !important; /* slate-600: 7.5:1 against white */
+  opacity: 1 !important;
+}
+.dark ::placeholder {
+  color: #94a3b8 !important; /* slate-400: 6.8:1 against dark surfaces */
+  opacity: 1 !important;
+}
+
+/* 4. Accessible Link Focus Underlines */
+a:focus-visible {
+  text-decoration: underline !important;
+}
+
+/* 5. CBT Question Option Radio Focus-Within */
+.cbt-option-item:focus-within {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.4) !important;
+}
+.dark .cbt-option-item:focus-within {
+  border-color: #34d399 !important;
+  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.45) !important;
 }
 
 /* Hide scrollbar for clean horizontal swipe ribbons */

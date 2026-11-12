@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Set up teacher account | KalmiPrep{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-12">
+  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-5">
+    <div><p class="text-xs uppercase tracking-wider text-brand-600">Teacher invitation</p><h1 class="text-2xl font-extrabold mt-1">Welcome, {{ invitation.display_name }}</h1><p class="text-sm text-slate-500 mt-2">You’re invited as a {{ invitation.get_kind_display }}. This link can be used once.</p></div>
+    {% if existing_account %}<p class="text-sm">This email already has a KalmiPrep account. Sign in to that account to accept the invitation.</p><a class="inline-flex rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white" href="{{ login_url }}">Sign in to accept</a>
+    {% elif wrong_account %}<p class="text-sm">You’re signed into a different account. Sign out, then open this invitation again and sign in with {{ invitation.email }}.</p><a class="inline-flex rounded-xl border px-5 py-2.5 text-sm font-bold" href="{{ login_url }}">Sign out</a>
+    {% else %}<form method="post" class="space-y-4">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="text-sm text-rose-600">{{ form.non_field_errors }}</div>{% endif %}
+      {% for field in form %}<div><label class="block text-xs font-semibold mb-1">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<p class="text-xs text-rose-600 mt-1">{{ error }}</p>{% endfor %}</div>{% endfor %}
+      <button class="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white">Create teacher account</button>
+    </form>{% endif %}
+  </section>
+</div>
+{% endblock %}

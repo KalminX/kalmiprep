@@ -191,6 +191,13 @@ class PracticeSession(models.Model):
         self.status = self.Status.COMPLETED
         self.completed_at = timezone.now()
         self.save(update_fields=["score", "percentage", "status", "completed_at", "time_spent_seconds"])
+        assignment_attempt = getattr(self, "class_assignment_attempt", None)
+        if assignment_attempt and assignment_attempt.is_active:
+            assignment_attempt.is_active = False
+            assignment_attempt.save(update_fields=["is_active"])
+            from classrooms.realtime import broadcast_assignment_update
+
+            broadcast_assignment_update(assignment_attempt.assignment_id)
         return self.percentage
 
 

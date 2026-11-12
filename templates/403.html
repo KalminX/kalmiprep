@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Access Restricted (403) | KalmiPrep{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-lg w-full text-center space-y-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 sm:p-10 rounded-3xl shadow-xl">
+    
+    <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center text-3xl font-bold shadow-xs">
+      <i data-lucide="shield-alert" class="w-8 h-8"></i>
+    </div>
+
+    <div class="space-y-2">
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+        Permission Required
+      </h1>
+      <p class="text-sm text-slate-600 dark:text-slate-300 max-w-sm mx-auto leading-relaxed">
+        {{ exception|default:"This page requires an approved Teacher or Staff account. If you are logged in as a student, this area is restricted." }}
+      </p>
+    </div>
+
+    <!-- Quick Role Switch Helpers -->
+    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-navy-950/80 border border-slate-200/80 dark:border-navy-800 text-left space-y-2 text-xs">
+      <div class="font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider text-[10px]">Testing Roles &amp; Logins:</div>
+      <div class="text-slate-600 dark:text-slate-400 space-y-1">
+        <div>&bull; <strong class="text-purple-600">Admin Area:</strong> Log in as <code class="font-mono text-xs font-bold">admin</code> (Password: <code>Password123!</code>)</div>
+        <div>&bull; <strong class="text-emerald-600">Teacher Portal:</strong> Log in as <code class="font-mono text-xs font-bold">demo_teacher</code> (Password: <code>Password123!</code>)</div>
+        <div>&bull; <strong class="text-blue-600">Student Area:</strong> Log in as <code class="font-mono text-xs font-bold">demo_student_01</code> (Password: <code>Password123!</code>)</div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <a href="{% url 'accounts:login' %}" class="w-full sm:w-auto btn-primary py-2.5 px-5 text-xs font-bold flex items-center justify-center gap-2">
+        <i data-lucide="log-in" class="w-4 h-4"></i>
+        <span>Switch Account</span>
+      </a>
+      <a href="{% url 'docs' %}" class="w-full sm:w-auto btn-secondary py-2.5 px-5 text-xs font-bold flex items-center justify-center gap-2">
+        <i data-lucide="file-text" class="w-4 h-4"></i>
+        <span>Testing Guide (/docs)</span>
+      </a>
+      <a href="{% url 'core:landing' %}" class="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white transition">
+        Return Home
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

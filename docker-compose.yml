@@ -34,6 +34,8 @@ services:
       - ./practice:/app/practice
       - ./progress:/app/progress
       - ./accounts:/app/accounts
+      - ./monetization:/app/monetization
+      - ./classrooms:/app/classrooms
       - ./config:/app/config
       - ./static:/app/static
       - /home/kalmin/startups/myschool-past-questions-scraper/myschool_dataset:/app/myschool_dataset

@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}Enter Test PIN | KalmiPrep{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto px-4 sm:px-6 py-12"><section class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><h1 class="text-xl font-extrabold">Enter your test PIN</h1><p class="text-sm text-slate-500 mt-1">{{ test.title }}</p><form method="post" class="mt-6 space-y-4">{% csrf_token %}{{ form.pin }}{% for error in form.pin.errors %}<p class="text-xs text-rose-600">{{ error }}</p>{% endfor %}{% for error in form.non_field_errors %}<p class="text-xs text-rose-600">{{ error }}</p>{% endfor %}<button class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold">Start or resume test</button></form></section></div>
+{% endblock %}
