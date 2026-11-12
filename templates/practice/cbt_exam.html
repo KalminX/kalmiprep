@@ -464,6 +464,7 @@
       const prevBtn = document.querySelector('a[href*="?q={{ prev_index }}"]');
       if (prevBtn) {
         e.preventDefault();
+        window.isExamNavigatingInternal = true;
         window.location.href = prevBtn.getAttribute('href');
       }
       return;
@@ -474,6 +475,7 @@
       const nextBtn = document.querySelector('a[href*="?q={{ next_index }}"]');
       if (nextBtn) {
         e.preventDefault();
+        window.isExamNavigatingInternal = true;
         window.location.href = nextBtn.getAttribute('href');
       }
       return;
@@ -511,14 +513,44 @@
     });
   });
 
-  // Anti-Exit Guard: Warn before accidental tab closure / back button
+  // Anti-Exit Guard: Distinguish internal question switching from abandoning the exam
+  window.isExamNavigatingInternal = false;
+
+  // Intercept any internal question links, subject tabs, or submissions
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (link) {
+      const href = link.getAttribute('href') || '';
+      if (href.startsWith('?') || href.includes('?q=') || href.includes('/practice/session/')) {
+        window.isExamNavigatingInternal = true;
+      }
+    }
+    const submitBtn = e.target.closest('button[type="submit"], input[type="submit"]');
+    if (submitBtn) {
+      window.isExamNavigatingInternal = true;
+    }
+  }, true);
+
+  const finalSubmitForm = document.getElementById('final-submit-form');
+  if (finalSubmitForm) {
+    finalSubmitForm.addEventListener('submit', () => {
+      window.isExamNavigatingInternal = true;
+    });
+  }
+
+  // Warn before accidental tab closure or external site departure
   window.addEventListener('beforeunload', (e) => {
+    // Never prompt during legitimate internal question navigation or form submission
+    if (window.isExamNavigatingInternal) {
+      return;
+    }
+
     // Only warn if exam session is still active
     const isExpired = window.useKalmiStore && window.useKalmiStore.getState().timer.isExpired;
     if (!isExpired) {
       e.preventDefault();
-      e.returnValue = 'Your examination session is still in progress. Leaving this page will not stop the timer.';
-      return e.returnValue;
+      e.returnValue = '';
+      return '';
     }
   });
 
