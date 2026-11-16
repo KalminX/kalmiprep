@@ -307,12 +307,23 @@ def build_ordered_questions_for_paper_type(paid_test: PaidTest, paper_type: str)
                 subject_groups[q.subject_id].append(q)
 
         ordered_final = []
+        paper_offsets = {
+            TestPurchase.PaperType.TYPE_B: 1,
+            TestPurchase.PaperType.TYPE_C: 2,
+            TestPurchase.PaperType.TYPE_D: 3,
+        }
         for sid in subject_order:
             subj_questions = list(subject_groups[sid])
             if paper_type != TestPurchase.PaperType.TYPE_A:
                 seed_val = f"kalmiprep_{paid_test.id}_subj_{sid}_paper_{paper_type}"
                 rng = random.Random(seed_val)
                 rng.shuffle(subj_questions)
+                # Ensure different paper types never start on the exact same first question if pool > 1
+                if len(subj_questions) > 1 and subj_questions[0].id == subject_groups[sid][0].id:
+                    shift = paper_offsets.get(paper_type, 1) % len(subj_questions)
+                    if shift == 0:
+                        shift = 1
+                    subj_questions = subj_questions[shift:] + subj_questions[:shift]
             ordered_final.extend(subj_questions)
         return ordered_final
     else:
