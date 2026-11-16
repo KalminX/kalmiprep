@@ -41,15 +41,27 @@ def admin_earnings_view(request):
         status=WithdrawalRequest.Status.REQUESTED
     ).select_related("wallet__teacher__user").order_by("-created_at")
 
-    recent_transactions = paid_purchases.select_related(
+    recent_transactions_qs = paid_purchases.select_related(
         "test", "teacher", "buyer"
-    ).order_by("-paid_at", "-created_at")[:30]
+    ).order_by("-paid_at", "-created_at")
 
-    active_teachers = TeacherProfile.objects.filter(
+    tx_paginator = Paginator(recent_transactions_qs, 20)
+    tx_page_obj = tx_paginator.get_page(request.GET.get("tx_page", 1))
+
+    active_teachers_qs = TeacherProfile.objects.filter(
         status=TeacherProfile.Status.ACTIVE
     ).select_related("user", "wallet").annotate(
         published_tests_count=Count("tests", filter=Q(tests__is_published=True))
     ).order_by("-created_at")
+
+    t_search = request.GET.get("t_search", "").strip()
+    if t_search:
+        active_teachers_qs = active_teachers_qs.filter(
+            Q(display_name__icontains=t_search) | Q(user__email__icontains=t_search)
+        )
+
+    t_paginator = Paginator(active_teachers_qs, 15)
+    t_page_obj = t_paginator.get_page(request.GET.get("t_page", 1))
 
     context = {
         "gross_naira": Decimal(gross_kobo) / Decimal(100),
@@ -60,8 +72,12 @@ def admin_earnings_view(request):
         "total_sales_count": total_sales_count,
         "pending_teachers": pending_teachers,
         "pending_withdrawals": pending_withdrawals,
-        "recent_transactions": recent_transactions,
-        "active_teachers": active_teachers,
+        "recent_transactions": tx_page_obj,
+        "tx_page_obj": tx_page_obj,
+        "active_teachers": t_page_obj,
+        "t_page_obj": t_page_obj,
+        "t_search": t_search,
+        "total_active_teachers": t_paginator.count,
     }
     return render(request, "monetization/staff_earnings.html", context)
 

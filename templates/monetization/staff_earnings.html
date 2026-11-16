@@ -56,90 +56,32 @@
     </div>
   </div>
 
-  <!-- Pending Teacher Applications -->
-  {% if pending_teachers %}
-  <section class="rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 p-6 space-y-4">
-    <div class="flex items-center justify-between">
-      <div>
-        <h2 class="text-lg font-bold text-amber-950 dark:text-amber-200">Pending Teacher Applications ({{ pending_teachers.count }})</h2>
-        <p class="text-xs text-amber-800/80 dark:text-amber-300/80">Review and approve teachers so they can create and publish paid tests.</p>
-      </div>
-    </div>
-    <div class="overflow-x-auto rounded-xl border border-amber-200 dark:border-amber-900 bg-white dark:bg-slate-900">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-amber-100/50 dark:bg-slate-800 text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
-          <tr>
-            <th class="px-4 py-3">Teacher / Institution</th>
-            <th class="px-4 py-3">User Email</th>
-            <th class="px-4 py-3">Type</th>
-            <th class="px-4 py-3">Submitted</th>
-            <th class="px-4 py-3 text-right">Action</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-          {% for teacher in pending_teachers %}
-          <tr>
-            <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">{{ teacher.display_name }}</td>
-            <td class="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">{{ teacher.user.email }}</td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-800 font-medium">{{ teacher.get_kind_display }}</span></td>
-            <td class="px-4 py-3 text-xs text-slate-500">{{ teacher.created_at|date:"M j, Y H:i" }}</td>
-            <td class="px-4 py-3 text-right space-x-2">
-              <form method="post" action="{% url 'monetization:approve_teacher' teacher.id %}" class="inline">
-                {% csrf_token %}
-                <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">Approve</button>
-              </form>
-              <form method="post" action="{% url 'monetization:reject_teacher' teacher.id %}" class="inline">
-                {% csrf_token %}
-                <button type="submit" class="px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition">Reject</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
-  {% endif %}
+  <!-- Admin View Navigation Tabs -->
+  <div class="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+    <button type="button" onclick="switchAdminTab('purchases')" id="tab-btn-purchases" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow-xs transition">
+      <span>Paid Purchases Ledger</span>
+      <span class="opacity-80">({{ total_sales_count }})</span>
+    </button>
+    <button type="button" onclick="switchAdminTab('teachers')" id="tab-btn-teachers" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+      <span>Teachers &amp; Directory</span>
+      <span class="opacity-80">({{ total_active_teachers }})</span>
+      {% if pending_teachers.count > 0 %}
+      <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white">{{ pending_teachers.count }}</span>
+      {% endif %}
+    </button>
+    <button type="button" onclick="switchAdminTab('withdrawals')" id="tab-btn-withdrawals" class="admin-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+      <span>Withdrawals</span>
+      {% if pending_withdrawals.count > 0 %}
+      <span class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white">{{ pending_withdrawals.count }}</span>
+      {% endif %}
+    </button>
+  </div>
 
-  <!-- Active Teachers & Balances -->
-  <section class="space-y-4">
-    <div class="flex items-center justify-between">
-      <h2 class="text-lg font-bold text-slate-900 dark:text-white">Active Teachers &amp; Ledgers</h2>
-      <span class="text-xs text-slate-500">{{ active_teachers.count }} active teacher{{ active_teachers.count|pluralize }}</span>
-    </div>
-    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-      <table class="w-full text-left text-sm">
-        <thead class="bg-slate-50 dark:bg-slate-800/70 text-xs uppercase tracking-wide text-slate-500">
-          <tr>
-            <th class="px-4 py-3">Teacher</th>
-            <th class="px-4 py-3">Account Email</th>
-            <th class="px-4 py-3">Published Tests</th>
-            <th class="px-4 py-3 text-right">Wallet Balance</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-          {% for teacher in active_teachers %}
-          <tr>
-            <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">{{ teacher.display_name }}</td>
-            <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ teacher.user.email }}</td>
-            <td class="px-4 py-3 text-xs">{{ teacher.published_tests_count }} test{{ teacher.published_tests_count|pluralize }}</td>
-            <td class="px-4 py-3 text-right font-extrabold text-slate-900 dark:text-white">
-              ₦{{ teacher.wallet.balance_naira|default:0|floatformat:2 }}
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs">No active teachers registered yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <!-- Recent Transactions -->
-  <section class="space-y-4">
+  <!-- TAB 1: Recent Purchases Ledger -->
+  <div id="admin-tab-content-purchases" class="space-y-4">
     <div class="flex items-center justify-between">
       <h2 class="text-lg font-bold text-slate-900 dark:text-white">Recent Paid Test Purchases</h2>
-      <span class="text-xs text-slate-500">Showing last {{ recent_transactions.count }}</span>
+      <span class="text-xs text-slate-500">Showing page {{ tx_page_obj.number }} of {{ tx_page_obj.paginator.num_pages }}</span>
     </div>
     <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
       <table class="w-full text-left text-sm">
@@ -180,6 +122,191 @@
         </tbody>
       </table>
     </div>
-  </section>
+
+    <!-- Purchases Pagination -->
+    {% if tx_page_obj.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-between text-xs text-slate-500 pt-2">
+      <div>Showing {{ tx_page_obj.start_index }}–{{ tx_page_obj.end_index }} of {{ total_sales_count }} purchases</div>
+      <div class="flex items-center gap-1.5">
+        {% if tx_page_obj.has_previous %}
+        <a href="?tx_page={{ tx_page_obj.previous_page_number }}#tab-purchases" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 font-medium">&larr; Previous</a>
+        {% endif %}
+        <span class="px-2 py-1 font-semibold text-slate-700 dark:text-slate-300">Page {{ tx_page_obj.number }} of {{ tx_page_obj.paginator.num_pages }}</span>
+        {% if tx_page_obj.has_next %}
+        <a href="?tx_page={{ tx_page_obj.next_page_number }}#tab-purchases" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 font-medium">Next &rarr;</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- TAB 2: Teachers & Approvals -->
+  <div id="admin-tab-content-teachers" class="hidden space-y-6">
+    <!-- Pending Teacher Applications -->
+    {% if pending_teachers %}
+    <section class="rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 p-6 space-y-4">
+      <div>
+        <h2 class="text-lg font-bold text-amber-950 dark:text-amber-200">Pending Teacher Applications ({{ pending_teachers.count }})</h2>
+        <p class="text-xs text-amber-800/80 dark:text-amber-300/80">Review and approve teachers so they can create and publish paid tests.</p>
+      </div>
+      <div class="overflow-x-auto rounded-xl border border-amber-200 dark:border-amber-900 bg-white dark:bg-slate-900">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-amber-100/50 dark:bg-slate-800 text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
+            <tr>
+              <th class="px-4 py-3">Teacher / Institution</th>
+              <th class="px-4 py-3">User Email</th>
+              <th class="px-4 py-3">Type</th>
+              <th class="px-4 py-3">Submitted</th>
+              <th class="px-4 py-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for teacher in pending_teachers %}
+            <tr>
+              <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">{{ teacher.display_name }}</td>
+              <td class="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-400">{{ teacher.user.email }}</td>
+              <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-800 font-medium">{{ teacher.get_kind_display }}</span></td>
+              <td class="px-4 py-3 text-xs text-slate-500">{{ teacher.created_at|date:"M j, Y H:i" }}</td>
+              <td class="px-4 py-3 text-right space-x-2">
+                <form method="post" action="{% url 'monetization:approve_teacher' teacher.id %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">Approve</button>
+                </form>
+                <form method="post" action="{% url 'monetization:reject_teacher' teacher.id %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit" class="px-3 py-1.5 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition">Reject</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Active Teachers & Balances -->
+    <section class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white">Active Teachers &amp; Ledgers</h2>
+          <span class="text-xs text-slate-500">{{ total_active_teachers }} registered active teacher{{ total_active_teachers|pluralize }}</span>
+        </div>
+        <!-- Teacher Search -->
+        <form method="get" class="flex items-center gap-1.5">
+          <input type="text" name="t_search" value="{{ t_search|default:'' }}" placeholder="Search teacher or email..." class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <button type="submit" class="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-xs font-semibold hover:bg-slate-300 transition">Filter</button>
+          {% if t_search %}
+          <a href="{% url 'monetization:admin_earnings' %}#tab-teachers" class="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-700">Clear</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-slate-50 dark:bg-slate-800/70 text-xs uppercase tracking-wide text-slate-500">
+            <tr>
+              <th class="px-4 py-3">Teacher</th>
+              <th class="px-4 py-3">Account Email</th>
+              <th class="px-4 py-3">Published Tests</th>
+              <th class="px-4 py-3 text-right">Wallet Balance</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+            {% for teacher in active_teachers %}
+            <tr>
+              <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">{{ teacher.display_name }}</td>
+              <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ teacher.user.email }}</td>
+              <td class="px-4 py-3 text-xs">{{ teacher.published_tests_count }} test{{ teacher.published_tests_count|pluralize }}</td>
+              <td class="px-4 py-3 text-right font-extrabold text-slate-900 dark:text-white">
+                ₦{{ teacher.wallet.balance_naira|default:0|floatformat:2 }}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs">No active teachers matching search.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Teachers Pagination -->
+      {% if t_page_obj.paginator.num_pages > 1 %}
+      <div class="flex items-center justify-between text-xs text-slate-500 pt-2">
+        <div>Showing {{ t_page_obj.start_index }}–{{ t_page_obj.end_index }} of {{ total_active_teachers }} teachers</div>
+        <div class="flex items-center gap-1.5">
+          {% if t_page_obj.has_previous %}
+          <a href="?t_page={{ t_page_obj.previous_page_number }}{% if t_search %}&t_search={{ t_search }}{% endif %}#tab-teachers" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 font-medium">&larr; Previous</a>
+          {% endif %}
+          <span class="px-2 py-1 font-semibold text-slate-700 dark:text-slate-300">Page {{ t_page_obj.number }} of {{ t_page_obj.paginator.num_pages }}</span>
+          {% if t_page_obj.has_next %}
+          <a href="?t_page={{ t_page_obj.next_page_number }}{% if t_search %}&t_search={{ t_search }}{% endif %}#tab-teachers" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 font-medium">Next &rarr;</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+
+  <!-- TAB 3: Withdrawals -->
+  <div id="admin-tab-content-withdrawals" class="hidden space-y-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-bold text-slate-900 dark:text-white">Withdrawal Requests ({{ pending_withdrawals.count }})</h2>
+      <span class="text-xs text-slate-500">Manual review ledger</span>
+    </div>
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <table class="w-full text-left text-sm">
+        <thead class="bg-slate-50 dark:bg-slate-800/70 text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th class="px-4 py-3">Date</th>
+            <th class="px-4 py-3">Teacher</th>
+            <th class="px-4 py-3">Requested Amount</th>
+            <th class="px-4 py-3">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          {% for w in pending_withdrawals %}
+          <tr>
+            <td class="px-4 py-3 text-xs text-slate-500">{{ w.created_at|date:"M j, Y H:i" }}</td>
+            <td class="px-4 py-3 font-semibold text-slate-900 dark:text-white">{{ w.wallet.teacher.display_name }}</td>
+            <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">₦{{ w.amount_naira|floatformat:2 }}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">{{ w.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="px-4 py-8 text-center text-slate-500 text-xs">No pending withdrawal requests.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function switchAdminTab(tabName) {
+      const tabs = ['purchases', 'teachers', 'withdrawals'];
+      tabs.forEach(t => {
+        const content = document.getElementById('admin-tab-content-' + t);
+        const btn = document.getElementById('tab-btn-' + t);
+        if (t === tabName) {
+          if (content) content.classList.remove('hidden');
+          if (btn) btn.className = 'admin-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-brand-600 text-white shadow-xs transition';
+        } else {
+          if (content) content.classList.add('hidden');
+          if (btn) btn.className = 'admin-tab-btn px-4 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition';
+        }
+      });
+      window.location.hash = 'tab-' + tabName;
+    }
+
+    // Auto-activate tab based on URL hash
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash;
+      if (hash === '#tab-teachers') {
+        switchAdminTab('teachers');
+      } else if (hash === '#tab-withdrawals') {
+        switchAdminTab('withdrawals');
+      } else {
+        switchAdminTab('purchases');
+      }
+    });
+  </script>
 </div>
 {% endblock %}
