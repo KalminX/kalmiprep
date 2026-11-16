@@ -50,12 +50,21 @@ def dashboard(request):
                     return redirect("monetization:dashboard")
         else:
             withdrawal_form = WithdrawalForm(wallet=wallet)
-    tests = teacher.tests.annotate(
+    tests_qs = teacher.tests.annotate(
         sales_count=Count(
             "purchases",
             filter=Q(purchases__status__in=[TestPurchase.Status.PAID, TestPurchase.Status.PARTIALLY_REFUNDED]),
         )
-    ).order_by("-created_at") if teacher else []
+    ).order_by("-created_at") if teacher else PaidTest.objects.none()
+
+    search_query = request.GET.get("q", "").strip()
+    if search_query and teacher:
+        tests_qs = tests_qs.filter(Q(title__icontains=search_query) | Q(share_code__icontains=search_query))
+
+    paginator = Paginator(tests_qs, 8)
+    page_number = request.GET.get("page", 1)
+    tests_page = paginator.get_page(page_number)
+
     context = {
         "teacher": teacher,
         "application_form": form,
@@ -66,7 +75,10 @@ def dashboard(request):
         "withdrawal_form": withdrawal_form,
         "withdrawals": wallet.withdrawals.all()[:10] if wallet else [],
         "wallet_entries": wallet.entries.select_related("purchase", "purchase__test")[:10] if wallet else [],
-        "tests": tests,
+        "tests": tests_page,
+        "page_obj": tests_page,
+        "search_query": search_query,
+        "total_tests_count": paginator.count,
         "classroom_count": teacher.classrooms.count() if teacher else 0,
     }
     return render(request, "monetization/dashboard.html", context)

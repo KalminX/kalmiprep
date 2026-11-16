@@ -52,13 +52,26 @@
   {% else %}
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><p class="text-xs uppercase tracking-wider text-slate-500">Wallet balance</p><p class="text-2xl font-extrabold mt-2">₦{{ wallet_balance_naira|floatformat:2 }}</p><p class="text-xs text-slate-500 mt-1">Available to request: ₦{{ available_naira|floatformat:2 }}.</p></div>
-    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><p class="text-xs uppercase tracking-wider text-slate-500">Published tests</p><p class="text-2xl font-extrabold mt-2">{{ tests|length }}</p></div>
+    <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><p class="text-xs uppercase tracking-wider text-slate-500">Published tests</p><p class="text-2xl font-extrabold mt-2">{{ total_tests_count|default:tests|length }}</p></div>
     <div class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><p class="text-xs uppercase tracking-wider text-slate-500">Revenue share</p><p class="text-2xl font-extrabold mt-2">80% <span class="text-sm font-medium text-slate-500">teacher</span></p><p class="text-xs text-slate-500 mt-1">20% platform · calculated from the test price</p></div>
   </div>
 
   <section class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-    <div><h2 class="font-bold text-slate-900 dark:text-white">Your tests</h2><p class="text-xs text-slate-500 mt-1">Create a test from published questions in the selected topics.</p></div>
-    <a href="{% url 'monetization:create_test' %}" class="inline-flex justify-center px-4 py-2.5 rounded-xl bg-brand-600 text-white text-sm font-bold">Create paid test</a>
+    <div>
+      <h2 class="font-bold text-slate-900 dark:text-white">Your tests ({{ total_tests_count|default:tests|length }})</h2>
+      <p class="text-xs text-slate-500 mt-1">Create a test from published questions in the selected topics.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <!-- Search Form -->
+      <form method="get" class="flex items-center gap-1.5">
+        <input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="Search tests..." class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+        <button type="submit" class="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 text-xs font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition">Search</button>
+        {% if search_query %}
+        <a href="{% url 'monetization:dashboard' %}" class="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Clear</a>
+        {% endif %}
+      </form>
+      <a href="{% url 'monetization:create_test' %}" class="inline-flex justify-center px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 transition shadow-sm">+ Create Paid Test</a>
+    </div>
   </section>
   <div class="space-y-3">
     {% for test in tests %}
@@ -101,6 +114,29 @@
     </div>
     {% endfor %}
   </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <div class="flex items-center justify-between pt-1 pb-2 text-xs text-slate-500">
+    <div>
+      Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total_tests_count }} tests
+    </div>
+    <div class="flex items-center gap-1.5">
+      {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition font-medium">
+        &larr; Previous
+      </a>
+      {% endif %}
+      <span class="px-2 py-1 font-semibold text-slate-700 dark:text-slate-300">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+      {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition font-medium">
+        Next &rarr;
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
     <section class="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
