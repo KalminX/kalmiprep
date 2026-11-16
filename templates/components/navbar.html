@@ -13,7 +13,7 @@
            hx-swap="innerHTML show:window:top" 
            hx-push-url="true"
            class="flex items-center gap-2.5 group select-none shrink-0">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-700 via-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform shrink-0">
+          <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform shrink-0">
             <i data-lucide="graduation-cap" class="w-5 h-5"></i>
           </div>
           <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white font-sans">
@@ -103,7 +103,7 @@
                   class="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-800 hover:bg-slate-50 dark:hover:bg-navy-700 text-slate-700 dark:text-slate-200 transition-all text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                   aria-expanded="false" 
                   aria-haspopup="true">
-            <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-brand-600 to-emerald-500 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+            <div class="w-6 h-6 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-sm">
               {{ user.username|slice:":1" }}
             </div>
             <span class="max-w-[100px] truncate">{{ user.username }}</span>
@@ -286,7 +286,7 @@
       {% if user.is_authenticated %}
       <div class="flex items-center justify-between px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-navy-800 border border-slate-200 dark:border-navy-700">
         <a href="{% url 'accounts:profile' %}" onclick="closeMobileMenu()" class="flex items-center gap-2.5 min-w-0">
-          <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-brand-600 to-emerald-500 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+          <div class="w-7 h-7 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
             {{ user.username|slice:":1" }}
           </div>
           <div class="min-w-0">

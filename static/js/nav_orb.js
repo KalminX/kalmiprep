@@ -81,7 +81,7 @@
       mobileItems.forEach((item) => {
         const itemSection = item.getAttribute('data-nav');
         const isMatch = itemSection === activeSection;
-        const isCenterAction = item.querySelector('.bg-gradient-to-tr');
+        const isCenterAction = itemSection === 'practice' || item.querySelector('.bg-gradient-to-tr');
 
         if (isCenterAction) {
           if (isMatch) {
