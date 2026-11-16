@@ -18,7 +18,7 @@
 
     <!-- Fast Action Links -->
     <div class="flex flex-wrap items-center gap-3 mt-6">
-      <a href="{% url 'accounts:login' %}" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-sm">
+      <a href="{% url 'accounts:login' %}" data-hx-boost="false" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-sm">
         Go to Login (1-Click Test Chips) &rarr;
       </a>
       <a href="{% url 'monetization:dashboard' %}" class="px-4 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 transition">
@@ -49,8 +49,8 @@
         <h2 class="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2 text-white">
           <span>🎬</span> Dual-Browser E2E Execution &amp; Live Verification
         </h2>
-        <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed">
-          Synchronized side-by-side video playback of the real Teacher authoring &amp; proctoring session alongside the Student demo checkout, waiting lobby gate, and CBT test submission.
+        <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl leading-relaxed" id="theater-feature-subtitle">
+          Synchronized side-by-side video playback of School Admin Joint Mock authoring, topic quota draws, anti-malpractice Paper Types (A/B), candidate waiting lobbies, broadsheet audit, and Superadmin query hub.
         </p>
       </div>
 
@@ -75,15 +75,28 @@
       </div>
     </div>
 
+    <!-- Feature Showcase Tabs -->
+    <div class="flex items-center gap-2 p-1 bg-slate-950/80 rounded-2xl border border-slate-800 w-full sm:w-auto overflow-x-auto">
+      <button type="button" id="tab-mock-flow" onclick="switchVideoShowcase('mock')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-brand-600 text-white shadow-sm cursor-pointer whitespace-nowrap">
+        <span>🏫</span>
+        <span>School Mock &amp; Anti-Malpractice Paper Types (A/B/C/D)</span>
+        <span class="px-1.5 py-0.5 rounded text-[10px] bg-white/20 text-white uppercase font-extrabold">NEW</span>
+      </button>
+      <button type="button" id="tab-tutor-flow" onclick="switchVideoShowcase('tutor')" class="px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/80 cursor-pointer whitespace-nowrap">
+        <span>🧑‍🏫</span>
+        <span>Single-Subject Tutor Proctored Test</span>
+      </button>
+    </div>
+
     <!-- Dual Video Viewport Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       
-      <!-- Video 1: Teacher Console -->
+      <!-- Video 1: Admin / Teacher Console -->
       <div class="rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden flex flex-col shadow-inner">
         <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-brand-500/20 text-brand-400 border border-brand-500/30 uppercase">Teacher Browser</span>
-            <span class="text-xs font-bold text-slate-200">Test Setup &amp; Proctor Gate</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-brand-500/20 text-brand-400 border border-brand-500/30 uppercase" id="badge-video-1">School Admin</span>
+            <span class="text-xs font-bold text-slate-200" id="title-video-1">Multi-Subject Mock Setup &amp; Proctor Gate</span>
           </div>
           <span class="text-[10px] font-mono text-slate-400" id="teacher-time-display">00:00</span>
         </div>
@@ -93,37 +106,37 @@
                  playsinline 
                  muted 
                  controls
-                 poster="/media/e2e_videos/teacher_session_poster.jpg"
+                 poster="/media/e2e_videos/school_mock_admin_poster.jpg"
                  class="w-full h-full object-contain">
-            <source src="/media/e2e_videos/teacher_session.mp4" type="video/mp4">
-            <source src="/media/e2e_videos/teacher_session.webm" type="video/webm">
+            <source src="/media/e2e_videos/school_mock_admin.mp4" type="video/mp4" id="src-mp4-video-1">
+            <source src="/media/e2e_videos/school_mock_admin.webm" type="video/webm" id="src-webm-video-1">
             Your browser does not support HTML5 video.
           </video>
-          <div class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur text-[11px] text-brand-300 font-mono border border-white/10 pointer-events-none">
-            🧑‍🏫 demo_teacher
+          <div class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur text-[11px] text-brand-300 font-mono border border-white/10 pointer-events-none" id="tag-actor-video-1">
+            🏫 Lagos Model Colleges Admin
           </div>
         </div>
         <div class="p-3 bg-slate-900/60 border-t border-slate-800 flex items-center justify-between text-xs">
-          <span class="text-slate-400 text-[11px]">Creates Paid Test &bull; Locks Gate &bull; Unlocks Exam &bull; Reviews Results</span>
+          <span class="text-slate-400 text-[11px]" id="desc-video-1">Topic Quotas &bull; Proctor Unlock &bull; Broadsheet CSV &bull; Central Query Console</span>
           <div class="flex items-center gap-2">
-            <a href="/media/e2e_videos/teacher_session.mp4" target="_blank" download class="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1">
+            <a href="/media/e2e_videos/school_mock_admin.mp4" id="link-mp4-video-1" target="_blank" download class="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1">
               <span>MP4</span>
               <i data-lucide="download" class="w-3 h-3"></i>
             </a>
             <span class="text-slate-600">&bull;</span>
-            <a href="/media/e2e_videos/teacher_session.webm" target="_blank" download class="text-[11px] font-semibold text-slate-400 hover:underline flex items-center gap-1">
+            <a href="/media/e2e_videos/school_mock_admin.webm" id="link-webm-video-1" target="_blank" download class="text-[11px] font-semibold text-slate-400 hover:underline flex items-center gap-1">
               <span>WebM</span>
             </a>
           </div>
         </div>
       </div>
 
-      <!-- Video 2: Student Experience -->
+      <!-- Video 2: Candidate Experience -->
       <div class="rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden flex flex-col shadow-inner">
         <div class="px-4 py-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase">Student Browser</span>
-            <span class="text-xs font-bold text-slate-200">Checkout, Lobby &amp; CBT Exam</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase" id="badge-video-2">Candidates</span>
+            <span class="text-xs font-bold text-slate-200" id="title-video-2">Round-Robin Paper Types A &amp; B CBT Exam</span>
           </div>
           <span class="text-[10px] font-mono text-slate-400" id="student-time-display">00:00</span>
         </div>
@@ -133,25 +146,25 @@
                  playsinline 
                  muted 
                  controls
-                 poster="/media/e2e_videos/student_session_poster.jpg"
+                 poster="/media/e2e_videos/school_mock_student_poster.jpg"
                  class="w-full h-full object-contain">
-            <source src="/media/e2e_videos/student_session.mp4" type="video/mp4">
-            <source src="/media/e2e_videos/student_session.webm" type="video/webm">
+            <source src="/media/e2e_videos/school_mock_student.mp4" type="video/mp4" id="src-mp4-video-2">
+            <source src="/media/e2e_videos/school_mock_student.webm" type="video/webm" id="src-webm-video-2">
             Your browser does not support HTML5 video.
           </video>
-          <div class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur text-[11px] text-blue-300 font-mono border border-white/10 pointer-events-none">
-            🎓 Chinedu Okafor (Student)
+          <div class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur text-[11px] text-blue-300 font-mono border border-white/10 pointer-events-none" id="tag-actor-video-2">
+            🎓 Chinedu Okafor (Type A) &amp; Amina Bello (Type B)
           </div>
         </div>
         <div class="p-3 bg-slate-900/60 border-t border-slate-800 flex items-center justify-between text-xs">
-          <span class="text-slate-400 text-[11px]">Instant Demo Payment &bull; Waiting Room HTMX &bull; CBT Answers &bull; Final Score</span>
+          <span class="text-slate-400 text-[11px]" id="desc-video-2">Anti-Malpractice Shuffled Qs &bull; Option Integrity &bull; Waiting Room HTMX &bull; Verified Submission</span>
           <div class="flex items-center gap-2">
-            <a href="/media/e2e_videos/student_session.mp4" target="_blank" download class="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1">
+            <a href="/media/e2e_videos/school_mock_student.mp4" id="link-mp4-video-2" target="_blank" download class="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1">
               <span>MP4</span>
               <i data-lucide="download" class="w-3 h-3"></i>
             </a>
             <span class="text-slate-600">&bull;</span>
-            <a href="/media/e2e_videos/student_session.webm" target="_blank" download class="text-[11px] font-semibold text-slate-400 hover:underline flex items-center gap-1">
+            <a href="/media/e2e_videos/school_mock_student.webm" id="link-webm-video-2" target="_blank" download class="text-[11px] font-semibold text-slate-400 hover:underline flex items-center gap-1">
               <span>WebM</span>
             </a>
           </div>
@@ -165,30 +178,39 @@
       <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
         <span>⏱️</span> Quick-Scrub to Workflow Invariant:
       </div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2" id="timeline-scrub-chips">
+        <!-- Default: Mock Exam Scrub Chips -->
         <button type="button" onclick="seekBothVideos(0)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
           <span class="font-mono text-emerald-400 font-bold">0:00</span>
-          <span>1. Test Authoring &amp; Pricing</span>
+          <span>1. School Setup &amp; Topic Quotas</span>
         </button>
-        <button type="button" onclick="seekBothVideos(6)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
-          <span class="font-mono text-emerald-400 font-bold">0:06</span>
-          <span>2. Student Demo Checkout</span>
+        <button type="button" onclick="seekBothVideos(14)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span class="font-mono text-emerald-400 font-bold">0:14</span>
+          <span>2. Candidate Demo Checkout (Seat 1 &amp; 2)</span>
         </button>
-        <button type="button" onclick="seekBothVideos(12)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
-          <span class="font-mono text-emerald-400 font-bold">0:12</span>
-          <span>3. Waiting Room Lobby Polling</span>
+        <button type="button" onclick="seekBothVideos(28)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span class="font-mono text-emerald-400 font-bold">0:28</span>
+          <span>3. Round-Robin PIN Gate &amp; Waiting Lobby</span>
         </button>
-        <button type="button" onclick="seekBothVideos(16)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
-          <span class="font-mono text-emerald-400 font-bold">0:16</span>
-          <span>4. Teacher Proctor Unlock</span>
+        <button type="button" onclick="seekBothVideos(36)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span class="font-mono text-emerald-400 font-bold">0:36</span>
+          <span>4. Proctor Control Room Unlock</span>
         </button>
-        <button type="button" onclick="seekBothVideos(20)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
-          <span class="font-mono text-emerald-400 font-bold">0:20</span>
-          <span>5. CBT Question Answering</span>
+        <button type="button" onclick="seekBothVideos(44)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span class="font-mono text-emerald-400 font-bold">0:44</span>
+          <span>5. Paper Types A &amp; B Shuffled Questions</span>
         </button>
-        <button type="button" onclick="seekBothVideos(27)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
-          <span class="font-mono text-emerald-400 font-bold">0:27</span>
-          <span>6. Results &amp; Teacher Revenue</span>
+        <button type="button" onclick="seekBothVideos(55)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span class="font-mono text-emerald-400 font-bold">0:55</span>
+          <span>6. 8-Key Answering &amp; Modal Submission</span>
+        </button>
+        <button type="button" onclick="seekBothVideos(65)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span class="font-mono text-emerald-400 font-bold">1:05</span>
+          <span>7. School Broadsheet CSV &amp; Answer Audit</span>
+        </button>
+        <button type="button" onclick="seekBothVideos(70)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span class="font-mono text-emerald-400 font-bold">1:10</span>
+          <span>8. Superadmin Central Query Hub &amp; REST API</span>
         </button>
       </div>
     </div>
@@ -263,6 +285,184 @@
         vStudent.currentTime = timeSeconds;
         updateTimes();
       };
+
+      window.switchVideoShowcase = function(mode) {
+        const tabMock = document.getElementById('tab-mock-flow');
+        const tabTutor = document.getElementById('tab-tutor-flow');
+        const subTitle = document.getElementById('theater-feature-subtitle');
+        const badge1 = document.getElementById('badge-video-1');
+        const title1 = document.getElementById('title-video-1');
+        const tag1 = document.getElementById('tag-actor-video-1');
+        const desc1 = document.getElementById('desc-video-1');
+        const linkMp4_1 = document.getElementById('link-mp4-video-1');
+        const linkWebm_1 = document.getElementById('link-webm-video-1');
+        
+        const badge2 = document.getElementById('badge-video-2');
+        const title2 = document.getElementById('title-video-2');
+        const tag2 = document.getElementById('tag-actor-video-2');
+        const desc2 = document.getElementById('desc-video-2');
+        const linkMp4_2 = document.getElementById('link-mp4-video-2');
+        const linkWebm_2 = document.getElementById('link-webm-video-2');
+
+        const scrubChips = document.getElementById('timeline-scrub-chips');
+
+        vTeacher.pause();
+        vStudent.pause();
+        textPlay.textContent = 'Play Both';
+
+        if (mode === 'mock') {
+          tabMock.className = 'px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-brand-600 text-white shadow-sm cursor-pointer whitespace-nowrap';
+          tabTutor.className = 'px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/80 cursor-pointer whitespace-nowrap';
+          subTitle.textContent = 'Synchronized side-by-side video playback of School Admin Joint Mock authoring, topic quota draws, anti-malpractice Paper Types (A/B), candidate waiting lobbies, broadsheet audit, and Superadmin query hub.';
+          
+          badge1.textContent = 'School Admin';
+          badge1.className = 'px-2 py-0.5 rounded text-[10px] font-extrabold bg-brand-500/20 text-brand-400 border border-brand-500/30 uppercase';
+          title1.textContent = 'Multi-Subject Mock Setup & Proctor Gate';
+          tag1.textContent = '🏫 Lagos Model Colleges Admin';
+          desc1.textContent = 'Topic Quotas • Proctor Unlock • Broadsheet CSV • Central Query Console';
+          vTeacher.poster = '/media/e2e_videos/school_mock_admin_poster.jpg';
+          vTeacher.src = '/media/e2e_videos/school_mock_admin.mp4';
+          linkMp4_1.href = '/media/e2e_videos/school_mock_admin.mp4';
+          linkWebm_1.href = '/media/e2e_videos/school_mock_admin.webm';
+
+          badge2.textContent = 'Candidates';
+          badge2.className = 'px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase';
+          title2.textContent = 'Round-Robin Paper Types A & B CBT Exam';
+          tag2.textContent = '🎓 Chinedu Okafor (Type A) & Amina Bello (Type B)';
+          desc2.textContent = 'Anti-Malpractice Shuffled Qs • Option Integrity • Waiting Room HTMX • Verified Submission';
+          vStudent.poster = '/media/e2e_videos/school_mock_student_poster.jpg';
+          vStudent.src = '/media/e2e_videos/school_mock_student.mp4';
+          linkMp4_2.href = '/media/e2e_videos/school_mock_student.mp4';
+          linkWebm_2.href = '/media/e2e_videos/school_mock_student.webm';
+
+          scrubChips.innerHTML = `
+            <button type="button" onclick="seekBothVideos(0)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:00</span>
+              <span>1. School Setup &amp; Topic Quotas</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(14)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:14</span>
+              <span>2. Candidate Demo Checkout (Seat 1 &amp; 2)</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(28)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:28</span>
+              <span>3. Round-Robin PIN Gate &amp; Waiting Lobby</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(36)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:36</span>
+              <span>4. Proctor Control Room Unlock</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(44)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:44</span>
+              <span>5. Paper Types A &amp; B Shuffled Questions</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(55)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:55</span>
+              <span>6. 8-Key Answering &amp; Modal Submission</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(65)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">1:05</span>
+              <span>7. School Broadsheet CSV &amp; Answer Audit</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(70)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">1:10</span>
+              <span>8. Superadmin Central Query Hub &amp; REST API</span>
+            </button>
+          `;
+        } else {
+          tabMock.className = 'px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-slate-800/80 cursor-pointer whitespace-nowrap';
+          tabTutor.className = 'px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-brand-600 text-white shadow-sm cursor-pointer whitespace-nowrap';
+          subTitle.textContent = 'Synchronized side-by-side video playback of the real Teacher authoring & proctoring session alongside the Student demo checkout, waiting lobby gate, and CBT test submission.';
+
+          badge1.textContent = 'Teacher Browser';
+          badge1.className = 'px-2 py-0.5 rounded text-[10px] font-extrabold bg-brand-500/20 text-brand-400 border border-brand-500/30 uppercase';
+          title1.textContent = 'Test Setup & Proctor Gate';
+          tag1.textContent = '🧑‍🏫 demo_teacher';
+          desc1.textContent = 'Creates Paid Test • Locks Gate • Unlocks Exam • Reviews Results';
+          vTeacher.poster = '/media/e2e_videos/teacher_session_poster.jpg';
+          vTeacher.src = '/media/e2e_videos/teacher_session.mp4';
+          linkMp4_1.href = '/media/e2e_videos/teacher_session.mp4';
+          linkWebm_1.href = '/media/e2e_videos/teacher_session.webm';
+
+          badge2.textContent = 'Student Browser';
+          badge2.className = 'px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-500/20 text-blue-400 border border-blue-500/30 uppercase';
+          title2.textContent = 'Checkout, Lobby & CBT Exam';
+          tag2.textContent = '🎓 Chinedu Okafor (Student)';
+          desc2.textContent = 'Instant Demo Payment • Waiting Room HTMX • CBT Answers • Final Score';
+          vStudent.poster = '/media/e2e_videos/student_session_poster.jpg';
+          vStudent.src = '/media/e2e_videos/student_session.mp4';
+          linkMp4_2.href = '/media/e2e_videos/student_session.mp4';
+          linkWebm_2.href = '/media/e2e_videos/student_session.webm';
+
+          scrubChips.innerHTML = `
+            <button type="button" onclick="seekBothVideos(0)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:00</span>
+              <span>1. Test Authoring &amp; Pricing</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(6)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:06</span>
+              <span>2. Student Demo Checkout</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(12)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:12</span>
+              <span>3. Waiting Room Lobby Polling</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(16)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:16</span>
+              <span>4. Teacher Proctor Unlock</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(20)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:20</span>
+              <span>5. CBT Question Answering</span>
+            </button>
+            <button type="button" onclick="seekBothVideos(27)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+              <span class="font-mono text-emerald-400 font-bold">0:27</span>
+              <span>6. Results &amp; Teacher Revenue</span>
+            </button>
+          `;
+        }
+        vTeacher.load();
+        vStudent.load();
+        updateTimes();
+        if (window.lucide) lucide.createIcons();
+      };
+    })();
+  </script>
+          textPlay.textContent = 'Play Both';
+        }
+      };
+
+      window.restartSyncVideos = function() {
+        vTeacher.currentTime = 0;
+        vStudent.currentTime = 0;
+        vTeacher.play();
+        vStudent.play();
+        textPlay.textContent = 'Pause Both';
+      };
+
+      window.toggleSyncMute = function() {
+        const isMuted = !vTeacher.muted;
+        vTeacher.muted = isMuted;
+        vStudent.muted = isMuted;
+      };
+
+      window.setSyncSpeed = function(rate) {
+        vTeacher.playbackRate = rate;
+        vStudent.playbackRate = rate;
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+          if (parseFloat(btn.getAttribute('data-speed')) === rate) {
+            btn.className = 'px-2.5 py-1 rounded-lg speed-btn bg-slate-700 text-white cursor-pointer';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg speed-btn text-slate-400 hover:text-white cursor-pointer';
+          }
+        });
+      };
+
+      window.seekBothVideos = function(timeSeconds) {
+        vTeacher.currentTime = timeSeconds;
+        vStudent.currentTime = timeSeconds;
+        updateTimes();
+      };
     })();
   </script>
 
@@ -275,8 +475,8 @@
         </h2>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">All test accounts use the password <code class="px-1.5 py-0.5 rounded bg-brand-100 dark:bg-navy-800 font-mono text-brand-700 dark:text-brand-300 font-bold">Password123!</code>. You can also click the 1-click login chips on <a href="{% url 'accounts:login' %}" class="underline font-bold text-brand-600">the login page</a>.</p>
       </div>
-      <a href="{% url 'accounts:login' %}" class="shrink-0 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs">
-        Open Sign In
+      <a href="{% url 'accounts:login' %}" data-hx-boost="false" class="shrink-0 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs">
+        Open Login Page
       </a>
     </div>
 
@@ -456,6 +656,49 @@
         </ul>
       </div>
     </article>
+
+    <!-- Step 6: School Institutional Mock Exam Creation -->
+    <article class="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-extrabold text-sm shrink-0">6</span>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">School / Institutional Mock Setup &amp; Topic Quota Allocation</h3>
+      </div>
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-0 sm:pl-11 pt-1 sm:pt-0">
+        <p>1. Institutional accounts configured with <code>TeacherProfile.kind = "SCHOOL"</code> can author multi-subject Joint Mock Exams.</p>
+        <p>2. In the test creation wizard, select <strong>"Custom Multi-Subject Mock"</strong> or <strong>"JAMB UTME Standard (4 Subjects)"</strong>.</p>
+        <p>3. Select curriculum topics across multiple subjects (e.g., Biology, Chemistry, English). The question drawer dynamically draws proportional quotas from each subject pool and stores the deterministic blueprint.</p>
+        <p>4. Set seat pricing or institutional fee. Students purchase access or enter using bulk pre-paid PIN vouchers issued by the institution.</p>
+      </div>
+    </article>
+
+    <!-- Step 7: Anti-Malpractice Deterministic Paper Types -->
+    <article class="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold text-sm shrink-0">7</span>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Deterministic Anti-Malpractice Paper Types (Type A, B, C, D)</h3>
+      </div>
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-0 sm:pl-11 pt-1 sm:pt-0">
+        <p>1. When students enter their PINs, KalmiPrep automatically rotates candidates across paper types in strict round-robin order: <code>Candidate 1 &rarr; Type A</code>, <code>Candidate 2 &rarr; Type B</code>, <code>Candidate 3 &rarr; Type C</code>, <code>Candidate 4 &rarr; Type D</code>.</p>
+        <p>2. <strong>Question Shuffling Invariant:</strong> The exact same questions are assigned to all candidates in the exam, but their sequence is permuted per subject section depending on the candidate's assigned paper type.</p>
+        <p>3. <strong>Option Choice Invariant:</strong> Individual question choices (A, B, C, D) are completely untouched to avoid confusion and ensure standard grading fidelity.</p>
+        <p>4. Candidates seated side-by-side in computer laboratories cannot peek at neighboring screens because Question 1 for Seat #1 (Type A) is completely different from Question 1 for Seat #2 (Type B).</p>
+      </div>
+    </article>
+
+    <!-- Step 8: Central Intelligence Mock Query Hub & CLI -->
+    <article class="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center gap-3">
+        <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-extrabold text-sm shrink-0">8</span>
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Superadmin Central Query Hub, REST API &amp; Automation CLI</h3>
+      </div>
+      <div class="text-sm text-slate-600 dark:text-slate-300 space-y-2 pl-0 sm:pl-11 pt-1 sm:pt-0">
+        <p>1. Platform Administrators can inspect every single test and mock exam ever attempted across all institutions at <a href="{% url 'monetization:staff_mock_query' %}" class="text-brand-600 font-semibold underline">Central Mock Exams Query Hub</a> (<code>/monetization/staff/exams/</code>).</p>
+        <p>2. Filter in real time by <strong>Institution / School</strong>, <strong>Exam Title</strong>, <strong>Paper Type (A, B, C, D)</strong>, or <strong>Status (In Progress / Completed)</strong>.</p>
+        <p>3. Export comprehensive platform-wide CSV audit logs, or query the REST JSON API at <code>/monetization/staff/api/query-exams/</code>.</p>
+        <p>4. Terminal / Backend Engineers can execute the CLI management command from the command line:</p>
+        <pre class="p-3 rounded-xl bg-slate-950 text-slate-200 font-mono text-xs overflow-x-auto border border-slate-800">python manage.py query_mock_exams --paper-type=TYPE_A --status=COMPLETED --format=table</pre>
+      </div>
+    </article>
   </div>
 
   <!-- Quick Reference Table -->
@@ -473,28 +716,48 @@
         <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
           <tr>
             <td class="px-3 py-2 text-brand-600 font-bold">/monetization/</td>
-            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher</td>
-            <td class="px-3 py-2 text-slate-500">Teacher dashboard, wallet balance, published tests, copy links</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher/School</td>
+            <td class="px-3 py-2 text-slate-500">Teacher &amp; School dashboard, wallet balance, published tests, copy links</td>
           </tr>
           <tr>
             <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/new/</td>
-            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher</td>
-            <td class="px-3 py-2 text-slate-500">Create new paid test with optional approval gate</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher/School</td>
+            <td class="px-3 py-2 text-slate-500">Create new paid test / multi-subject mock with optional approval gate</td>
           </tr>
           <tr>
             <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/&lt;uuid&gt;/</td>
-            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Student</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Candidate</td>
             <td class="px-3 py-2 text-slate-500">Public checkout page with Demo DB payment &amp; Paystack options</td>
           </tr>
           <tr>
             <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/&lt;uuid&gt;/waiting/</td>
-            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Student</td>
-            <td class="px-3 py-2 text-slate-500">Waiting room polling lobby while teacher has not yet unlocked test</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Candidate</td>
+            <td class="px-3 py-2 text-slate-500">Waiting room polling lobby while proctor has not yet unlocked test</td>
           </tr>
           <tr>
             <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/&lt;uuid&gt;/results/</td>
-            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Teacher/Proctor</td>
             <td class="px-3 py-2 text-slate-500">Leaderboard &amp; Proctor Controls (Unlock &amp; Start Exam / Lock Gate)</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/tests/&lt;uuid&gt;/broadsheet/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">School Admin</td>
+            <td class="px-3 py-2 text-slate-500">Download Official School Mock Broadsheet (CSV)</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/purchases/&lt;id&gt;/candidate-sheet/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">School Admin</td>
+            <td class="px-3 py-2 text-slate-500">Candidate question-by-question response sheet audit with paper type tags</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/staff/exams/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Superadmin/Staff</td>
+            <td class="px-3 py-2 text-slate-500">Central Mock Exams Query Hub Console with real-time filters &amp; CSV export</td>
+          </tr>
+          <tr>
+            <td class="px-3 py-2 text-brand-600 font-bold">/monetization/staff/api/query-exams/</td>
+            <td class="px-3 py-2 text-slate-600 dark:text-slate-400">Superadmin/Staff</td>
+            <td class="px-3 py-2 text-slate-500">REST JSON API endpoint for querying institution mock attempts and candidate metrics</td>
           </tr>
           <tr>
             <td class="px-3 py-2 text-brand-600 font-bold">/monetization/staff/earnings/</td>

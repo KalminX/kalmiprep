@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from accounts.forms import RegistrationForm, StudentProfileForm
 from accounts.models import StudentProfile
@@ -61,7 +64,10 @@ def register_view(request):
 
 
 def login_view(request):
+    next_param = request.POST.get("next") or request.GET.get("next") or ""
     if request.user.is_authenticated:
+        if next_param and url_has_allowed_host_and_scheme(next_param, allowed_hosts={request.get_host()}):
+            return redirect(next_param)
         return redirect("progress:dashboard")
 
     error_msg = None
@@ -74,18 +80,39 @@ def login_view(request):
             guest_session_key = request.session.session_key
             login(request, user)
             _migrate_guest_data_to_user(guest_session_key, user)
-            next_url = request.GET.get("next") or "progress:dashboard"
-            return redirect(next_url)
+
+            # Auto-ensure StudentProfile for non-staff students without profile
+            if not user.is_staff and not user.is_superuser:
+                StudentProfile.objects.get_or_create(user=user)
+
+            target_url = next_param
+            if not target_url or not url_has_allowed_host_and_scheme(target_url, allowed_hosts={request.get_host()}):
+                target_url = reverse("progress:dashboard")
+
+            # If HTMX boosted or swapped request, trigger full window redirect
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=200)
+                response["HX-Redirect"] = target_url
+                return response
+
+            return redirect(target_url)
         else:
             error_msg = "Invalid username or password. Please verify and try again."
 
-    return render(request, "accounts/login.html", {"error": error_msg})
+    return render(request, "accounts/login.html", {"error": error_msg, "next": next_param})
 
 
 def logout_view(request):
     logout(request)
     messages.info(request, "You have been logged out.")
-    return redirect("core:landing")
+    redirect_target = reverse("core:landing")
+
+    if request.headers.get("HX-Request"):
+        response = HttpResponse(status=200)
+        response["HX-Redirect"] = redirect_target
+        return response
+
+    return redirect(redirect_target)
 
 
 @login_required

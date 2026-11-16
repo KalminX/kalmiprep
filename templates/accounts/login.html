@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Sign In | KalmiPrep{% endblock %}
+{% block title %}Log In | KalmiPrep{% endblock %}
 
 {% block content %}
 <div class="min-h-[70vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fade-in">
@@ -11,7 +11,7 @@
                 K
             </div>
             <h2 class="text-2xl font-extrabold text-slate-900 dark:text-white">
-                Sign in to KalmiPrep
+                Log In to KalmiPrep
             </h2>
             <p class="text-xs text-slate-500 dark:text-slate-400">
                 Continue your targeted preparation for UTME/JAMB & WAEC.
@@ -25,8 +25,9 @@
             </div>
         {% endif %}
 
-        <form class="space-y-4" method="POST" action="{% url 'accounts:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+        <form class="space-y-4" method="POST" action="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}" data-hx-boost="false">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next|default:'' }}">
             <div>
                 <label for="username" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                     Username
@@ -42,7 +43,7 @@
             </div>
 
             <button type="submit" class="w-full py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-bold shadow-md shadow-brand-900/20 transition-all flex items-center justify-center gap-2">
-                <span>Sign In</span>
+                <span>Log In</span>
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
         </form>
@@ -84,7 +85,7 @@
 
         <div class="text-center pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
             Don't have an account? 
-            <a href="{% url 'accounts:register' %}" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">
+            <a href="{% url 'accounts:register' %}" data-hx-boost="false" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">
                 Create free account
             </a>
         </div>

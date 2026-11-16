@@ -31,7 +31,7 @@
             </div>
         {% endif %}
 
-        <form class="space-y-4" method="POST" action="{% url 'accounts:register' %}">
+        <form class="space-y-4" method="POST" action="{% url 'accounts:register' %}" data-hx-boost="false">
             {% csrf_token %}
 
             <div class="grid grid-cols-2 gap-3">
@@ -85,8 +85,8 @@
 
         <div class="text-center pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
             Already have an account? 
-            <a href="{% url 'accounts:login' %}" class="font-bold text-primary-600 dark:text-primary-400 hover:underline">
-                Sign in
+            <a href="{% url 'accounts:login' %}" data-hx-boost="false" class="font-bold text-primary-600 dark:text-primary-400 hover:underline">
+                Log In
             </a>
         </div>
 
