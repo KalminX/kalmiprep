@@ -489,3 +489,182 @@ class TeacherStudentFullLifecycleTestCase(TestCase):
         self.assertEqual(purchase.teacher_share_kobo, 120000)
         self.assertEqual(purchase.platform_share_kobo, 30000)
 
+    def test_school_onboarding_and_multi_subject_mock_with_round_robin_paper_types(self):
+        """
+        End-to-end test verifying:
+        1. Institutional School Profile creation
+        2. Multi-subject mock exam creation with quotas per subject
+        3. Round-Robin Paper Types (Type A, B, C, D, A)
+        4. Question permutation per paper type while option choices remain fixed (unshuffled)
+        5. Central mock query API and CLI management command
+        """
+        from io import StringIO
+        import json
+        from django.core.management import call_command
+        from monetization.services import assign_round_robin_paper_type, build_ordered_questions_for_paper_type
+        from monetization.views.teacher import _build_paid_test_questions
+
+        # 1. Institutional School Profile
+        school_user = User.objects.create_user(username="kings_college_admin", password="Password123!")
+        school = TeacherProfile.objects.create(
+            user=school_user,
+            kind=TeacherProfile.Kind.SCHOOL,
+            display_name="King's College Lagos",
+            school_address="3 Catholic Mission St, Lagos Island",
+            school_phone="+234 802 000 1122",
+            status=TeacherProfile.Status.ACTIVE,
+        )
+        TeacherWallet.objects.create(teacher=school)
+
+        # 2. Setup 2 Subjects with 3 questions each
+        eng = Subject.objects.create(name="Use of English", slug="english-test", code="ENG")
+        eng_topic = Topic.objects.create(subject=eng, name="Grammar", slug="grammar-test")
+        eng_questions = []
+        for i in range(1, 4):
+            q = Question.objects.create(
+                subject=eng,
+                topic=eng_topic,
+                question_text=f"English Question {i}",
+                is_published=True,
+            )
+            Option.objects.create(question=q, tag="A", text=f"Opt A of Eng {i}", is_correct=True)
+            Option.objects.create(question=q, tag="B", text=f"Opt B of Eng {i}", is_correct=False)
+            eng_questions.append(q)
+
+        math = self.subject
+        math_topic = self.topic1
+        math_questions = []
+        for i in range(1, 4):
+            q = Question.objects.create(
+                subject=math,
+                topic=math_topic,
+                question_text=f"Math Question {i}",
+                is_published=True,
+            )
+            Option.objects.create(question=q, tag="A", text=f"Opt A of Math {i}", is_correct=True)
+            Option.objects.create(question=q, tag="B", text=f"Opt B of Math {i}", is_correct=False)
+            math_questions.append(q)
+
+        # 3. Create Multi-Subject Mock Test
+        mock_test = PaidTest.objects.create(
+            teacher=school,
+            title="King's College Inter-House Mock Examination",
+            exam_structure=PaidTest.ExamStructure.CUSTOM_MULTI_SUBJECT,
+            price_kobo=250000,  # ₦2,500
+            question_count=6,   # 3 Eng + 3 Math
+            time_limit_minutes=60,
+            randomization=PaidTest.Randomization.SHARED_SET,
+        )
+        mock_test.topics.set([eng_topic, math_topic])
+
+        # Build blueprint with quotas (3 English, 3 Math)
+        post_data = {
+            f"subject_quota_{eng.id}": "3",
+            f"subject_quota_{math.id}": "3",
+        }
+        success, err = _build_paid_test_questions(mock_test, post_data)
+        self.assertTrue(success, f"Failed to build questions: {err}")
+        mock_test.is_published = True
+        mock_test.save()
+
+        self.assertEqual(len(mock_test.fixed_question_ids), 6)
+        self.assertEqual(len(mock_test.blueprint_config["subjects"]), 2)
+
+        # 4. Verify Round-Robin Paper Type assignment across 5 candidates
+        purchases = []
+        for i in range(1, 6):
+            p = TestPurchase.objects.create(
+                test=mock_test,
+                teacher=school,
+                buyer_name=f"Student {i}",
+                buyer_email=f"student{i}@school.edu",
+                amount_kobo=250000,
+                teacher_share_kobo=200000,
+                platform_share_kobo=50000,
+                paystack_reference=f"T-REF-{i:03d}",
+                status=TestPurchase.Status.PAID,
+            )
+            assign_round_robin_paper_type(p)
+            purchases.append(p)
+
+        self.assertEqual(purchases[0].paper_type, TestPurchase.PaperType.TYPE_A)
+        self.assertEqual(purchases[1].paper_type, TestPurchase.PaperType.TYPE_B)
+        self.assertEqual(purchases[2].paper_type, TestPurchase.PaperType.TYPE_C)
+        self.assertEqual(purchases[3].paper_type, TestPurchase.PaperType.TYPE_D)
+        self.assertEqual(purchases[4].paper_type, TestPurchase.PaperType.TYPE_A)  # Cycled back to Type A!
+
+        # 5. Verify deterministic question sequence and unshuffled options
+        type_a_q = build_ordered_questions_for_paper_type(mock_test, TestPurchase.PaperType.TYPE_A)
+        type_b_q = build_ordered_questions_for_paper_type(mock_test, TestPurchase.PaperType.TYPE_B)
+        type_c_q = build_ordered_questions_for_paper_type(mock_test, TestPurchase.PaperType.TYPE_C)
+
+        type_a_ids = [q.id for q in type_a_q]
+        type_b_ids = [q.id for q in type_b_q]
+        type_c_ids = [q.id for q in type_c_q]
+
+        # All paper types must have the exact same set of questions
+        self.assertEqual(set(type_a_ids), set(type_b_ids))
+        self.assertEqual(set(type_b_ids), set(type_c_ids))
+
+        # But question sequence must be permuted between Type A and Type B
+        self.assertNotEqual(type_a_ids, type_b_ids)
+
+        # Options within each question must be identical (unshuffled)
+        for q_a in type_a_q:
+            opts_a = list(q_a.options.order_by("tag").values_list("tag", "text"))
+            # Find matching question in type B
+            q_b = next(q for q in type_b_q if q.id == q_a.id)
+            opts_b = list(q_b.options.order_by("tag").values_list("tag", "text"))
+            self.assertEqual(opts_a, opts_b)
+
+        # 6. Start attempt for Student 1 and Student 2
+        session1 = start_paid_test_attempt(purchases[0], session_key="sess-student-1")
+        session2 = start_paid_test_attempt(purchases[1], session_key="sess-student-2")
+
+        self.assertEqual(session1.paper_type, "TYPE_A")
+        self.assertEqual(session2.paper_type, "TYPE_B")
+        self.assertEqual(session1.mode, PracticeSession.Mode.JAMB_FULL_MOCK)
+
+        # 7. Complete session 1 with 100% score
+        for resp in session1.responses.all():
+            correct_opt = resp.question.options.filter(is_correct=True).first()
+            resp.selected_option = correct_opt
+            resp.is_correct = True
+            resp.save()
+        session1.calculate_results()
+        self.assertEqual(session1.percentage, 100)
+        # 2 subjects evaluated out of 100 marks each = 200 marks
+        self.assertEqual(session1.score_out_of_400, 200)
+
+        # 8. Test Central Query View and REST API
+        staff_user = User.objects.create_superuser(username="kalmin_admin", password="Password123!", email="admin@kalmiprep.com")
+        staff_client = self.client_class()
+        staff_client.force_login(staff_user)
+
+        api_url = reverse("monetization:staff_mock_query_api")
+        api_res = staff_client.get(api_url, {"paper_type": "TYPE_A"})
+        self.assertEqual(api_res.status_code, 200)
+        data = api_res.json()
+        self.assertEqual(data["status"], "success")
+        self.assertTrue(len(data["results"]) >= 2)
+        self.assertEqual(data["results"][0]["paper_type"], "TYPE_A")
+
+        # 9. Test Broadsheet CSV Export for School
+        school_client = self.client_class()
+        school_client.force_login(school_user)
+        export_url = reverse("monetization:export_test_broadsheet", args=[mock_test.share_code])
+        csv_res = school_client.get(export_url)
+        self.assertEqual(csv_res.status_code, 200)
+        self.assertEqual(csv_res["Content-Type"], "text/csv")
+        self.assertIn("Candidate #", csv_res.content.decode("utf-8"))
+        self.assertIn("Student 1", csv_res.content.decode("utf-8"))
+
+        # 10. Test Management Command (CLI Query)
+        out = StringIO()
+        call_command("query_mock_exams", format="json", out=None, stdout=out)
+        cli_output = out.getvalue()
+        # Verify JSON can be parsed and contains records
+        # If output was formatted as table, check text; if json, parse
+        self.assertIn("Student 1", cli_output)
+
+

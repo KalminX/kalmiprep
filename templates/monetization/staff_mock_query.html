@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Central Mock Exams &amp; Submissions Console | KalmiPrep Staff{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <a href="{% url 'monetization:admin_earnings' %}" class="text-xs font-bold text-brand-600 dark:text-brand-400">← Staff Dashboard</a>
+        <span class="text-xs text-slate-400">•</span>
+        <span class="text-xs font-semibold text-slate-500">Superadmin Exam Intelligence</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold mt-1 text-slate-900 dark:text-white">Central Mock Exams Query Hub</h1>
+      <p class="text-sm text-slate-500 mt-1">Audit, query, and inspect any test, candidate, paper type permutation, and submission across all registered schools.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="{% url 'monetization:staff_mock_export_csv' %}?q={{ filters.q }}&teacher_id={{ filters.teacher_id }}&test_id={{ filters.test_id }}&paper_type={{ filters.paper_type }}&exam_structure={{ filters.exam_structure }}&status={{ filters.status }}"
+         class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Export Query to CSV
+      </a>
+      <a href="{% url 'monetization:staff_mock_query_api' %}?q={{ filters.q }}&teacher_id={{ filters.teacher_id }}&test_id={{ filters.test_id }}&paper_type={{ filters.paper_type }}&exam_structure={{ filters.exam_structure }}&status={{ filters.status }}"
+         target="_blank"
+         class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition">
+        REST JSON API
+      </a>
+    </div>
+  </div>
+
+  <!-- Search & Advanced Filter Console -->
+  <form method="get" class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 text-xs">
+    <div class="lg:col-span-2">
+      <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-400">Search</label>
+      <input type="text" name="q" value="{{ filters.q }}" placeholder="Student name, email, PIN, ref, title..." class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+    </div>
+    <div>
+      <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-400">School / Teacher</label>
+      <select name="teacher_id" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+        <option value="">All Schools &amp; Tutors</option>
+        {% for t in teachers %}
+        <option value="{{ t.id }}" {% if filters.teacher_id == t.id|stringformat:"s" %}selected{% endif %}>{{ t.display_name }} ({{ t.get_kind_display }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-400">Paper Type</label>
+      <select name="paper_type" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+        <option value="">All Paper Types</option>
+        {% for code, label in paper_type_choices %}
+        <option value="{{ code }}" {% if filters.paper_type == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-400">Exam Structure</label>
+      <select name="exam_structure" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+        <option value="">All Structures</option>
+        {% for code, label in exam_structures %}
+        <option value="{{ code }}" {% if filters.exam_structure == code %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block font-semibold mb-1 text-slate-600 dark:text-slate-400">Status</label>
+      <select name="status" class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
+        <option value="">All Statuses</option>
+        <option value="COMPLETED" {% if filters.status == "COMPLETED" %}selected{% endif %}>Completed Only</option>
+        <option value="IN_PROGRESS" {% if filters.status == "IN_PROGRESS" %}selected{% endif %}>In Progress</option>
+        <option value="NOT_STARTED" {% if filters.status == "NOT_STARTED" %}selected{% endif %}>Not Started</option>
+      </select>
+    </div>
+    <div class="lg:col-span-6 flex items-center justify-between pt-2">
+      <span class="text-xs text-slate-500 font-semibold">{{ total_count }} total record{{ total_count|pluralize }} match query</span>
+      <div class="flex items-center gap-2">
+        <a href="{% url 'monetization:staff_mock_query' %}" class="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold hover:bg-slate-50">Reset</a>
+        <button type="submit" class="px-5 py-2 rounded-xl bg-brand-600 text-white font-bold hover:bg-brand-700">Apply Filter</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Query Results Table -->
+  <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <table class="w-full text-left text-xs">
+      <thead class="bg-slate-50 dark:bg-slate-800/70 uppercase tracking-wider text-slate-500">
+        <tr>
+          <th class="px-4 py-3">Cand #</th>
+          <th class="px-4 py-3">Student</th>
+          <th class="px-4 py-3">School / Test</th>
+          <th class="px-4 py-3">Paper</th>
+          <th class="px-4 py-3">Status</th>
+          <th class="px-4 py-3 text-right">Score (%)</th>
+          <th class="px-4 py-3 text-right">UTME 400</th>
+          <th class="px-4 py-3 text-right">Duration</th>
+          <th class="px-4 py-3 text-right">Completed</th>
+          <th class="px-4 py-3 text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+        {% for purchase in page_obj %}
+        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+          <td class="px-4 py-3 font-mono font-bold text-slate-500">{% if purchase.candidate_number %}#{{ purchase.candidate_number }}{% else %}—{% endif %}</td>
+          <td class="px-4 py-3">
+            <div class="font-bold text-slate-900 dark:text-white">{{ purchase.buyer_name }}</div>
+            <div class="text-slate-400 font-mono">{{ purchase.buyer_email }}</div>
+          </td>
+          <td class="px-4 py-3">
+            <div class="font-semibold text-slate-800 dark:text-slate-200">{{ purchase.test.title }}</div>
+            <div class="text-slate-400">{{ purchase.teacher.display_name }} ({{ purchase.teacher.get_kind_display }})</div>
+          </td>
+          <td class="px-4 py-3">
+            {% if purchase.paper_type == "TYPE_A" %}
+            <span class="inline-flex px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">Type A</span>
+            {% elif purchase.paper_type == "TYPE_B" %}
+            <span class="inline-flex px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300">Type B</span>
+            {% elif purchase.paper_type == "TYPE_C" %}
+            <span class="inline-flex px-2 py-0.5 rounded font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">Type C</span>
+            {% else %}
+            <span class="inline-flex px-2 py-0.5 rounded font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/40 dark:text-purple-300">Type D</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3">
+            {% if not purchase.practice_session %}
+            <span class="text-slate-400">Not started</span>
+            {% elif purchase.practice_session.status == "COMPLETED" %}
+            <span class="text-emerald-600 font-semibold">Completed</span>
+            {% elif purchase.practice_session.status == "IN_PROGRESS" %}
+            <span class="text-amber-600 font-semibold">In Progress</span>
+            {% else %}
+            <span class="text-slate-500">{{ purchase.practice_session.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 text-right tabular-nums font-bold">
+            {% if purchase.practice_session and purchase.practice_session.status == "COMPLETED" %}
+            {{ purchase.practice_session.percentage|floatformat:1 }}%
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right tabular-nums font-extrabold text-brand-600">
+            {% if purchase.practice_session and purchase.practice_session.status == "COMPLETED" and purchase.practice_session.mode == "JAMB_FULL_MOCK" %}
+            {{ purchase.practice_session.score_out_of_400 }}/400
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right tabular-nums text-slate-500">
+            {% if purchase.practice_session %}{{ purchase.practice_session.formatted_time_spent }}{% else %}--:--{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right text-slate-500 tabular-nums">
+            {% if purchase.completed_at %}
+            {{ purchase.completed_at|date:"M j, H:i" }}
+            {% elif purchase.practice_session.completed_at %}
+            {{ purchase.practice_session.completed_at|date:"M j, H:i" }}
+            {% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right">
+            {% if purchase.practice_session %}
+            <a href="{% url 'monetization:candidate_detail' purchase.test.share_code purchase.id %}" target="_blank" class="font-bold text-brand-600 hover:text-brand-700">Audit Sheet →</a>
+            {% else %}
+            <span class="text-slate-400">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10" class="px-4 py-12 text-center text-slate-500">No mock exam attempts matching your criteria.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav class="flex items-center justify-between text-xs">
+    <span class="text-slate-500">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    <div class="flex gap-2">
+      {% if page_obj.has_previous %}<a class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700" href="?page={{ page_obj.previous_page_number }}&q={{ filters.q }}&teacher_id={{ filters.teacher_id }}&test_id={{ filters.test_id }}&paper_type={{ filters.paper_type }}&exam_structure={{ filters.exam_structure }}&status={{ filters.status }}">Previous</a>{% endif %}
+      {% if page_obj.has_next %}<a class="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700" href="?page={{ page_obj.next_page_number }}&q={{ filters.q }}&teacher_id={{ filters.teacher_id }}&test_id={{ filters.test_id }}&paper_type={{ filters.paper_type }}&exam_structure={{ filters.exam_structure }}&status={{ filters.status }}">Next</a>{% endif %}
+    </div>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

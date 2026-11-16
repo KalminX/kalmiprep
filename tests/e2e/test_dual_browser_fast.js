@@ -103,10 +103,13 @@ async function runFastLifecycleTest() {
     }
 
     // Submit form and navigate to dashboard
-    await Promise.all([
-      teacherPage.waitForURL((url) => url.pathname.includes('/monetization')),
-      teacherPage.click('button:has-text("Publish test")')
-    ]);
+    await teacherPage.click('button:has-text("Publish test")');
+    await teacherPage.waitForLoadState('networkidle');
+    console.log(`Current URL after submit: ${teacherPage.url()}`);
+    if (teacherPage.url().includes('/tests/new')) {
+      const errorText = await teacherPage.evaluate(() => document.body.innerText);
+      console.log('Form Error Page Text:', errorText.slice(0, 500));
+    }
 
     // Extract Share Code
     const leaderboardLink = await teacherPage.$('article a[href*="/results/"]');

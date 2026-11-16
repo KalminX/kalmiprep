@@ -252,6 +252,84 @@ def apply_processed_refund(purchase_reference, refund_reference, amount_kobo):
     return purchase
 
 
+PAPER_TYPES_CYCLE = [
+    TestPurchase.PaperType.TYPE_A,
+    TestPurchase.PaperType.TYPE_B,
+    TestPurchase.PaperType.TYPE_C,
+    TestPurchase.PaperType.TYPE_D,
+]
+
+
+def assign_round_robin_paper_type(purchase: TestPurchase) -> str:
+    """
+    Assigns candidate number and deterministic round-robin paper type
+    (Type A -> Type B -> Type C -> Type D -> Type A ...)
+    based on the candidate's creation sequence in this test.
+    """
+    if purchase.candidate_number and purchase.paper_type:
+        return purchase.paper_type
+
+    candidate_count = (
+        TestPurchase.objects.filter(test=purchase.test, status=TestPurchase.Status.PAID)
+        .filter(created_at__lt=purchase.created_at)
+        .count()
+    )
+    assigned_paper = PAPER_TYPES_CYCLE[candidate_count % len(PAPER_TYPES_CYCLE)]
+    purchase.paper_type = assigned_paper
+    purchase.candidate_number = candidate_count + 1
+    purchase.save(update_fields=["paper_type", "candidate_number"])
+    return assigned_paper
+
+
+def build_ordered_questions_for_paper_type(paid_test: PaidTest, paper_type: str) -> list:
+    """
+    Builds a deterministic question sequence for the given paper type.
+    Questions are grouped by subject sections.
+    Within each subject section, questions are permuted deterministically using
+    a seeded pseudo-random generator specific to (test_id, subject_id, paper_type).
+    Options A, B, C, D remain untouched in their original order.
+    """
+    if paid_test.randomization == PaidTest.Randomization.SHARED_SET and paid_test.fixed_question_ids:
+        raw_questions = list(
+            Question.objects.filter(pk__in=paid_test.fixed_question_ids, is_published=True)
+            .select_related("subject", "topic")
+            .prefetch_related("options")
+        )
+        question_map = {q.id: q for q in raw_questions}
+        subject_order = []
+        subject_groups = {}
+        for qid in paid_test.fixed_question_ids:
+            q = question_map.get(qid)
+            if q:
+                if q.subject_id not in subject_groups:
+                    subject_order.append(q.subject_id)
+                    subject_groups[q.subject_id] = []
+                subject_groups[q.subject_id].append(q)
+
+        ordered_final = []
+        for sid in subject_order:
+            subj_questions = list(subject_groups[sid])
+            if paper_type != TestPurchase.PaperType.TYPE_A:
+                seed_val = f"kalmiprep_{paid_test.id}_subj_{sid}_paper_{paper_type}"
+                rng = random.Random(seed_val)
+                rng.shuffle(subj_questions)
+            ordered_final.extend(subj_questions)
+        return ordered_final
+    else:
+        candidates = list(
+            Question.objects.filter(topic__in=paid_test.topics.all(), is_published=True)
+            .distinct()
+            .order_by("pk")
+        )
+        if len(candidates) < paid_test.question_count:
+            raise PaymentError("The teacher's question pool is no longer large enough to start this test.")
+        selected = random.SystemRandom().sample(candidates, paid_test.question_count)
+        if paper_type != TestPurchase.PaperType.TYPE_A:
+            rng = random.Random(f"kalmiprep_{paid_test.id}_paper_{paper_type}")
+            rng.shuffle(selected)
+        return selected
+
+
 @transaction.atomic
 def start_paid_test_attempt(purchase, session_key=""):
     purchase = TestPurchase.objects.select_for_update().get(pk=purchase.pk)
@@ -261,32 +339,33 @@ def start_paid_test_attempt(purchase, session_key=""):
         return purchase.practice_session
 
     paid_test = purchase.test
-    if paid_test.randomization == PaidTest.Randomization.SHARED_SET:
-        candidates = list(Question.objects.filter(pk__in=paid_test.fixed_question_ids, is_published=True))
-    else:
-        candidates = list(
-            Question.objects.filter(topic__in=paid_test.topics.all(), is_published=True)
-            .distinct()
-            .order_by("pk")
-        )
-        if len(candidates) < paid_test.question_count:
-            raise PaymentError("The teacher's question pool is no longer large enough to start this test.")
-        candidates = random.SystemRandom().sample(candidates, paid_test.question_count)
+    paper_type = assign_round_robin_paper_type(purchase)
+    candidates = build_ordered_questions_for_paper_type(paid_test, paper_type)
+
     if len(candidates) != paid_test.question_count:
         raise PaymentError("This test does not have enough available questions.")
-    random.SystemRandom().shuffle(candidates)
 
     first_topic = paid_test.topics.select_related("subject").first()
     subject = first_topic.subject if first_topic else None
 
+    # For multi-subject mock assessments, engage JAMB_FULL_MOCK mode
+    if paid_test.exam_structure in [
+        PaidTest.ExamStructure.CUSTOM_MULTI_SUBJECT,
+        PaidTest.ExamStructure.JAMB_UTME_STANDARD,
+    ]:
+        session_mode = PracticeSession.Mode.JAMB_FULL_MOCK
+    else:
+        session_mode = PracticeSession.Mode.CBT_MOCK
+
     session = PracticeSession.objects.create(
         user=purchase.buyer,
         session_key=session_key if not purchase.buyer_id else "",
-        mode=PracticeSession.Mode.CBT_MOCK,
+        mode=session_mode,
         title=paid_test.title,
         subject=subject,
         topic=None,
         exam_type=None,
+        paper_type=paper_type,
         total_questions=len(candidates),
         time_limit_seconds=paid_test.time_limit_minutes * 60,
         status=PracticeSession.Status.IN_PROGRESS,

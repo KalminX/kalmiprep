@@ -34,18 +34,40 @@ class TeacherProfileAdmin(admin.ModelAdmin):
 
 @admin.register(PaidTest)
 class PaidTestAdmin(admin.ModelAdmin):
-    list_display = ("title", "teacher", "price_kobo", "is_published", "created_at")
-    list_filter = ("is_published", "randomization")
+    list_display = ("title", "teacher", "exam_structure", "price_kobo", "question_count", "is_published", "created_at")
+    list_filter = ("is_published", "exam_structure", "randomization")
     search_fields = ("title", "teacher__display_name")
-    readonly_fields = ("share_code", "fixed_question_ids")
+    readonly_fields = ("share_code", "fixed_question_ids", "blueprint_config")
 
 
 @admin.register(TestPurchase)
 class TestPurchaseAdmin(admin.ModelAdmin):
-    list_display = ("paystack_reference", "test", "buyer_name", "amount_kobo", "teacher_share_kobo", "status", "paid_at")
-    list_filter = ("status", "created_at")
-    search_fields = ("paystack_reference", "buyer_name", "buyer_email")
+    list_display = (
+        "paystack_reference",
+        "test",
+        "buyer_name",
+        "paper_type",
+        "candidate_number",
+        "amount_kobo",
+        "status",
+        "session_score_display",
+        "paid_at",
+        "completed_at",
+    )
+    list_filter = ("status", "paper_type", "test", "created_at")
+    search_fields = ("paystack_reference", "buyer_name", "buyer_email", "access_pin_hash")
     readonly_fields = tuple(field.name for field in TestPurchase._meta.fields)
+
+    @admin.display(description="Score / Status")
+    def session_score_display(self, obj):
+        if not obj.practice_session:
+            return "No attempt"
+        s = obj.practice_session
+        if s.status == PracticeSession.Status.COMPLETED:
+            if s.mode == PracticeSession.Mode.JAMB_FULL_MOCK:
+                return f"{s.score_out_of_400}/400 ({s.percentage}%)"
+            return f"{s.score}/{s.total_questions} ({s.percentage}%)"
+        return s.get_status_display()
 
 
 @admin.register(TeacherWallet)

@@ -30,6 +30,17 @@ class PracticeSession(models.Model):
     subject = models.ForeignKey(Subject, on_delete=models.SET_NULL, null=True, blank=True, related_name="practice_sessions")
     topic = models.ForeignKey(Topic, on_delete=models.SET_NULL, null=True, blank=True, related_name="practice_sessions")
     exam_type = models.CharField(max_length=20, choices=Question.ExamType.choices, blank=True, null=True)
+    paper_type = models.CharField(
+        max_length=10,
+        choices=[
+            ("TYPE_A", "Type A"),
+            ("TYPE_B", "Type B"),
+            ("TYPE_C", "Type C"),
+            ("TYPE_D", "Type D"),
+        ],
+        default="TYPE_A",
+        db_index=True,
+    )
     
     total_questions = models.PositiveIntegerField(default=0)
     time_limit_seconds = models.PositiveIntegerField(default=0, help_text="Time allowed in seconds (0 for untimed)")
@@ -50,6 +61,8 @@ class PracticeSession(models.Model):
             models.Index(fields=["user", "status", "-started_at"], name="idx_sess_user_status"),
             models.Index(fields=["session_key", "status", "-started_at"], name="idx_sess_key_status"),
             models.Index(fields=["mode", "status"], name="idx_sess_mode_status"),
+            models.Index(fields=["mode", "status", "-completed_at"], name="idx_sess_mode_stat_comp"),
+            models.Index(fields=["paper_type", "status"], name="idx_sess_paper_status"),
         ]
 
     def __str__(self):
@@ -191,6 +204,10 @@ class PracticeSession(models.Model):
         self.status = self.Status.COMPLETED
         self.completed_at = timezone.now()
         self.save(update_fields=["score", "percentage", "status", "completed_at", "time_spent_seconds"])
+        test_purchase = getattr(self, "test_purchase", None)
+        if test_purchase and not test_purchase.completed_at:
+            test_purchase.completed_at = self.completed_at
+            test_purchase.save(update_fields=["completed_at"])
         assignment_attempt = getattr(self, "class_assignment_attempt", None)
         if assignment_attempt and assignment_attempt.is_active:
             assignment_attempt.is_active = False

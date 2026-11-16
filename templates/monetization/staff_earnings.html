@@ -13,6 +13,10 @@
       <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time ledger overview: 20% platform revenue share, 80% teacher cut, and teacher management.</p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
+      <a href="{% url 'monetization:staff_mock_query' %}" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+        <span>Central Mock Hub</span>
+        <span>&rarr;</span>
+      </a>
       <a href="{% url 'monetization:invite_teacher' %}" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold transition">
         Invite Teacher
       </a>

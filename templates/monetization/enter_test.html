@@ -1,5 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Enter Test PIN | KalmiPrep{% endblock %}
+{% block title %}Enter Test PIN | {{ test.title }} | KalmiPrep{% endblock %}
 {% block content %}
-<div class="max-w-md mx-auto px-4 sm:px-6 py-12"><section class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800"><h1 class="text-xl font-extrabold">Enter your test PIN</h1><p class="text-sm text-slate-500 mt-1">{{ test.title }}</p><form method="post" class="mt-6 space-y-4">{% csrf_token %}{{ form.pin }}{% for error in form.pin.errors %}<p class="text-xs text-rose-600">{{ error }}</p>{% endfor %}{% for error in form.non_field_errors %}<p class="text-xs text-rose-600">{{ error }}</p>{% endfor %}<button class="w-full py-3 rounded-xl bg-brand-600 text-white font-bold">Start or resume test</button></form></section></div>
+<div class="max-w-md mx-auto px-4 sm:px-6 py-12 space-y-4">
+  <section class="p-6 sm:p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800 mb-3">
+      Candidate Gate
+    </div>
+    
+    <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Enter Exam PIN</h1>
+    <p class="text-xs text-slate-500 mt-1">
+      {{ test.title }} • <span class="font-semibold text-slate-700 dark:text-slate-300">{{ test.teacher.display_name }}</span>
+    </p>
+
+    <form method="post" class="mt-6 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-xs font-bold mb-1.5 text-slate-700 dark:text-slate-300">Access PIN</label>
+        {{ form.pin }}
+        <p class="text-[11px] text-slate-400 mt-1">Enter the 8-to-10 character PIN from your teacher or purchase receipt.</p>
+        {% for error in form.pin.errors %}<p class="text-xs text-rose-600 mt-1">{{ error }}</p>{% endfor %}
+        {% for error in form.non_field_errors %}<p class="text-xs text-rose-600 mt-1">{{ error }}</p>{% endfor %}
+      </div>
+
+      <button type="submit" class="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm transition-colors shadow-sm flex items-center justify-center gap-2">
+        <span>Enter Exam Lobby</span>
+        <span>&rarr;</span>
+      </button>
+    </form>
+
+    <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+      <p class="text-[11px] text-slate-500">
+        Don't have an access PIN yet?
+        <a href="{% url 'monetization:public_test' test.share_code %}" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">
+          Purchase Pass Online &rarr;
+        </a>
+      </p>
+    </div>
+  </section>
+</div>
+
+<script>
+  (() => {
+    const pinInput = document.querySelector('input[name="pin"]');
+    if (pinInput) {
+      pinInput.setAttribute('placeholder', 'e.g. KMP-XXXXXXXX');
+      pinInput.style.textTransform = 'uppercase';
+      pinInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.toUpperCase();
+      });
+      pinInput.focus();
+    }
+  })();
+</script>
 {% endblock %}

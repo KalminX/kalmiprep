@@ -12,6 +12,7 @@ class TeacherProfile(models.Model):
     class Kind(models.TextChoices):
         TUTOR = "TUTOR", "Tutor"
         LECTURE_HOUSE = "LECTURE_HOUSE", "Lecture house"
+        SCHOOL = "SCHOOL", "Secondary School / Institution"
 
     class Status(models.TextChoices):
         PENDING = "PENDING", "Pending review"
@@ -21,6 +22,9 @@ class TeacherProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="teacher_profile")
     kind = models.CharField(max_length=20, choices=Kind.choices)
     display_name = models.CharField(max_length=150)
+    school_address = models.CharField(max_length=255, blank=True)
+    school_phone = models.CharField(max_length=50, blank=True)
+    school_logo_url = models.URLField(blank=True)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.PENDING, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -62,11 +66,27 @@ class PaidTest(models.Model):
         SHARED_SET = "SHARED_SET", "Same randomly selected questions; shuffled per student"
         UNIQUE_DRAW = "UNIQUE_DRAW", "Unique random draw per student"
 
+    class ExamStructure(models.TextChoices):
+        SINGLE_SUBJECT = "SINGLE_SUBJECT", "Single Subject Test"
+        CUSTOM_MULTI_SUBJECT = "CUSTOM_MULTI_SUBJECT", "Custom Multi-Subject Mock"
+        JAMB_UTME_STANDARD = "JAMB_UTME_STANDARD", "JAMB UTME Standard (4 Subjects • 180 Qs)"
+
     teacher = models.ForeignKey(TeacherProfile, on_delete=models.CASCADE, related_name="tests")
     share_code = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     title = models.CharField(max_length=180)
     description = models.TextField(blank=True)
     topics = models.ManyToManyField(Topic, related_name="paid_tests")
+    exam_structure = models.CharField(
+        max_length=30,
+        choices=ExamStructure.choices,
+        default=ExamStructure.SINGLE_SUBJECT,
+        db_index=True,
+    )
+    blueprint_config = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="JSON mapping subject quotas, topic allocations, and target distribution",
+    )
     price_kobo = models.PositiveBigIntegerField(validators=[MinValueValidator(20000)], help_text="Minimum price: ₦200")
     question_count = models.PositiveSmallIntegerField(default=20, validators=[MinValueValidator(1)])
     time_limit_minutes = models.PositiveSmallIntegerField(default=30, validators=[MinValueValidator(1)])
@@ -115,6 +135,12 @@ class TestPurchase(models.Model):
         REFUNDED = "REFUNDED", "Refunded"
         FAILED = "FAILED", "Payment failed"
 
+    class PaperType(models.TextChoices):
+        TYPE_A = "TYPE_A", "Type A"
+        TYPE_B = "TYPE_B", "Type B"
+        TYPE_C = "TYPE_C", "Type C"
+        TYPE_D = "TYPE_D", "Type D"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     test = models.ForeignKey(PaidTest, on_delete=models.PROTECT, related_name="purchases")
     teacher = models.ForeignKey(TeacherProfile, on_delete=models.PROTECT, related_name="test_purchases")
@@ -122,6 +148,13 @@ class TestPurchase(models.Model):
     buyer_name = models.CharField(max_length=150)
     buyer_email = models.EmailField()
     buyer_phone = models.CharField(max_length=30, blank=True)
+    paper_type = models.CharField(
+        max_length=10,
+        choices=PaperType.choices,
+        default=PaperType.TYPE_A,
+        db_index=True,
+    )
+    candidate_number = models.PositiveIntegerField(null=True, blank=True)
     amount_kobo = models.PositiveBigIntegerField()
     teacher_share_kobo = models.PositiveBigIntegerField()
     platform_share_kobo = models.PositiveBigIntegerField()
@@ -135,7 +168,16 @@ class TestPurchase(models.Model):
         "practice.PracticeSession", on_delete=models.SET_NULL, null=True, blank=True, related_name="test_purchase"
     )
     paid_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["test", "status", "-created_at"], name="idx_tpurch_test_stat"),
+            models.Index(fields=["paper_type", "status"], name="idx_tpurch_paper_stat"),
+            models.Index(fields=["buyer_email", "status"], name="idx_tpurch_email_stat"),
+        ]
 
     def __str__(self):
         return f"{self.test.title} — {self.buyer_name} ({self.status})"

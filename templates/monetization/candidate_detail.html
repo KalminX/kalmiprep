@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}{{ purchase.buyer_name }} Exam Breakdown | KalmiPrep{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+  <div>
+    <a href="{% url 'monetization:test_leaderboard' test.share_code %}" class="text-xs font-bold text-brand-600 dark:text-brand-400">← Back to Leaderboard &amp; Broadsheet</a>
+    <h1 class="text-2xl sm:text-3xl font-extrabold mt-2">{{ purchase.buyer_name }} — Candidate Examination Sheet</h1>
+    <p class="text-sm text-slate-500 mt-1">Exam: <span class="font-semibold text-slate-800 dark:text-slate-200">{{ test.title }}</span></p>
+  </div>
+
+  <!-- Candidate Overview Card -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs">
+    <div>
+      <span class="text-slate-400 block mb-0.5">Candidate # / Paper</span>
+      <span class="font-bold text-slate-800 dark:text-slate-100">
+        #{% if purchase.candidate_number %}{{ purchase.candidate_number }}{% else %}—{% endif %} •
+        <span class="inline-flex px-1.5 py-0.5 rounded font-bold {% if purchase.paper_type == 'TYPE_A' %}bg-amber-100 text-amber-800{% elif purchase.paper_type == 'TYPE_B' %}bg-blue-100 text-blue-800{% elif purchase.paper_type == 'TYPE_C' %}bg-emerald-100 text-emerald-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+          {{ purchase.get_paper_type_display }}
+        </span>
+      </span>
+    </div>
+    <div>
+      <span class="text-slate-400 block mb-0.5">Candidate Email / Phone</span>
+      <span class="font-semibold text-slate-800 dark:text-slate-100 truncate block">{{ purchase.buyer_email }}</span>
+      <span class="text-slate-500 block">{{ purchase.buyer_phone|default:"No phone" }}</span>
+    </div>
+    <div>
+      <span class="text-slate-400 block mb-0.5">Total Score</span>
+      <span class="font-extrabold text-base text-brand-600 dark:text-brand-400">
+        {% if session and session.is_completed %}
+          {{ session.percentage|floatformat:1 }}%
+          {% if session.mode == "JAMB_FULL_MOCK" %}
+          <span class="text-xs font-bold text-slate-600 dark:text-slate-300">({{ session.score_out_of_400 }}/400)</span>
+          {% endif %}
+        {% else %}
+          In Progress
+        {% endif %}
+      </span>
+    </div>
+    <div>
+      <span class="text-slate-400 block mb-0.5">Duration / Status</span>
+      <span class="font-semibold text-slate-800 dark:text-slate-100 block">
+        {% if session %}{{ session.formatted_time_spent }}{% else %}--:--{% endif %}
+      </span>
+      <span class="text-slate-500 block">
+        {% if purchase.completed_at %}{{ purchase.completed_at|date:"M j, Y H:i" }}{% else %}Active{% endif %}
+      </span>
+    </div>
+  </div>
+
+  <!-- Multi-Subject Breakdown if available -->
+  {% if session and session.is_completed and session.subject_scores_breakdown %}
+  <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3">
+    <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Subject Performance Breakdown</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {% for b in session.subject_scores_breakdown %}
+      <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs">
+        <span class="font-bold text-slate-700 dark:text-slate-300 block truncate">{{ b.subject.name }}</span>
+        <div class="mt-1 flex items-baseline justify-between">
+          <span class="text-lg font-black text-brand-600 dark:text-brand-400">{{ b.score_100 }}%</span>
+          <span class="text-slate-500 font-medium">{{ b.correct }}/{{ b.total }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Question-by-Question Response List -->
+  <div class="space-y-4">
+    <h3 class="text-base font-bold text-slate-900 dark:text-white">Question by Question Response Sheet</h3>
+    {% for resp in responses %}
+    <div class="p-5 rounded-2xl border {% if resp.selected_option and resp.is_correct %}border-emerald-200 bg-emerald-50/20 dark:border-emerald-950 dark:bg-emerald-950/10{% elif resp.selected_option %}border-rose-200 bg-rose-50/20 dark:border-rose-950 dark:bg-rose-950/10{% else %}border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900{% endif %} space-y-3 text-sm">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Q{{ resp.order }}</span>
+          <span class="text-xs text-slate-500 font-semibold">{{ resp.question.subject.name }} • {{ resp.question.topic.name }}</span>
+        </div>
+        <div>
+          {% if resp.selected_option and resp.is_correct %}
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">Correct (+1)</span>
+          {% elif resp.selected_option %}
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300">Incorrect</span>
+          {% else %}
+          <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">Unanswered</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="font-medium text-slate-900 dark:text-white leading-relaxed">
+        {{ resp.question.question_text|safe }}
+      </div>
+
+      <!-- Options -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+        {% for opt in resp.question.options.all %}
+        <div class="p-2.5 rounded-xl border flex items-center gap-2
+          {% if opt.is_correct %}
+            border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 font-semibold
+          {% elif resp.selected_option_id == opt.id and not opt.is_correct %}
+            border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-semibold
+          {% else %}
+            border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300
+          {% endif %}">
+          <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px]
+            {% if opt.is_correct %}bg-emerald-600 text-white{% elif resp.selected_option_id == opt.id %}bg-rose-600 text-white{% else %}bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300{% endif %}">
+            {{ opt.tag }}
+          </span>
+          <span class="flex-1">{{ opt.text }}</span>
+          {% if resp.selected_option_id == opt.id %}
+          <span class="text-[10px] uppercase font-bold text-brand-600 dark:text-brand-400">(Selected)</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-sm text-slate-500 text-center py-8">No responses recorded for this attempt.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

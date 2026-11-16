@@ -16,6 +16,7 @@ from ..models import PaidTest, TeacherProfile, TestPurchase
 from ..services import (
     PaymentError,
     access_pin_for,
+    assign_round_robin_paper_type,
     initialize_paystack_payment,
     pin_hash,
     record_verified_payment,
@@ -127,6 +128,7 @@ def enter_test(request, share_code):
                     grants = set(request.session.get("paid_test_purchases", []))
                     grants.add(str(purchase.pk))
                     request.session["paid_test_purchases"] = list(grants)
+                    assign_round_robin_paper_type(purchase)
 
                     if paid_test.requires_approval and not paid_test.is_approved_for_start:
                         return redirect("monetization:waiting_room", share_code=paid_test.share_code)

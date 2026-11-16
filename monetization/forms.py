@@ -12,10 +12,12 @@ FIELD_CLASS = "w-full rounded-xl border-slate-300 dark:border-slate-700 bg-white
 class TeacherApplicationForm(forms.ModelForm):
     class Meta:
         model = TeacherProfile
-        fields = ["kind", "display_name"]
+        fields = ["kind", "display_name", "school_address", "school_phone"]
         widgets = {
             "kind": forms.Select(attrs={"class": FIELD_CLASS}),
-            "display_name": forms.TextInput(attrs={"class": FIELD_CLASS}),
+            "display_name": forms.TextInput(attrs={"class": FIELD_CLASS, "placeholder": "e.g. Corona Secondary School or Mr. Johnson"}),
+            "school_address": forms.TextInput(attrs={"class": FIELD_CLASS, "placeholder": "e.g. 10 Admiralty Way, Lekki, Lagos (for schools)"}),
+            "school_phone": forms.TextInput(attrs={"class": FIELD_CLASS, "placeholder": "e.g. +234 801 234 5678"}),
         }
 
 
@@ -43,6 +45,12 @@ class InvitationAccountForm(forms.Form):
 class PaidTestForm(forms.ModelForm):
     price_naira = forms.DecimalField(min_value=Decimal("200"), decimal_places=2, max_digits=10, label="Price (₦)")
     topics = forms.ModelMultipleChoiceField(queryset=Topic.objects.none(), widget=forms.CheckboxSelectMultiple)
+    exam_structure = forms.ChoiceField(
+        choices=PaidTest.ExamStructure.choices,
+        required=False,
+        initial=PaidTest.ExamStructure.SINGLE_SUBJECT,
+        widget=forms.Select(attrs={"class": FIELD_CLASS}),
+    )
     requires_approval = forms.BooleanField(
         required=False,
         initial=False,
@@ -55,6 +63,7 @@ class PaidTestForm(forms.ModelForm):
         fields = [
             "title",
             "description",
+            "exam_structure",
             "topics",
             "price_naira",
             "question_count",
@@ -65,6 +74,7 @@ class PaidTestForm(forms.ModelForm):
         widgets = {
             "title": forms.TextInput(attrs={"class": FIELD_CLASS}),
             "description": forms.Textarea(attrs={"class": FIELD_CLASS, "rows": 3}),
+            "exam_structure": forms.Select(attrs={"class": FIELD_CLASS}),
             "question_count": forms.NumberInput(attrs={"class": FIELD_CLASS, "min": 1}),
             "time_limit_minutes": forms.NumberInput(attrs={"class": FIELD_CLASS, "min": 1}),
             "randomization": forms.Select(attrs={"class": FIELD_CLASS}),
@@ -78,6 +88,10 @@ class PaidTestForm(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         instance.price_kobo = int(self.cleaned_data["price_naira"] * 100)
+        if not instance.exam_structure:
+            instance.exam_structure = PaidTest.ExamStructure.SINGLE_SUBJECT
+        if not instance.blueprint_config:
+            instance.blueprint_config = {}
         if commit:
             instance.save()
             self.save_m2m()
