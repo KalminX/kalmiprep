@@ -3,12 +3,14 @@ services:
     image: redis:7-alpine
     container_name: kalmiprep-redis
     restart: always
+    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru --save ""
     ports:
       - "127.0.0.1:6379:6379"
     networks:
       - webproxy
     volumes:
       - redis_data:/data
+    mem_limit: 64M
 
   app:
     build: .
@@ -21,9 +23,12 @@ services:
     environment:
       - DATABASE_URL=postgres://kalmiprep_user:kalmiprep_secure_pass_2026@postgres-db:5432/kalmiprep_db
       - REDIS_URL=redis://kalmiprep-redis:6379/1
+      - MALLOC_ARENA_MAX=2
       - DEBUG=False
       - ALLOWED_HOSTS=kalmiprep.kalmitech.app,localhost,127.0.0.1,kalmiprep-app
       - CSRF_TRUSTED_ORIGINS=https://kalmiprep.kalmitech.app
+    mem_limit: 300M
+    mem_reservation: 100M
     volumes:
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles
@@ -46,7 +51,7 @@ services:
     build: .
     container_name: kalmiprep-worker
     restart: always
-    command: celery -A config worker -l info -c 3 -Q scraping,ingestion,default
+    command: celery -A config worker -l info -c 2 -Q scraping,ingestion,default --max-tasks-per-child=100 --max-memory-per-child=120000
     depends_on:
       - redis
     env_file:
@@ -54,8 +59,11 @@ services:
     environment:
       - DATABASE_URL=postgres://kalmiprep_user:kalmiprep_secure_pass_2026@postgres-db:5432/kalmiprep_db
       - REDIS_URL=redis://kalmiprep-redis:6379/1
+      - MALLOC_ARENA_MAX=2
       - CELERY_BROKER_URL=amqp://kalmin:iamasaint@global-rabbitmq:5672//
       - CELERY_RESULT_BACKEND=redis://kalmiprep-redis:6379/2
+    mem_limit: 220M
+    mem_reservation: 90M
     volumes:
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles
