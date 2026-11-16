@@ -481,11 +481,20 @@ def session_results(request, session_id):
         stats["percentage"] = int((stats["correct"] / stats["attempted"]) * 100)
         stats["is_weak"] = stats["percentage"] < 60
 
+    distinct_subjects = []
+    seen_subjs = set()
+    for r in responses:
+        subj = r.question.subject
+        if subj and subj.id not in seen_subjs:
+            seen_subjs.add(subj.id)
+            distinct_subjects.append(subj)
+
     assignment_attempt = getattr(session, "class_assignment_attempt", None)
 
     context = {
         "session": session,
         "responses": responses,
+        "distinct_subjects": distinct_subjects,
         "grade": grade,
         "grade_color": grade_color,
         "topic_scores": topic_scores,

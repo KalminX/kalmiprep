@@ -285,51 +285,101 @@
 
     <!-- Detailed Question-by-Question Review -->
     <div class="space-y-6" id="question-review-section">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <i data-lucide="list-checks" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
-                    Question-by-Question Review
-                </h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">
-                    {% if session.mode == 'JAMB_FULL_MOCK' %}
-                    Review your choices alongside verified step-by-step mathematical workings, grammar breakdowns, and scientific conceptual explanations.
-                    {% elif session.subject.slug == 'mathematics' or session.subject.slug == 'maths' %}
-                    Review your choices alongside verified step-by-step mathematical workings and derivations.
-                    {% elif session.subject.slug == 'english-language' or session.subject.slug == 'english' %}
-                    Review your choices alongside contextual grammar rules, comprehension analysis, and vocabulary guides.
-                    {% elif session.subject.slug == 'biology' %}
-                    Review your choices alongside biological diagrams, syllabus guidelines, and conceptual breakdowns.
-                    {% elif session.subject.slug == 'chemistry' %}
-                    Review your choices alongside chemical equations, reaction mechanisms, and principles.
-                    {% elif session.subject.slug == 'physics' %}
-                    Review your choices alongside physical laws, formulas, and step-by-step numerical solutions.
-                    {% else %}
-                    Review your choices alongside verified conceptual solutions and syllabus explanations.
-                    {% endif %}
-                </p>
+        <div class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i data-lucide="list-checks" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
+                        Question-by-Question Review
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                        {% if session.mode == 'JAMB_FULL_MOCK' %}
+                        Review your choices alongside verified step-by-step mathematical workings, grammar breakdowns, and scientific conceptual explanations.
+                        {% elif session.subject.slug == 'mathematics' or session.subject.slug == 'maths' %}
+                        Review your choices alongside verified step-by-step mathematical workings and derivations.
+                        {% elif session.subject.slug == 'english-language' or session.subject.slug == 'english' %}
+                        Review your choices alongside contextual grammar rules, comprehension analysis, and vocabulary guides.
+                        {% elif session.subject.slug == 'biology' %}
+                        Review your choices alongside biological diagrams, syllabus guidelines, and conceptual breakdowns.
+                        {% elif session.subject.slug == 'chemistry' %}
+                        Review your choices alongside chemical equations, reaction mechanisms, and principles.
+                        {% elif session.subject.slug == 'physics' %}
+                        Review your choices alongside physical laws, formulas, and step-by-step numerical solutions.
+                        {% else %}
+                        Review your choices alongside verified conceptual solutions and syllabus explanations.
+                        {% endif %}
+                    </p>
+                </div>
+
+                <!-- Filter Buttons -->
+                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" id="filter-buttons">
+                    <button type="button" onclick="filterReview('all')" class="filter-btn active px-3.5 py-2 rounded-lg text-xs font-semibold bg-brand-600 text-white shadow-sm shrink-0 min-h-[36px]" data-filter="all">
+                        All ({{ responses|length }})
+                    </button>
+                    <button type="button" onclick="filterReview('incorrect')" class="filter-btn px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 min-h-[36px]" data-filter="incorrect">
+                        Incorrect Only
+                    </button>
+                    <button type="button" onclick="filterReview('flagged')" class="filter-btn px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 min-h-[36px]" data-filter="flagged">
+                        Flagged
+                    </button>
+                </div>
             </div>
 
-            <!-- Filter Buttons -->
-            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" id="filter-buttons">
-                <button type="button" onclick="filterReview('all')" class="filter-btn active px-3.5 py-2 rounded-lg text-xs font-semibold bg-brand-600 text-white shadow-sm shrink-0 min-h-[36px]" data-filter="all">
-                    All ({{ responses|length }})
-                </button>
-                <button type="button" onclick="filterReview('incorrect')" class="filter-btn px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 min-h-[36px]" data-filter="incorrect">
-                    Incorrect Only
-                </button>
-                <button type="button" onclick="filterReview('flagged')" class="filter-btn px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 min-h-[36px]" data-filter="flagged">
-                    Flagged
-                </button>
+            <!-- Visual Score Jump Map & Subject Section Tabs -->
+            {% if responses %}
+            <div class="p-4 rounded-2xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 space-y-3 shadow-xs">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <span class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-brand-600"></i>
+                        <span>Question Jump Palette</span>
+                    </span>
+                    <!-- Subject Section Tabs (if multi-subject) -->
+                    {% if distinct_subjects|length > 1 %}
+                    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                        <button type="button" onclick="filterSubjectSection('all')" class="subj-tab-btn px-2.5 py-1 rounded-md font-bold bg-brand-600 text-white transition active-subj-tab" data-subj="all">
+                            All Subjects
+                        </button>
+                        {% for s in distinct_subjects %}
+                        <button type="button" onclick="filterSubjectSection('{{ s.slug }}')" class="subj-tab-btn px-2.5 py-1 rounded-md font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition" data-subj="{{ s.slug }}">
+                            {{ s.name }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Numbered Jump Bubbles Palette -->
+                <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-2 rounded-xl bg-slate-50 dark:bg-navy-950/60 border border-slate-100 dark:border-navy-800">
+                    {% for resp in responses %}
+                    <button type="button"
+                            onclick="jumpToQuestion('{{ resp.order }}')"
+                            data-jump-q="{{ resp.order }}"
+                            data-jump-status="{% if resp.is_correct %}correct{% else %}incorrect{% endif %}"
+                            data-jump-flagged="{{ resp.is_flagged|yesno:'true,false' }}"
+                            data-jump-subject="{{ resp.question.subject.slug|default:'' }}"
+                            class="jump-q-btn w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs transition transform hover:scale-110
+                                {% if resp.is_correct %}
+                                    bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700
+                                {% else %}
+                                    bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 border border-rose-300 dark:border-rose-700
+                                {% endif %}">
+                        {{ resp.order }}
+                    </button>
+                    {% endfor %}
+                </div>
             </div>
+            {% endif %}
         </div>
 
         <!-- Question Review Cards -->
         <div class="space-y-6" id="review-cards-container">
             {% for resp in responses %}
                 <div class="review-card bg-white dark:bg-navy-900 border {% if resp.is_correct %}border-emerald-200 dark:border-emerald-900/30{% else %}border-rose-200 dark:border-rose-900/30{% endif %} rounded-2xl p-6 shadow-sm space-y-5"
+                     id="review-card-{{ resp.order }}"
+                     data-order="{{ resp.order }}"
                      data-correct="{{ resp.is_correct|yesno:'true,false' }}"
-                     data-flagged="{{ resp.is_flagged|yesno:'true,false' }}">
+                     data-flagged="{{ resp.is_flagged|yesno:'true,false' }}"
+                     data-subject="{{ resp.question.subject.slug|default:'' }}">
                     
                     <!-- Stacked Metadata & Badges Bar on Top (Never breaks question text) -->
                     <div class="space-y-2.5 pb-3 border-b border-slate-100 dark:border-navy-800">
@@ -478,33 +528,77 @@
 </div>
 
 <script>
-    function filterReview(mode) {
-        const cards = document.querySelectorAll('.review-card');
-        const buttons = document.querySelectorAll('.filter-btn');
+    let currentReviewMode = 'all';
+    let currentSubjectFilter = 'all';
 
+    function filterReview(mode) {
+        currentReviewMode = mode;
+        const buttons = document.querySelectorAll('.filter-btn');
         buttons.forEach(btn => {
             if (btn.getAttribute('data-filter') === mode) {
-                btn.className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white shadow-sm";
+                btn.className = "filter-btn active px-3.5 py-2 rounded-lg text-xs font-semibold bg-brand-600 text-white shadow-sm shrink-0 min-h-[36px]";
             } else {
-                btn.className = "filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700";
+                btn.className = "filter-btn px-3.5 py-2 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 min-h-[36px]";
             }
         });
+        applyReviewFilters();
+    }
+
+    function filterSubjectSection(subjectSlug) {
+        currentSubjectFilter = subjectSlug;
+        const buttons = document.querySelectorAll('.subj-tab-btn');
+        buttons.forEach(btn => {
+            if (btn.getAttribute('data-subj') === subjectSlug) {
+                btn.className = "subj-tab-btn px-2.5 py-1 rounded-md font-bold bg-brand-600 text-white transition active-subj-tab";
+            } else {
+                btn.className = "subj-tab-btn px-2.5 py-1 rounded-md font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-navy-800 transition";
+            }
+        });
+        applyReviewFilters();
+    }
+
+    function applyReviewFilters() {
+        const cards = document.querySelectorAll('.review-card');
+        const jumpBtns = document.querySelectorAll('.jump-q-btn');
 
         cards.forEach(card => {
             const isCorrect = card.getAttribute('data-correct') === 'true';
             const isFlagged = card.getAttribute('data-flagged') === 'true';
+            const cardSubj = card.getAttribute('data-subject') || '';
 
-            if (mode === 'all') {
-                card.style.display = 'block';
-            } else if (mode === 'incorrect') {
-                card.style.display = (!isCorrect) ? 'block' : 'none';
-            } else if (mode === 'flagged') {
-                card.style.display = (isFlagged) ? 'block' : 'none';
-            }
+            const matchesStatus = (currentReviewMode === 'all') || 
+                                  (currentReviewMode === 'incorrect' && !isCorrect) ||
+                                  (currentReviewMode === 'flagged' && isFlagged);
+            const matchesSubj = (currentSubjectFilter === 'all') || (cardSubj === currentSubjectFilter);
+
+            card.style.display = (matchesStatus && matchesSubj) ? 'block' : 'none';
+        });
+
+        jumpBtns.forEach(btn => {
+            const isCorrect = btn.getAttribute('data-jump-status') === 'correct';
+            const isFlagged = btn.getAttribute('data-jump-flagged') === 'true';
+            const btnSubj = btn.getAttribute('data-jump-subject') || '';
+
+            const matchesStatus = (currentReviewMode === 'all') || 
+                                  (currentReviewMode === 'incorrect' && !isCorrect) ||
+                                  (currentReviewMode === 'flagged' && isFlagged);
+            const matchesSubj = (currentSubjectFilter === 'all') || (btnSubj === currentSubjectFilter);
+
+            btn.style.display = (matchesStatus && matchesSubj) ? 'inline-flex' : 'none';
         });
 
         if (window.renderKaTeX) {
             window.renderKaTeX();
+        }
+    }
+
+    function jumpToQuestion(order) {
+        const el = document.getElementById('review-card-' + order);
+        if (el) {
+            el.style.display = 'block';
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('ring-2', 'ring-brand-500');
+            setTimeout(() => el.classList.remove('ring-2', 'ring-brand-500'), 1500);
         }
     }
 </script>
