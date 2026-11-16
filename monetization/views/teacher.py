@@ -274,17 +274,35 @@ def candidate_detail_view(request, share_code, purchase_id):
     )
     session = purchase.practice_session
     responses = []
+    subjects_map = {}
+    stats = {"total": 0, "correct": 0, "incorrect": 0, "unanswered": 0}
+
     if session:
-        responses = (
+        responses = list(
             session.responses.select_related("question", "question__subject", "question__topic", "selected_option")
             .prefetch_related("question__options")
             .order_by("order")
         )
+        stats["total"] = len(responses)
+        for r in responses:
+            s_obj = r.question.subject
+            if s_obj:
+                subjects_map.setdefault(s_obj.slug, {"name": s_obj.name, "count": 0, "slug": s_obj.slug})
+                subjects_map[s_obj.slug]["count"] += 1
+            if r.selected_option and r.is_correct:
+                stats["correct"] += 1
+            elif r.selected_option:
+                stats["incorrect"] += 1
+            else:
+                stats["unanswered"] += 1
+
     return render(request, "monetization/candidate_detail.html", {
         "test": paid_test,
         "purchase": purchase,
         "session": session,
         "responses": responses,
+        "subjects_list": list(subjects_map.values()),
+        "stats": stats,
     })
 
 
