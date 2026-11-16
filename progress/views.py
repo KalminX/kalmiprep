@@ -150,6 +150,43 @@ def bookmarks_list(request):
     return render(request, "progress/bookmarks.html", context)
 
 
+def session_history(request):
+    """
+    Dedicated view for a student's complete assessment and practice history.
+    Supports filtering by subject and mode, with server-side pagination.
+    """
+    filter_q = _get_student_filter(request)
+    sessions_qs = (
+        PracticeSession.objects.filter(filter_q, status=PracticeSession.Status.COMPLETED)
+        .select_related("subject", "topic")
+        .order_by("-completed_at")
+    )
+
+    subject_slug = request.GET.get("subject", "").strip()
+    if subject_slug:
+        sessions_qs = sessions_qs.filter(subject__slug=subject_slug)
+
+    mode = request.GET.get("mode", "").strip()
+    if mode in dict(PracticeSession.Mode.choices):
+        sessions_qs = sessions_qs.filter(mode=mode)
+
+    paginator = Paginator(sessions_qs, 15)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    subjects = Subject.objects.all()
+
+    context = {
+        "page_obj": page_obj,
+        "total_sessions": paginator.count,
+        "subjects": subjects,
+        "current_subject": subject_slug,
+        "current_mode": mode,
+        "mode_choices": PracticeSession.Mode.choices,
+    }
+    return render(request, "progress/session_history.html", context)
+
+
 def extractor_status(request):
     """
     Real-time progress telemetry and ETA endpoint for the past questions extraction engine.

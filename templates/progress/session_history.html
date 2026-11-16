@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Assessment History | KalmiPrep{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
+    
+    <!-- Breadcrumb & Header -->
+    <div class="space-y-2">
+        <nav class="flex items-center space-x-2 text-sm text-slate-500 dark:text-slate-400">
+            <a href="{% url 'core:landing' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Home</a>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            <a href="{% url 'progress:dashboard' %}" class="hover:text-primary-600 dark:hover:text-primary-400">Dashboard</a>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            <span class="text-slate-900 dark:text-white font-medium">Practice History</span>
+        </nav>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                    <i data-lucide="history" class="w-6 h-6 text-brand-600"></i>
+                    Complete Assessment History ({{ total_sessions }})
+                </h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">
+                    All completed CBT exams, full JAMB mocks, and topic practice tests.
+                </p>
+            </div>
+            
+            <a href="{% url 'practice:setup' %}" class="btn-primary py-2 px-4 text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                <span>Start New Session</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Bar: Subject & Mode -->
+    <div class="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-bold text-slate-700 dark:text-slate-300 mr-1">Subject:</span>
+            <a href="{% url 'progress:session_history' %}{% if current_mode %}?mode={{ current_mode }}{% endif %}" class="px-2.5 py-1 rounded-lg font-semibold transition {% if not current_subject %}bg-brand-600 text-white shadow-xs{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200{% endif %}">
+                All
+            </a>
+            {% for s in subjects %}
+                <a href="{% url 'progress:session_history' %}?subject={{ s.slug }}{% if current_mode %}&mode={{ current_mode }}{% endif %}" class="px-2.5 py-1 rounded-lg font-semibold transition {% if current_subject == s.slug %}bg-brand-600 text-white shadow-xs{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200{% endif %}">
+                    {{ s.name }}
+                </a>
+            {% endfor %}
+        </div>
+
+        <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-bold text-slate-700 dark:text-slate-300 mr-1">Mode:</span>
+            <a href="{% url 'progress:session_history' %}{% if current_subject %}?subject={{ current_subject }}{% endif %}" class="px-2.5 py-1 rounded-lg font-semibold transition {% if not current_mode %}bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200{% endif %}">
+                All Modes
+            </a>
+            {% for m_code, m_label in mode_choices %}
+                <a href="{% url 'progress:session_history' %}?mode={{ m_code }}{% if current_subject %}&subject={{ current_subject }}{% endif %}" class="px-2.5 py-1 rounded-lg font-semibold transition {% if current_mode == m_code %}bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900{% else %}bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200{% endif %}">
+                    {{ m_label }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sessions List (Desktop Table + Mobile Cards) -->
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        
+        <!-- Mobile Cards -->
+        <div class="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+            {% for sess in page_obj %}
+            <div class="p-4 space-y-2.5">
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <span class="font-bold text-sm text-slate-900 dark:text-white block">{{ sess.subject.name }}</span>
+                        {% if sess.topic %}
+                        <span class="text-xs text-slate-500 block">{{ sess.topic.name }}</span>
+                        {% elif sess.mode == 'JAMB_FULL_MOCK' %}
+                        <span class="text-xs text-slate-500 block">4 Subjects • Standard JAMB UTME</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-xs font-mono font-bold px-2 py-0.5 rounded
+                        {% if sess.percentage >= 70 %}bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300
+                        {% elif sess.percentage >= 50 %}bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300
+                        {% else %}bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300{% endif %}">
+                        {{ sess.percentage|floatformat:0 }}%
+                        {% if sess.mode == 'JAMB_FULL_MOCK' %}({{ sess.score_out_of_400 }}/400){% endif %}
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100 dark:border-slate-800/60">
+                    <span>{{ sess.completed_at|date:"M j, Y H:i" }} · {{ sess.formatted_time_spent }}</span>
+                    <a href="{% url 'practice:session_results' sess.id %}" class="font-bold text-brand-600 dark:text-brand-400 hover:underline">
+                        Review Solutions &rarr;
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center text-slate-400 text-xs">
+                No past sessions matching your filter criteria.
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop Table -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 dark:bg-slate-800/70 text-slate-500 uppercase tracking-wide text-[10px]">
+                    <tr>
+                        <th class="px-5 py-3.5">Subject &amp; Assessment</th>
+                        <th class="px-5 py-3.5">Mode</th>
+                        <th class="px-5 py-3.5">Score</th>
+                        <th class="px-5 py-3.5">Accuracy</th>
+                        <th class="px-5 py-3.5">Time Spent</th>
+                        <th class="px-5 py-3.5">Completed At</th>
+                        <th class="px-5 py-3.5 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                    {% for sess in page_obj %}
+                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                        <td class="px-5 py-3.5">
+                            <span class="font-bold text-slate-900 dark:text-white block">{{ sess.subject.name }}</span>
+                            {% if sess.topic %}
+                            <span class="text-[11px] text-slate-400 block truncate max-w-[240px]">{{ sess.topic.name }}</span>
+                            {% elif sess.mode == 'JAMB_FULL_MOCK' %}
+                            <span class="text-[11px] text-brand-600 dark:text-brand-400 font-semibold block">Full JAMB 4-Subject Simulation</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3.5">
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                                {{ sess.get_mode_display }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-3.5 font-bold font-mono">
+                            {% if sess.mode == 'JAMB_FULL_MOCK' %}
+                                <span class="text-brand-600 dark:text-brand-400 text-sm font-extrabold">{{ sess.score_out_of_400 }}</span> / 400
+                            {% else %}
+                                {{ sess.score|floatformat:0 }} / {{ sess.total_questions }}
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3.5">
+                            <span class="font-bold {% if sess.percentage >= 70 %}text-emerald-600 dark:text-emerald-400{% elif sess.percentage >= 50 %}text-amber-600 dark:text-amber-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                                {{ sess.percentage|floatformat:0 }}%
+                            </span>
+                        </td>
+                        <td class="px-5 py-3.5 text-slate-500 font-mono">{{ sess.formatted_time_spent }}</td>
+                        <td class="px-5 py-3.5 text-slate-500">{{ sess.completed_at|date:"M j, Y H:i" }}</td>
+                        <td class="px-5 py-3.5 text-right">
+                            <a href="{% url 'practice:session_results' sess.id %}" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 font-semibold text-brand-600 dark:text-brand-400 transition">
+                                Review &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-5 py-10 text-center text-slate-400">
+                            No past assessments match your filter.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+            <div>
+                Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ total_sessions }} sessions
+            </div>
+            <div class="flex items-center gap-1.5">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}{% if current_subject %}&subject={{ current_subject }}{% endif %}{% if current_mode %}&mode={{ current_mode }}{% endif %}" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition font-medium">
+                    &larr; Previous
+                </a>
+                {% endif %}
+                <span class="px-2 py-1 font-semibold text-slate-700 dark:text-slate-300">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if current_subject %}&subject={{ current_subject }}{% endif %}{% if current_mode %}&mode={{ current_mode }}{% endif %}" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition font-medium">
+                    Next &rarr;
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

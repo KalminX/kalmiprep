@@ -206,9 +206,14 @@
                         <i data-lucide="history" class="w-5 h-5 text-primary-600 dark:text-primary-400"></i>
                         Recent Assessment Sessions
                     </h2>
-                    <a href="{% url 'practice:setup' %}" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
-                        New Session
-                    </a>
+                    <div class="flex items-center gap-3">
+                        <a href="{% url 'progress:session_history' %}" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">
+                            View History ({{ total_sessions_count }}) &rarr;
+                        </a>
+                        <a href="{% url 'practice:setup' %}" class="btn-primary py-1 px-3 text-xs font-bold">
+                            New Test
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Mobile: Vertical Solid Stacking (Zero Horizontal Scrolling) -->
@@ -310,6 +315,15 @@
                         </tbody>
                     </table>
                 </div>
+
+                {% if total_sessions_count > 5 %}
+                <div class="pt-4 mt-3 border-t border-slate-100 dark:border-slate-800 text-center">
+                    <a href="{% url 'progress:session_history' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">
+                        <span>View all past assessment sessions ({{ total_sessions_count }})</span>
+                        <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </div>
+                {% endif %}
             </div>
         </div>
 

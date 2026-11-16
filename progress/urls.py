@@ -5,6 +5,7 @@ app_name = "progress"
 
 urlpatterns = [
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("history/", views.session_history, name="session_history"),
     path("bookmarks/", views.bookmarks_list, name="bookmarks"),
     path("extractor-status/", views.extractor_status, name="extractor_status"),
 ]
