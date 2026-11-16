@@ -70,16 +70,75 @@
   </section>
 
   {% if is_teacher %}
-  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6">
-    <h2 class="font-bold">Student roster <span class="text-sm text-slate-500">({{ members|length }})</span></h2>
-    <div class="mt-3 grid gap-2 sm:grid-cols-2">
-      {% for member in members %}
-      <p class="text-sm">{{ member.student.get_full_name|default:member.student.username }}</p>
-      {% empty %}
-      <p class="text-sm text-slate-500">Students who use the join code will appear here.</p>
-      {% endfor %}
+  <section class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="font-bold text-base text-slate-900 dark:text-white">
+          Student Roster <span class="text-xs text-slate-500 font-normal">({{ members|length }} enrolled)</span>
+        </h2>
+        <p class="text-xs text-slate-500 mt-0.5">Students who joined with your class code.</p>
+      </div>
+      {% if members %}
+      <div class="flex items-center gap-2">
+        <input type="text" id="roster-search" oninput="filterRoster()" placeholder="Filter students..." class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+        <span class="text-xs text-slate-400 font-mono" id="roster-filter-count"></span>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="max-h-72 overflow-y-auto rounded-xl border border-slate-100 dark:border-slate-800/80 p-3 bg-slate-50/50 dark:bg-slate-800/30">
+      <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" id="roster-list">
+        {% for member in members %}
+        <div class="roster-member-card flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-xs shadow-2xs"
+             data-name="{{ member.student.get_full_name|default:member.student.username|lower }}"
+             data-username="{{ member.student.username|lower }}">
+          <div class="w-7 h-7 rounded-lg bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 flex items-center justify-center font-bold text-xs uppercase shrink-0">
+            {{ member.student.username|slice:":1" }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="font-bold text-slate-900 dark:text-white truncate">
+              {{ member.student.get_full_name|default:member.student.username }}
+            </p>
+            <p class="text-[10px] text-slate-500 truncate">Joined {{ member.joined_at|date:"M j, Y" }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-sm text-slate-500 col-span-full py-6 text-center">Students who use the join code will appear here.</p>
+        {% endfor %}
+      </div>
+      <p id="roster-empty-search" class="hidden text-xs text-slate-400 text-center py-6">No matching students found.</p>
     </div>
   </section>
+
+  <script>
+    function filterRoster() {
+      const q = (document.getElementById('roster-search')?.value || '').trim().toLowerCase();
+      const cards = document.querySelectorAll('.roster-member-card');
+      const countEl = document.getElementById('roster-filter-count');
+      const emptyEl = document.getElementById('roster-empty-search');
+      let visible = 0;
+
+      cards.forEach(card => {
+        const name = card.dataset.name || '';
+        const username = card.dataset.username || '';
+        if (!q || name.includes(q) || username.includes(q)) {
+          card.classList.remove('hidden');
+          visible++;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      if (countEl) countEl.textContent = q ? `${visible} found` : '';
+      if (emptyEl) {
+        if (visible === 0 && cards.length > 0) {
+          emptyEl.classList.remove('hidden');
+        } else {
+          emptyEl.classList.add('hidden');
+        }
+      }
+    }
+  </script>
 
   {{ topics_json|json_script:"topics-json" }}
   <script>
