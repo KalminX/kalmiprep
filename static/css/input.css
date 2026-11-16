@@ -60,14 +60,14 @@
 .dark .katex,
 .dark .katex-display,
 .dark .katex .base {
-  color: #f8fafc !important;
+  color: #f4eee5 !important;
 }
 
 /* Ensure native select options have dark background and readable light text in dark mode */
 .dark select option,
 .dark select optgroup {
-  background-color: #0f172a;
-  color: #f8fafc;
+  background-color: #231f1a;
+  color: #f4eee5;
 }
 
 /* ==========================================================
@@ -76,30 +76,30 @@
 
 /* 1. High-Contrast Text in Light & Dark Mode */
 .text-slate-400 {
-  color: #475569; /* Upgrade light-mode slate-400 to slate-600 (7.5:1 contrast against white) */
+  color: #6f5e4c; /* Warm umber (6.1:1 contrast against warm ivory card, 5.2:1 against canvas) */
 }
 .text-slate-500 {
-  color: #334155; /* Upgrade light-mode slate-500 to slate-700 (10.3:1 contrast against white) */
+  color: #57493a; /* Deep warm umber (8.5:1 AAA contrast against warm ivory card, 7.4:1 against canvas) */
 }
 
 .dark .text-slate-400 {
-  color: #cbd5e1 !important; /* slate-300: 12.6:1 contrast against navy-900/950 */
+  color: #d4c6b5 !important; /* Warm toasted cream: 9.8:1 AAA contrast against dark walnut #231f1a */
 }
 .dark .text-slate-500 {
-  color: #cbd5e1 !important; /* slate-300: 12.6:1 contrast */
+  color: #d4c6b5 !important; /* Warm toasted cream: 9.8:1 AAA contrast */
 }
 .dark .text-slate-600 {
-  color: #e2e8f0 !important; /* slate-200: 15.2:1 contrast */
+  color: #e7ded1 !important; /* Soft warm ivory: 13.5:1 AAA contrast */
 }
 
 /* 2. WCAG 2.2 Focus Visible Invariant (SC 2.4.7 / 2.4.11) */
 :focus-visible {
-  outline: 2px solid #059669 !important; /* Emerald-600 (4.5:1 against light surfaces) */
+  outline: 2px solid #a35f24 !important; /* Amber Bronze (4.9:1 against light surfaces) */
   outline-offset: 2px !important;
 }
 
 .dark :focus-visible {
-  outline: 2px solid #34d399 !important; /* Emerald-400 (9.8:1 against dark surfaces) */
+  outline: 2px solid #e59a4c !important; /* Warm Glowing Amber (7.8:1 against dark surfaces) */
   outline-offset: 2px !important;
 }
 
@@ -108,25 +108,25 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
   outline: none !important;
-  border-color: #059669 !important;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.3) !important;
+  border-color: #a35f24 !important;
+  box-shadow: 0 0 0 2px rgba(163, 95, 36, 0.3) !important;
 }
 
 .dark input:focus-visible,
 .dark select:focus-visible,
 .dark textarea:focus-visible {
   outline: none !important;
-  border-color: #34d399 !important;
-  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.35) !important;
+  border-color: #e59a4c !important;
+  box-shadow: 0 0 0 2px rgba(229, 154, 76, 0.35) !important;
 }
 
 /* 3. Placeholder Text High Contrast (WCAG AA 4.5:1+) */
 ::placeholder {
-  color: #475569 !important; /* slate-600: 7.5:1 against white */
+  color: #7d6c5a !important; /* Warm stone: 4.97:1 against warm ivory card */
   opacity: 1 !important;
 }
 .dark ::placeholder {
-  color: #94a3b8 !important; /* slate-400: 6.8:1 against dark surfaces */
+  color: #a89683 !important; /* Warm sand: 5.74:1 against dark walnut */
   opacity: 1 !important;
 }
 
@@ -137,12 +137,12 @@ a:focus-visible {
 
 /* 5. CBT Question Option Radio Focus-Within */
 .cbt-option-item:focus-within {
-  border-color: #059669 !important;
-  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.4) !important;
+  border-color: #a35f24 !important;
+  box-shadow: 0 0 0 2px rgba(163, 95, 36, 0.4) !important;
 }
 .dark .cbt-option-item:focus-within {
-  border-color: #34d399 !important;
-  box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.45) !important;
+  border-color: #e59a4c !important;
+  box-shadow: 0 0 0 2px rgba(229, 154, 76, 0.45) !important;
 }
 
 /* Hide scrollbar for clean horizontal swipe ribbons */
