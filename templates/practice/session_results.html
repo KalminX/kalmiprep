@@ -39,6 +39,40 @@
     </div>
     {% endif %}
 
+    <!-- School Mock Exam Submission Confirmation Banner -->
+    {% if session.test_purchase and session.test_purchase.test %}
+    <div class="p-4 sm:p-5 rounded-2xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/60 dark:bg-emerald-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+        <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                <i data-lucide="check-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-slate-900 dark:text-white">{{ session.test_purchase.test.title }}</h2>
+                    <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider
+                        {% if session.test_purchase.paper_type == 'TYPE_A' %}bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300
+                        {% elif session.test_purchase.paper_type == 'TYPE_B' %}bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-300
+                        {% elif session.test_purchase.paper_type == 'TYPE_C' %}bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300
+                        {% else %}bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-300{% endif %}">
+                        {{ session.test_purchase.get_paper_type_display }}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Candidate #{% if session.test_purchase.candidate_number %}{{ session.test_purchase.candidate_number }}{% else %}1{% endif %} • {{ session.test_purchase.buyer_name }} • Recorded in School Broadsheet
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="#question-review-section" class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-slate-50 transition-colors">
+                Review Answers ↓
+            </a>
+            <a href="{% url 'monetization:public_test' session.test_purchase.test.share_code %}" class="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-sm">
+                Exam Details →
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Score Header & Diagnostic Summary -->
     <div class="card-hero">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
@@ -250,7 +284,7 @@
     </div>
 
     <!-- Detailed Question-by-Question Review -->
-    <div class="space-y-6">
+    <div class="space-y-6" id="question-review-section">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
