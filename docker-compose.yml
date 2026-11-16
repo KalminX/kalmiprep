@@ -8,6 +8,11 @@ services:
       - "127.0.0.1:6379:6379"
     networks:
       - webproxy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
     volumes:
       - redis_data:/data
     mem_limit: 64M
@@ -46,6 +51,11 @@ services:
       - /home/kalmin/startups/myschool-past-questions-scraper/myschool_dataset:/app/myschool_dataset
     networks:
       - webproxy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
 
   worker:
     build: .
@@ -78,6 +88,11 @@ services:
       - /home/kalmin/startups/myschool-past-questions-scraper/myschool_dataset:/app/myschool_dataset
     networks:
       - webproxy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
 
 volumes:
   redis_data:
