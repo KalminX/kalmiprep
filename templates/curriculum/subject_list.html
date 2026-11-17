@@ -3,62 +3,63 @@
 {% block title %}Examination Subjects & Syllabus Catalog — KalmiPrep{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10">
   
   <!-- Breadcrumb -->
-  <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-6" aria-label="Breadcrumb">
+  <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4 sm:mb-6" aria-label="Breadcrumb">
     <a href="{% url 'core:landing' %}" class="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Home</a>
     <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
     <span class="text-slate-800 dark:text-slate-200 font-semibold" aria-current="page">Curriculum &amp; Syllabus</span>
   </nav>
 
-  <!-- Hero Header -->
-  <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+  <!-- Hero Header (Compact on mobile, rich on desktop) -->
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5 sm:mb-6">
     <div class="max-w-3xl">
-      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 mb-3">
-        <i data-lucide="book-marked" class="w-3.5 h-3.5 text-brand-600 dark:text-brand-400"></i>
-        <span>Canonical UTME &bull; WAEC &bull; NECO Syllabus</span>
+      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-50 dark:bg-brand-950/60 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800 mb-2">
+        <i data-lucide="book-marked" class="w-3 h-3 text-brand-600 dark:text-brand-400"></i>
+        <span>UTME &bull; WAEC &bull; NECO Syllabus</span>
       </div>
-      <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+      <h1 class="text-xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
         Curriculum Subjects &amp; Topic Explorer
       </h1>
-      <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-        Browse official syllabus topics in structured study order. Switch between subjects seamlessly or filter any topic across all examinations.
+      <p class="text-xs sm:text-sm lg:text-base text-slate-600 dark:text-slate-300 mt-1 sm:mt-2 leading-relaxed">
+        Browse official syllabus topics in structured study order with verified question banks and practice launchers.
       </p>
     </div>
 
-    <!-- Quick Stat Pills -->
-    <div class="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
-      <div class="px-3.5 py-2 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2 shadow-xs">
+    <!-- Quick Stat Badges -->
+    <div class="flex items-center gap-2 shrink-0">
+      <div class="px-3 py-1.5 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1.5 shadow-sm">
         <span class="w-2 h-2 rounded-full bg-brand-500"></span>
         <span><strong class="text-slate-900 dark:text-white">{{ subjects|length }}</strong> Subjects</span>
       </div>
-      <div class="px-3.5 py-2 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center gap-2 shadow-xs">
+      <div class="px-3 py-1.5 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 text-xs font-medium text-slate-600 dark:text-slate-300 flex items-center gap-1.5 shadow-sm">
         <i data-lucide="layers" class="w-3.5 h-3.5 text-brand-600 dark:text-brand-400"></i>
-        <span id="global-topic-count"><strong>84</strong> Syllabus Topics</span>
+        <span><strong>84</strong> Topics</span>
       </div>
     </div>
   </div>
 
-  <!-- Search & Global Filter Bar -->
-  <div class="card-premium p-3 sm:p-4 mb-8">
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+  <!-- Search & Filter Bar -->
+  <div class="card-premium p-3 sm:p-4 mb-5 sm:mb-6">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
       <!-- Search Input -->
       <div class="relative flex-1">
+        <label for="curriculum-search-input" class="sr-only">Search syllabus topics</label>
         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
           <i data-lucide="search" class="w-4 h-4"></i>
         </div>
         <input type="text"
                id="curriculum-search-input"
                oninput="onSearchInput()"
-               placeholder="Search any topic (e.g., Quadratic Equations, Electrolysis, Surds, Ecology)..."
-               class="w-full pl-10 pr-20 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-navy-700 bg-slate-50/60 dark:bg-navy-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white dark:focus:bg-navy-900 transition-all">
+               placeholder="Search topics (e.g. Surds, Electrolysis, Cell, Mechanics)..."
+               class="w-full pl-10 pr-16 sm:pr-20 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-navy-700 bg-slate-50/60 dark:bg-navy-950/60 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:bg-white dark:focus:bg-navy-900 transition-all">
         <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1.5">
           <button type="button"
                   id="clear-search-btn"
                   onclick="clearSearch()"
                   class="hidden text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
-                  aria-label="Clear search">
+                  aria-label="Clear search query">
             <i data-lucide="x" class="w-3.5 h-3.5"></i>
           </button>
           <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-medium rounded border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-500">
@@ -67,7 +68,7 @@
         </div>
       </div>
 
-      <!-- Scope Switcher / Status -->
+      <!-- Scope / Results Counter -->
       <div class="flex items-center justify-between sm:justify-end gap-2 text-xs">
         <span class="text-slate-500 dark:text-slate-400 font-medium" id="search-status-label">
           Showing <span class="font-bold text-slate-900 dark:text-white" id="visible-topic-count">84</span> topics
@@ -82,45 +83,50 @@
     </div>
   </div>
 
-  <!-- Mobile Horizontal Subject Tabs (Visible on < lg screens) -->
-  <div class="lg:hidden mb-6 -mx-4 px-4 overflow-x-auto no-scrollbar">
-    <div class="flex items-center gap-2 pb-2 min-w-max" role="tablist" aria-label="Subject Selection">
+  <!-- Mobile Sticky Horizontal Subject Tabs (Pinned on mobile viewports) -->
+  <div class="lg:hidden sticky top-14 sm:top-16 z-20 -mx-4 px-4 py-2.5 bg-white/95 dark:bg-navy-950/95 backdrop-blur-md border-b border-slate-200/80 dark:border-navy-800/80 overflow-x-auto no-scrollbar mb-5 shadow-xs"
+       role="tablist"
+       aria-label="Subject Selection Mobile">
+    <div class="flex items-center gap-2 min-w-max">
       <button type="button"
               onclick="selectSubject('all')"
               data-mobile-tab="all"
+              id="mobile-tab-all"
               role="tab"
               aria-selected="false"
-              class="mobile-sub-tab px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              class="mobile-sub-tab px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 min-h-[38px] shrink-0">
         <i data-lucide="grid" class="w-3.5 h-3.5"></i>
         <span>All Subjects</span>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-navy-800 font-mono">84</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-navy-800 font-mono">84</span>
       </button>
       {% for subj in subjects %}
       <button type="button"
               onclick="selectSubject('{{ subj.slug }}')"
               data-mobile-tab="{{ subj.slug }}"
+              id="mobile-tab-{{ subj.slug }}"
               role="tab"
               aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
-              class="mobile-sub-tab px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border {% if forloop.first %}border-brand-500 bg-brand-50 dark:bg-brand-950/60 text-brand-800 dark:text-brand-200 font-bold shadow-xs{% else %}border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300{% endif %} flex items-center gap-1.5">
+              class="mobile-sub-tab px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border {% if forloop.first %}border-brand-500 bg-brand-50 dark:bg-brand-950/60 text-brand-800 dark:text-brand-200 font-bold shadow-xs{% else %}border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300{% endif %} flex items-center gap-1.5 min-h-[38px] shrink-0">
         <span class="w-2 h-2 rounded-full {% if subj.color_theme == 'math' %}bg-blue-500{% elif subj.color_theme == 'chem' %}bg-emerald-500{% elif subj.color_theme == 'bio' %}bg-green-500{% elif subj.color_theme == 'phys' %}bg-purple-500{% else %}bg-amber-500{% endif %}"></span>
         <span>{{ subj.name }}</span>
-        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-navy-800 font-mono">{{ subj.topic_count }}</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-navy-800 font-mono">{{ subj.topic_count }}</span>
       </button>
       {% endfor %}
     </div>
   </div>
 
-  <!-- Master-Detail Grid Container -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+  <!-- Master-Detail Flexbox Container (Desktop side-by-side, Mobile single column) -->
+  <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start w-full">
     
-    <!-- LEFT COLUMN: Sticky Master Subject Navigator (Desktop) -->
-    <aside class="hidden lg:block lg:col-span-4 xl:col-span-3.5 sticky top-24 space-y-4">
+    <!-- LEFT SIDEBAR: Sticky Master Subject Navigator (Desktop) -->
+    <aside class="hidden lg:block w-72 xl:w-80 shrink-0 sticky top-20 space-y-4" aria-label="Subject Navigator">
       <div class="card-premium p-4">
         <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100 dark:border-navy-800">
           <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Examination Subjects</span>
           <button type="button"
                   onclick="selectSubject('all')"
                   data-desktop-tab="all"
+                  id="desktop-tab-all"
                   class="desktop-sub-tab text-xs font-semibold px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-600 hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors">
             View All (84)
           </button>
@@ -131,9 +137,11 @@
           <button type="button"
                   onclick="selectSubject('{{ subj.slug }}')"
                   data-desktop-tab="{{ subj.slug }}"
+                  id="desktop-tab-{{ subj.slug }}"
                   role="tab"
                   aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
-                  class="desktop-sub-tab w-full text-left p-3 rounded-xl transition-all border flex items-center justify-between group {% if forloop.first %}border-brand-500 bg-brand-50/70 dark:bg-brand-950/40 text-brand-900 dark:text-brand-100 shadow-xs{% else %}border-slate-200/80 dark:border-navy-800/80 bg-white dark:bg-navy-900 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-navy-700 hover:bg-slate-50/60 dark:hover:bg-navy-800/40{% endif %}">
+                  aria-controls="panel-{{ subj.slug }}"
+                  class="desktop-sub-tab w-full text-left p-3 rounded-xl transition-all border flex items-center justify-between group {% if forloop.first %}border-brand-500 bg-brand-50/70 dark:bg-brand-950/40 text-brand-900 dark:text-brand-100 shadow-xs{% else %}border-slate-200/80 dark:border-navy-800/80 bg-white dark:bg-navy-900 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-navy-700 hover:bg-slate-50/60 dark:hover:bg-navy-800/40{% endif %} min-h-[52px]">
             <div class="flex items-center gap-3 min-w-0">
               <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 {% if subj.color_theme == 'math' %}bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300{% elif subj.color_theme == 'chem' %}bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300{% elif subj.color_theme == 'bio' %}bg-green-100 dark:bg-green-950 text-green-700 dark:text-green-300{% elif subj.color_theme == 'phys' %}bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300{% else %}bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300{% endif %}">
                 <i data-lucide="{{ subj.icon_name }}" class="w-4 h-4"></i>
@@ -170,7 +178,7 @@
             <p class="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
               Launch targeted drills on specific syllabus topics or full mock exams.
             </p>
-            <a href="{% url 'practice:setup' %}" class="btn-primary text-xs py-1.5 px-3 mt-3 inline-flex items-center gap-1.5">
+            <a href="{% url 'practice:setup' %}" class="btn-primary text-xs py-1.5 px-3 mt-3 inline-flex items-center gap-1.5 min-h-[36px]">
               <span>Start Practice Session</span>
               <i data-lucide="arrow-right" class="w-3 h-3"></i>
             </a>
@@ -179,38 +187,40 @@
       </div>
     </aside>
 
-    <!-- RIGHT COLUMN: Detail Topic Viewport -->
-    <main class="lg:col-span-8 xl:col-span-8.5 min-w-0" id="topic-viewport">
+    <!-- RIGHT DETAIL VIEWPORT: Fluid Width -->
+    <main class="flex-1 min-w-0 w-full" id="topic-viewport">
       
       {% for subj in subjects %}
       <!-- Subject Topic Section -->
-      <section class="subject-panel space-y-5 {% if not forloop.first %}hidden{% endif %}"
+      <section class="subject-panel space-y-4 sm:space-y-5 {% if not forloop.first %}hidden{% endif %}"
                id="panel-{{ subj.slug }}"
+               role="tabpanel"
+               aria-labelledby="desktop-tab-{{ subj.slug }}"
                data-subject-panel="{{ subj.slug }}">
         
         <!-- Active Subject Banner -->
-        <div class="card-premium p-5 sm:p-6 bg-white dark:bg-navy-900">
+        <div class="card-premium p-4 sm:p-6 bg-white dark:bg-navy-900">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div class="flex items-start gap-4 min-w-0">
-              <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 {% if subj.color_theme == 'math' %}bg-blue-600 text-white{% elif subj.color_theme == 'chem' %}bg-emerald-600 text-white{% elif subj.color_theme == 'bio' %}bg-green-600 text-white{% elif subj.color_theme == 'phys' %}bg-purple-600 text-white{% else %}bg-amber-600 text-white{% endif %} shadow-xs">
-                <i data-lucide="{{ subj.icon_name }}" class="w-6 h-6"></i>
+            <div class="flex items-start gap-3.5 min-w-0">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 {% if subj.color_theme == 'math' %}bg-blue-600 text-white{% elif subj.color_theme == 'chem' %}bg-emerald-600 text-white{% elif subj.color_theme == 'bio' %}bg-green-600 text-white{% elif subj.color_theme == 'phys' %}bg-purple-600 text-white{% else %}bg-amber-600 text-white{% endif %} shadow-xs">
+                <i data-lucide="{{ subj.icon_name }}" class="w-5 h-5 sm:w-6 sm:h-6"></i>
               </div>
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white truncate">
+                  <h2 class="text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white truncate">
                     {{ subj.name }}
                   </h2>
                   <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300">
                     {{ subj.code }}
                   </span>
                 </div>
-                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 line-clamp-2 leading-relaxed">
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5 sm:mt-1 line-clamp-2 leading-relaxed">
                   {{ subj.description }}
                 </p>
-                <div class="flex items-center gap-3 text-xs text-slate-500 mt-2 font-medium">
-                  <span><strong>{{ subj.topic_count }}</strong> Canonical Topics</span>
+                <div class="flex items-center gap-2.5 text-xs text-slate-500 mt-1.5 font-medium">
+                  <span><strong>{{ subj.topic_count }}</strong> Topics</span>
                   <span>&bull;</span>
-                  <span><strong>{{ subj.question_count }}</strong> Verified Questions</span>
+                  <span><strong>{{ subj.question_count }}</strong> Questions</span>
                 </div>
               </div>
             </div>
@@ -218,13 +228,13 @@
             <!-- Subject Actions -->
             <div class="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-navy-800">
               <a href="{% url 'curriculum:subject_detail' subj.slug %}"
-                 class="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5"
+                 class="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5 min-h-[38px]"
                  title="Open syllabus overview for {{ subj.name }}">
                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                 <span>Syllabus Page</span>
               </a>
               <a href="{% url 'practice:setup' %}?subject={{ subj.slug }}"
-                 class="btn-primary text-xs py-2 px-3 flex items-center gap-1.5"
+                 class="btn-primary text-xs py-2 px-3 flex items-center gap-1.5 min-h-[38px]"
                  title="Practise all topics in {{ subj.name }}">
                 <i data-lucide="play" class="w-3.5 h-3.5"></i>
                 <span>Practise {{ subj.code }}</span>
@@ -233,7 +243,7 @@
           </div>
         </div>
 
-        <!-- Section Heading & Active Counter -->
+        <!-- Section Heading & Counter -->
         <div class="flex items-center justify-between px-1">
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Curriculum Topics</span>
@@ -244,8 +254,8 @@
           <span class="text-xs text-slate-400">Order by UTME Syllabus</span>
         </div>
 
-        <!-- 2-Column Responsive Topics Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 topics-grid">
+        <!-- Responsive Topics Grid (1 col on mobile, 2 col on sm+) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 topics-grid">
           {% for topic in subj.topics.all %}
           <div class="topic-grid-card card-premium p-4 flex flex-col justify-between hover:border-brand-500/60 hover:shadow-xs transition-all group"
                data-topic-item="true"
@@ -287,22 +297,22 @@
               {% endif %}
             </div>
 
-            <!-- Card Bottom Action Row -->
-            <div class="mt-4 pt-3 border-t border-slate-100 dark:border-navy-800/80 flex items-center justify-between gap-2">
+            <!-- Card Bottom Action Row (Accessible Touch Targets >= 36px) -->
+            <div class="mt-3.5 pt-3 border-t border-slate-100 dark:border-navy-800/80 flex items-center justify-between gap-2">
               <a href="{% url 'curriculum:topic_detail' subj.slug topic.slug %}"
-                 class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 flex items-center gap-1 transition-colors">
+                 class="text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 flex items-center gap-1 transition-colors min-h-[36px]">
                 <span>Explore</span>
                 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
               </a>
 
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 shrink-0">
                 <a href="{% url 'questions:question_list' %}?subject={{ subj.slug }}&topic={{ topic.slug }}"
-                   class="btn-secondary text-[11px] py-1 px-2.5 rounded-lg"
+                   class="btn-secondary text-[11px] py-1.5 px-2.5 rounded-lg min-h-[36px] flex items-center"
                    title="Browse question bank">
                   Browse
                 </a>
                 <a href="{% url 'practice:setup' %}?subject={{ subj.slug }}&topic={{ topic.slug }}"
-                   class="btn-primary text-[11px] py-1 px-2.5 rounded-lg flex items-center gap-1"
+                   class="btn-primary text-[11px] py-1.5 px-3 rounded-lg flex items-center gap-1 font-semibold min-h-[36px]"
                    title="Start topic drill">
                   <i data-lucide="play" class="w-3 h-3"></i>
                   <span>Practise</span>
@@ -315,8 +325,8 @@
       </section>
       {% endfor %}
 
-      <!-- Search Empty State (Hidden by default) -->
-      <div id="topics-empty-state" class="hidden card-premium p-10 text-center">
+      <!-- Search Empty State -->
+      <div id="topics-empty-state" class="hidden card-premium p-8 sm:p-10 text-center">
         <div class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-3">
           <i data-lucide="search-x" class="w-6 h-6"></i>
         </div>
@@ -325,11 +335,11 @@
           We couldn't find any curriculum topic matching "<span id="empty-search-term" class="font-semibold text-slate-800 dark:text-slate-200"></span>".
         </p>
         <div class="mt-4 flex items-center justify-center gap-2">
-          <button type="button" onclick="clearSearch()" class="btn-primary text-xs py-2 px-3.5">
+          <button type="button" onclick="clearSearch()" class="btn-primary text-xs py-2 px-3.5 min-h-[38px]">
             Clear Search
           </button>
-          <button type="button" onclick="selectSubject('all')" class="btn-secondary text-xs py-2 px-3.5">
-            Search Across All Subjects
+          <button type="button" onclick="selectSubject('all')" class="btn-secondary text-xs py-2 px-3.5 min-h-[38px]">
+            Search All Subjects
           </button>
         </div>
       </div>
@@ -339,7 +349,7 @@
 </div>
 
 <script>
-  window.currentSelectedSubject = '{{ subjects.0.slug|default:"mathematics" }}';
+  window.currentSelectedSubject = '{{ subjects.0.slug|default:"biology" }}';
 
   // Keyboard shortcut '/' to focus search
   document.addEventListener('keydown', function(e) {
@@ -364,33 +374,33 @@
         if (slug === 'all') {
           btn.className = 'desktop-sub-tab text-xs font-bold px-2.5 py-1 rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300';
         } else {
-          btn.className = 'desktop-sub-tab w-full text-left p-3 rounded-xl transition-all border flex items-center justify-between group border-brand-500 bg-brand-50/70 dark:bg-brand-950/40 text-brand-900 dark:text-brand-100 shadow-xs';
+          btn.className = 'desktop-sub-tab w-full text-left p-3 rounded-xl transition-all border flex items-center justify-between group border-brand-500 bg-brand-50/70 dark:bg-brand-950/40 text-brand-900 dark:text-brand-100 shadow-xs min-h-[52px]';
         }
         btn.setAttribute('aria-selected', 'true');
       } else {
         if (tabSlug === 'all') {
           btn.className = 'desktop-sub-tab text-xs font-semibold px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-600 hover:bg-slate-50 dark:hover:bg-navy-800 transition-colors';
         } else {
-          btn.className = 'desktop-sub-tab w-full text-left p-3 rounded-xl transition-all border flex items-center justify-between group border-slate-200/80 dark:border-navy-800/80 bg-white dark:bg-navy-900 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-navy-700 hover:bg-slate-50/60 dark:hover:bg-navy-800/40';
+          btn.className = 'desktop-sub-tab w-full text-left p-3 rounded-xl transition-all border flex items-center justify-between group border-slate-200/80 dark:border-navy-800/80 bg-white dark:bg-navy-900 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-navy-700 hover:bg-slate-50/60 dark:hover:bg-navy-800/40 min-h-[52px]';
         }
         btn.setAttribute('aria-selected', 'false');
       }
     });
 
-    // Update Mobile Tabs
+    // Update Mobile Tabs & Auto-Scroll into View
     const mobileTabs = document.querySelectorAll('.mobile-sub-tab');
     mobileTabs.forEach(function(btn) {
       const tabSlug = btn.getAttribute('data-mobile-tab');
       if (tabSlug === slug) {
-        btn.className = 'mobile-sub-tab px-3.5 py-2 rounded-xl text-xs font-bold transition-all border border-brand-500 bg-brand-50 dark:bg-brand-950/60 text-brand-800 dark:text-brand-200 shadow-xs flex items-center gap-1.5';
+        btn.className = 'mobile-sub-tab px-3.5 py-2 rounded-xl text-xs font-bold transition-all border border-brand-500 bg-brand-50 dark:bg-brand-950/60 text-brand-800 dark:text-brand-200 shadow-xs flex items-center gap-1.5 min-h-[38px] shrink-0';
         btn.setAttribute('aria-selected', 'true');
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       } else {
-        btn.className = 'mobile-sub-tab px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300 flex items-center gap-1.5';
+        btn.className = 'mobile-sub-tab px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border border-slate-200 dark:border-navy-800 bg-white dark:bg-navy-900 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 min-h-[38px] shrink-0';
         btn.setAttribute('aria-selected', 'false');
       }
     });
 
-    // Run filter
     window.applyFilters();
   };
 
@@ -432,7 +442,7 @@
 
   window.resetFilters = function() {
     window.clearSearch();
-    window.selectSubject('{{ subjects.0.slug|default:"mathematics" }}');
+    window.selectSubject('{{ subjects.0.slug|default:"biology" }}');
     const resetBtn = document.getElementById('reset-filter-btn');
     if (resetBtn) resetBtn.classList.add('hidden');
   };
@@ -449,8 +459,6 @@
 
     panels.forEach(function(panel) {
       const panelSubj = panel.getAttribute('data-subject-panel');
-      const shouldCheck = (window.currentSelectedSubject === 'all' || window.currentSelectedSubject === panelSubj || query.length > 0);
-
       const cards = panel.querySelectorAll('.topic-grid-card');
       let visibleInPanel = 0;
 
@@ -471,13 +479,11 @@
         }
       });
 
-      // Update badge on panel
       const badge = panel.querySelector('.panel-topic-badge');
       if (badge) {
         badge.innerText = visibleInPanel + ' topics';
       }
 
-      // Show panel if it has visible cards and matches current scope
       if (visibleInPanel > 0 && (window.currentSelectedSubject === 'all' || window.currentSelectedSubject === panelSubj || query.length > 0)) {
         panel.classList.remove('hidden');
       } else {
@@ -499,8 +505,8 @@
     }
   };
 
-  // Re-initialize Lucide icons if available
   document.addEventListener('DOMContentLoaded', function() {
+    window.applyFilters();
     if (window.lucide && window.lucide.createIcons) {
       window.lucide.createIcons();
     }
