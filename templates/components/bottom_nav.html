@@ -30,7 +30,7 @@
       <span class="text-[10px] tracking-tight">Syllabus</span>
     </a>
 
-    <!-- 3. Practice & CBT (Elevated Action Button) -->
+    <!-- 3. Practice & CBT -->
     <a href="{% url 'practice:setup' %}" 
        data-nav="practice"
        hx-boost="true" 
@@ -38,11 +38,9 @@
        hx-select="#main-content" 
        hx-swap="innerHTML show:window:top" 
        hx-push-url="true"
-       class="mobile-nav-item flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all duration-150 active:scale-95 -mt-3 {% if '/practice/' in request.path %}border border-brand-300 dark:border-brand-500/50 bg-brand-50/70 dark:bg-navy-800 ring-2 ring-brand-500/20{% else %}border border-transparent{% endif %}">
-      <div class="w-11 h-11 rounded-2xl bg-brand-600 text-white flex items-center justify-center shadow-sm">
-        <i data-lucide="zap" class="w-5 h-5"></i>
-      </div>
-      <span class="text-[10px] tracking-tight font-bold text-slate-800 dark:text-slate-200 mt-0.5">Practise</span>
+       class="mobile-nav-item flex flex-col items-center justify-center py-1.5 px-3 rounded-xl transition-all duration-150 {% if '/practice/' in request.path %}bg-brand-50/80 dark:bg-navy-800 text-brand-600 dark:text-brand-400 font-bold border border-brand-200/90 dark:border-navy-700 shadow-sm{% else %}text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white border border-transparent{% endif %}">
+      <i data-lucide="zap" class="w-5 h-5 mb-0.5"></i>
+      <span class="text-[10px] tracking-tight">Practice</span>
     </a>
 
     <!-- 4. Questions Library -->

@@ -3,371 +3,458 @@
 {% block title %}Start Practice Session — KalmiPrep by Kalmitech{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-10">
   
   <!-- Breadcrumb -->
-  <nav class="flex items-center gap-2 text-xs text-slate-500 mb-6">
-    <a href="{% url 'core:landing' %}" class="hover:text-slate-800 dark:hover:text-slate-200">Home</a>
+  <nav class="flex items-center gap-2 text-xs text-slate-500 mb-6" aria-label="Breadcrumb">
+    <a href="{% url 'core:landing' %}" class="hover:text-slate-800 dark:hover:text-slate-200 transition-colors">Home</a>
     <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
     <span class="text-slate-800 dark:text-slate-200 font-medium">Practice Setup</span>
   </nav>
 
-  <!-- Card Container -->
-  <div class="card-premium p-6 sm:p-10 bg-white dark:bg-navy-900 shadow-elevated">
-    
-    <div class="mb-8">
-      <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Session Configuration</span>
-      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-        Configure Your Learning Session
-      </h1>
-      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2">
-        Choose your subject, target topic, and learning mode. You can practice deliberately with instant explanations or simulate an authentic timed CBT test.
-      </p>
-    </div>
+  <!-- Page Header -->
+  <div class="mb-8">
+    <span class="text-xs font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Session Configuration</span>
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+      Configure Your Learning Session
+    </h1>
+    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 max-w-3xl leading-relaxed">
+      Choose your subject, target topic, and learning mode. You can practice deliberately with instant explanations or simulate an authentic timed CBT test.
+    </p>
+  </div>
 
-    <form method="post" action="{% url 'practice:setup' %}" class="space-y-8" id="practice-setup-form">
-      {% csrf_token %}
+  <form method="post" action="{% url 'practice:setup' %}" id="practice-setup-form">
+    {% csrf_token %}
 
-      <!-- Step 1: Choose Subject (Hidden in JAMB Full Mock mode) -->
-      <div id="single-subject-step">
-        <label class="block text-sm font-bold text-slate-900 dark:text-white mb-3">
-          1. Select Subject
-        </label>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {% for subj in subjects %}
-          <label class="relative flex flex-col p-4 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer hover:border-brand-500 dark:hover:border-brand-500 transition-all subject-radio-card {% if pre_subject == subj.slug or forloop.first and not pre_subject %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
-            <input type="radio" 
-                   name="subject" 
-                   value="{{ subj.id }}" 
-                   data-slug="{{ subj.slug }}" 
-                   data-name="{{ subj.name }}" 
-                   class="sr-only subject-radio" 
-                   onchange="onSubjectChange('{{ subj.id }}', '{{ subj.slug }}', '{{ subj.name|escapejs }}')" 
-                   {% if pre_subject == subj.slug or forloop.first and not pre_subject %}checked{% endif %}>
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 {% if subj.color_theme == 'math' %}bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400{% elif subj.color_theme == 'chem' %}bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400{% else %}bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300{% endif %}">
-                <i data-lucide="{{ subj.icon_name }}" class="w-4 h-4"></i>
-              </div>
-              <div>
-                <span class="block text-sm font-bold text-slate-900 dark:text-white">{{ subj.name }}</span>
-                <span class="text-[11px] text-slate-500 font-mono">{{ subj.question_count }} Qs</span>
-              </div>
-            </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+      
+      <!-- Main Configuration Column (8 cols) -->
+      <div class="lg:col-span-8 card-premium p-5 sm:p-8 bg-white dark:bg-navy-900 shadow-elevated space-y-8">
+        
+        <!-- Step 1: Choose Subject (Hidden in JAMB Full Mock mode) -->
+        <div id="single-subject-step">
+          <label class="block text-sm font-bold text-slate-900 dark:text-white mb-3">
+            1. Select Subject
           </label>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- Step 2: Choose Topic (Dynamically filtered by Subject) -->
-      <div id="single-topic-step">
-        <div class="flex items-center justify-between mb-1.5">
-          <label class="block text-sm font-bold text-slate-900 dark:text-white" for="topic-select">
-            2. Select Topic Focus (Optional)
-          </label>
-          <span id="topic-badge" class="text-xs font-semibold text-brand-700 dark:text-brand-300"></span>
-        </div>
-        <p class="text-xs text-slate-500 mb-2">Leave as "All Syllabus Topics" for a mixed comprehensive session.</p>
-        <select name="topic" id="topic-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white text-sm focus:ring-brand-500 transition-all">
-          <option value="">&mdash; All Syllabus Topics (Comprehensive Mixed) &mdash;</option>
-        </select>
-      </div>
-
-      <!-- Step 3: Choose Learning Mode -->
-      <div>
-        <label class="block text-sm font-bold text-slate-900 dark:text-white mb-3">
-          3. Learning & Assessment Mode
-        </label>
-        <div class="flex flex-col gap-3">
-          
-          <label class="relative flex items-start gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'TOPIC_PRACTICE' or not pre_mode %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
-            <input type="radio" name="mode" value="TOPIC_PRACTICE" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'TOPIC_PRACTICE' or not pre_mode %}checked{% endif %}>
-            <div class="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-950/80 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
-              <i data-lucide="zap" class="w-5 h-5"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
-                <span class="font-bold text-sm text-slate-900 dark:text-white">Instant Practice</span>
-                <span class="text-[11px] font-semibold text-brand-700 dark:text-brand-300 bg-brand-100 dark:bg-brand-950/80 px-2.5 py-0.5 rounded-full border border-brand-200 dark:border-brand-800">Step-by-step Feedback</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {% for subj in subjects %}
+            <label class="relative flex flex-col p-4 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer hover:border-brand-500 dark:hover:border-brand-500 transition-all subject-radio-card {% if pre_subject == subj.slug or forloop.first and not pre_subject %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
+              <input type="radio" 
+                     name="subject" 
+                     value="{{ subj.id }}" 
+                     data-slug="{{ subj.slug }}" 
+                     data-name="{{ subj.name }}" 
+                     class="sr-only subject-radio" 
+                     onchange="onSubjectChange('{{ subj.id }}', '{{ subj.slug }}', '{{ subj.name|escapejs }}')" 
+                     {% if pre_subject == subj.slug or forloop.first and not pre_subject %}checked{% endif %}>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 {% if subj.color_theme == 'math' %}bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400{% elif subj.color_theme == 'chem' %}bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400{% else %}bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300{% endif %}">
+                  <i data-lucide="{{ subj.icon_name }}" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <span class="block text-sm font-bold text-slate-900 dark:text-white">{{ subj.name }}</span>
+                  <span class="text-[11px] text-slate-500 font-mono">{{ subj.question_count }} Qs</span>
+                </div>
               </div>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Step-by-step feedback immediately after submitting each answer. Untimed, self-paced learning.
-              </p>
-            </div>
-          </label>
-
-          <label class="relative flex items-start gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'TIMED_TEST' %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
-            <input type="radio" name="mode" value="TIMED_TEST" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'TIMED_TEST' %}checked{% endif %}>
-            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-              <i data-lucide="timer" class="w-5 h-5"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
-                <span class="font-bold text-sm text-slate-900 dark:text-white">Timed Test</span>
-                <span class="text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">Custom Countdown Timer</span>
-              </div>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Timed topic assessment with custom countdown timer. Solutions withheld until final submission.
-              </p>
-            </div>
-          </label>
-
-          <label class="relative flex items-start gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'CBT_MOCK' %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
-            <input type="radio" name="mode" value="CBT_MOCK" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'CBT_MOCK' %}checked{% endif %}>
-            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-              <i data-lucide="monitor" class="w-5 h-5"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
-                <span class="font-bold text-sm text-slate-900 dark:text-white">Single-Subject CBT</span>
-                <span class="text-[11px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">Authentic CBT UI</span>
-              </div>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                CBT simulation for 1 subject with on-screen calculator, question grid, and flag for review.
-              </p>
-            </div>
-          </label>
-
-          <!-- Official JAMB UTME Standard Full Mock -->
-          <label class="relative flex items-start gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 cursor-pointer hover:border-emerald-500 transition-all mode-radio-card {% if pre_mode == 'JAMB_FULL_MOCK' %}border-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20 ring-2 ring-emerald-500{% endif %}">
-            <input type="radio" name="mode" value="JAMB_FULL_MOCK" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'JAMB_FULL_MOCK' %}checked{% endif %}>
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <i data-lucide="award" class="w-5 h-5"></i>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
-                <span class="font-bold text-sm sm:text-base text-slate-900 dark:text-white">Official JAMB Standard UTME Mock (180 Questions • 2 Hours • 400 Marks)</span>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shrink-0 self-start sm:self-auto">Official UTME Format</span>
-              </div>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Real JAMB UTME examination simulation: <strong>Use of English</strong> (60 Qs, mandatory) + <strong>3 elective subjects</strong> (40 Qs each) = <strong>180 questions</strong> in <strong>120 minutes (2 hours)</strong>. Graded on standard <strong>400 marks</strong> scale with multi-subject navigation tabs.
-              </p>
-            </div>
-          </label>
-
-        </div>
-      </div>
-
-      <!-- JAMB Full Mock 4-Subject Combination Configuration Panel -->
-      <div id="jamb-mock-config-section" class="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-navy-950 border-2 border-emerald-500/40 space-y-5 {% if pre_mode != 'JAMB_FULL_MOCK' %}hidden{% endif %}">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 dark:border-navy-800 gap-2">
-          <div class="flex items-center gap-2.5">
-            <span class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-              <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-            </span>
-            <div>
-              <h4 class="text-sm font-bold text-slate-900 dark:text-white">JAMB UTME 4-Subject Combination</h4>
-              <p class="text-xs text-slate-500 dark:text-slate-400">180 Multiple-Choice Questions &bull; 2 Hours (120 Mins) &bull; 400 Marks Total</p>
-            </div>
-          </div>
-          <span class="px-3 py-1 rounded-md bg-emerald-600 text-white font-mono text-xs font-bold self-start sm:self-auto">
-            400 MARKS
-          </span>
-        </div>
-
-        <div class="flex flex-col gap-3.5">
-          <!-- Mandatory: Use of English -->
-          <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-emerald-500/40 shadow-xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject 1 (Compulsory)</span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-mono border border-emerald-300 dark:border-emerald-800">60 Questions</span>
-            </div>
-            <div class="flex items-center gap-2.5 text-base font-bold text-slate-900 dark:text-white">
-              <div class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <i data-lucide="book-check" class="w-4 h-4"></i>
-              </div>
-              <span>Use of English</span>
-            </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 pl-9.5">Compulsory for every candidate across all Nigerian universities and courses.</p>
-          </div>
-
-          <!-- Elective 1 -->
-          <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 shadow-xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject 2 (Elective)</span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 font-mono border border-slate-300 dark:border-navy-700">40 Questions</span>
-            </div>
-            <select name="electives" class="w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-800 text-slate-900 dark:text-white focus:ring-brand-500 focus:border-brand-500 transition-all">
-              {% for subj in subjects %}
-                {% if subj.slug != 'english-language' and subj.slug != 'english' %}
-                <option value="{{ subj.id }}" {% if subj.slug == 'mathematics' %}selected{% endif %}>{{ subj.name }} ({{ subj.question_count }} questions available)</option>
-                {% endif %}
-              {% endfor %}
-            </select>
-          </div>
-
-          <!-- Elective 2 -->
-          <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 shadow-xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject 3 (Elective)</span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 font-mono border border-slate-300 dark:border-navy-700">40 Questions</span>
-            </div>
-            <select name="electives" class="w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-800 text-slate-900 dark:text-white focus:ring-brand-500 focus:border-brand-500 transition-all">
-              {% for subj in subjects %}
-                {% if subj.slug != 'english-language' and subj.slug != 'english' %}
-                <option value="{{ subj.id }}" {% if subj.slug == 'physics' %}selected{% endif %}>{{ subj.name }} ({{ subj.question_count }} questions available)</option>
-                {% endif %}
-              {% endfor %}
-            </select>
-          </div>
-
-          <!-- Elective 3 -->
-          <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 shadow-xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject 4 (Elective)</span>
-              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 font-mono border border-slate-300 dark:border-navy-700">40 Questions</span>
-            </div>
-            <select name="electives" class="w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-800 text-slate-900 dark:text-white focus:ring-brand-500 focus:border-brand-500 transition-all">
-              {% for subj in subjects %}
-                {% if subj.slug != 'english-language' and subj.slug != 'english' %}
-                <option value="{{ subj.id }}" {% if subj.slug == 'chemistry' %}selected{% endif %}>{{ subj.name }} ({{ subj.question_count }} questions available)</option>
-                {% endif %}
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-
-        <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="flex flex-col gap-1">
-            <div class="flex items-center gap-2 font-bold text-xs sm:text-sm">
-              <i data-lucide="clock" class="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400"></i>
-              <span>Countdown Duration: <strong>120 Minutes (2 Hours)</strong></span>
-            </div>
-            <div class="text-[11px] text-emerald-700/80 dark:text-emerald-300/80 pl-6">
-              ~40 seconds per question &bull; 400 Marks official UTME standard
-            </div>
-          </div>
-          <div class="self-start sm:self-auto pl-6 sm:pl-0">
-            <span class="inline-flex items-center px-3 py-1 rounded-lg font-bold font-mono text-xs bg-emerald-600 text-white shadow-xs">
-              180 Questions Total
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 3b: Test Duration & Time Limit (Visible when Timed Test or CBT Mock is selected) -->
-      <div id="time-limit-section" class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-brand-500/30 dark:border-brand-500/40 space-y-3 transition-all {% if pre_mode == 'TOPIC_PRACTICE' or not pre_mode %}hidden{% endif %}">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
-            <i data-lucide="clock" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
-            <span>Test Duration & Countdown Time Limit</span>
-          </div>
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 border border-brand-300 dark:border-brand-700">
-            Timed Mode Active
-          </span>
-        </div>
-        <p class="text-xs text-slate-500 dark:text-slate-400">
-          Choose a countdown duration or enter custom minutes for your assessment.
-        </p>
-
-        <!-- Hidden input submitted with the form -->
-        <input type="hidden" name="time_limit_minutes" id="time-limit-minutes-input" value="15">
-
-        <!-- Time Presets Grid -->
-        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-1" id="time-presets-container">
-          <button type="button" onclick="selectTimePreset(10, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center">
-            <span class="block text-sm font-mono font-extrabold">10</span>
-            <span class="text-[10px] text-slate-500">Mins</span>
-          </button>
-          <button type="button" onclick="selectTimePreset(15, this)" class="time-preset-btn p-2.5 rounded-xl border-brand-600 bg-brand-50/60 dark:bg-brand-950/40 ring-2 ring-brand-500 text-xs font-bold text-brand-700 dark:text-brand-300 transition-all text-center">
-            <span class="block text-sm font-mono font-extrabold">15</span>
-            <span class="text-[10px] text-brand-600 dark:text-brand-400 font-bold">Mins</span>
-          </button>
-          <button type="button" onclick="selectTimePreset(25, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center">
-            <span class="block text-sm font-mono font-extrabold">25</span>
-            <span class="text-[10px] text-slate-500">Mins</span>
-          </button>
-          <button type="button" onclick="selectTimePreset(30, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center">
-            <span class="block text-sm font-mono font-extrabold">30</span>
-            <span class="text-[10px] text-slate-500">Mins</span>
-          </button>
-          <button type="button" onclick="selectTimePreset(40, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center" title="Real JAMB UTME Subject Time Allocation">
-            <span class="block text-sm font-mono font-extrabold text-brand-600 dark:text-brand-400">40</span>
-            <span class="text-[10px] text-slate-500 font-medium">JAMB Pace</span>
-          </button>
-          <button type="button" onclick="selectTimePreset(60, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center">
-            <span class="block text-sm font-mono font-extrabold">60</span>
-            <span class="text-[10px] text-slate-500">1 Hour</span>
-          </button>
-        </div>
-
-        <!-- Custom Duration Input Field -->
-        <div class="pt-2 flex items-center gap-3">
-          <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Or custom time:</span>
-          <div class="relative w-36">
-            <input type="number" 
-                   id="custom-minutes-input" 
-                   min="1" 
-                   max="180" 
-                   placeholder="e.g. 35" 
-                   oninput="onCustomTimeInput(this.value)"
-                   class="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white text-xs font-mono font-bold focus:ring-brand-500">
-            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">mins</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 4: Questions Count & Exam Format -->
-      <div id="question-count-step" class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-        <div>
-          <label class="block text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center justify-between">
-            <span>4. Number of Questions</span>
-            <span class="text-[11px] font-mono text-slate-500">JAMB standard: 40 Qs</span>
-          </label>
-          <div class="grid grid-cols-4 gap-2">
-            <label class="text-center p-2 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card min-h-[48px] flex flex-col justify-center">
-              <input type="radio" name="question_count" value="10" class="sr-only" onchange="highlightCount(this)">
-              <span class="block text-base font-extrabold font-mono leading-none">10</span>
-              <span class="block text-[9px] text-slate-500 font-medium mt-0.5">Quick</span>
             </label>
-            <label class="text-center p-2 rounded-xl border border-brand-600 bg-brand-50/50 dark:bg-brand-950/20 ring-2 ring-brand-500 cursor-pointer text-slate-800 dark:text-slate-200 count-radio-card min-h-[48px] flex flex-col justify-center">
-              <input type="radio" name="question_count" value="20" class="sr-only" onchange="highlightCount(this)" checked>
-              <span class="block text-base font-extrabold font-mono leading-none text-brand-700 dark:text-brand-300">20</span>
-              <span class="block text-[9px] text-brand-600 dark:text-brand-400 font-bold mt-0.5">Standard</span>
-            </label>
-            <label class="text-center p-2 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card min-h-[48px] flex flex-col justify-center" title="Official JAMB UTME Subject Count">
-              <input type="radio" name="question_count" value="40" class="sr-only" onchange="highlightCount(this)">
-              <span class="block text-base font-extrabold font-mono leading-none text-brand-600 dark:text-brand-400">40</span>
-              <span class="block text-[9px] text-brand-600 dark:text-brand-400 font-bold mt-0.5">JAMB Qs</span>
-            </label>
-            <label class="text-center p-2 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card min-h-[48px] flex flex-col justify-center">
-              <input type="radio" name="question_count" value="60" class="sr-only" onchange="highlightCount(this)">
-              <span class="block text-base font-extrabold font-mono leading-none">60</span>
-              <span class="block text-[9px] text-slate-500 font-medium mt-0.5">Mock</span>
-            </label>
+            {% endfor %}
           </div>
         </div>
 
-        <div>
-          <label class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
-            5. Target Exam Format
-          </label>
-          <select name="exam_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white text-sm focus:ring-brand-500">
-            <option value="">All Formats (UTME & WAEC Combined)</option>
-            <option value="UTME">UTME / JAMB CBT (4 Options standard)</option>
-            <option value="WAEC">WAEC WASSCE (5 Options standard)</option>
-            <option value="NECO">NECO SSCE</option>
+        <!-- Step 2: Choose Topic (Dynamically filtered by Subject) -->
+        <div id="single-topic-step">
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-sm font-bold text-slate-900 dark:text-white" for="topic-select">
+              2. Select Topic Focus (Optional)
+            </label>
+            <span id="topic-badge" class="text-xs font-semibold text-brand-700 dark:text-brand-300"></span>
+          </div>
+          <p class="text-xs text-slate-500 mb-2">Leave as "All Syllabus Topics" for a mixed comprehensive session.</p>
+          <select name="topic" id="topic-select" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white text-sm focus:ring-brand-500 transition-all">
+            <option value="">&mdash; All Syllabus Topics (Comprehensive Mixed) &mdash;</option>
           </select>
         </div>
-      </div>
 
-      <!-- Submit Launch Button -->
-      <div class="pt-6 border-t border-slate-200 dark:border-navy-800">
-        <button type="submit" id="practice-submit-btn" class="w-full btn-primary py-3.5 px-4 rounded-xl font-bold flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 shadow-lg shadow-brand-600/25 transition-all text-center {% if pre_mode == 'JAMB_FULL_MOCK' %}!bg-emerald-600 hover:!bg-emerald-700 !shadow-emerald-600/25{% endif %}">
-          <div class="flex items-center gap-2">
-            <i data-lucide="play" class="w-5 h-5 shrink-0 fill-current"></i>
-            <span id="submit-btn-title" class="text-sm sm:text-base font-extrabold text-white">
-              {% if pre_mode == 'JAMB_FULL_MOCK' %}Launch 180-Question JAMB Standard Mock{% else %}Launch Practice Session{% endif %}
+        <!-- Step 3: Choose Learning Mode -->
+        <div>
+          <label class="block text-sm font-bold text-slate-900 dark:text-white mb-3">
+            3. Learning & Assessment Mode
+          </label>
+          <div class="flex flex-col gap-3">
+            
+            <label class="relative flex items-start gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'TOPIC_PRACTICE' or not pre_mode %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
+              <input type="radio" name="mode" value="TOPIC_PRACTICE" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'TOPIC_PRACTICE' or not pre_mode %}checked{% endif %}>
+              <div class="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-950/80 text-brand-600 dark:text-brand-400 flex items-center justify-center shrink-0">
+                <i data-lucide="zap" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
+                  <span class="font-bold text-sm text-slate-900 dark:text-white">Instant Practice</span>
+                  <span class="text-[11px] font-semibold text-brand-700 dark:text-brand-300 bg-brand-100 dark:bg-brand-950/80 px-2.5 py-0.5 rounded-full border border-brand-200 dark:border-brand-800">Step-by-step Feedback</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Step-by-step feedback immediately after submitting each answer. Untimed, self-paced learning.
+                </p>
+              </div>
+            </label>
+
+            <label class="relative flex items-start gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'TIMED_TEST' %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
+              <input type="radio" name="mode" value="TIMED_TEST" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'TIMED_TEST' %}checked{% endif %}>
+              <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <i data-lucide="timer" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
+                  <span class="font-bold text-sm text-slate-900 dark:text-white">Timed Test</span>
+                  <span class="text-[11px] font-semibold text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-950/80 px-2.5 py-0.5 rounded-full border border-blue-200 dark:border-blue-800">Custom Countdown Timer</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Timed topic assessment with custom countdown timer. Solutions withheld until final submission.
+                </p>
+              </div>
+            </label>
+
+            <label class="relative flex items-start gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 cursor-pointer hover:border-brand-500 transition-all mode-radio-card {% if pre_mode == 'CBT_MOCK' %}border-brand-600 bg-brand-50/40 dark:bg-brand-950/20 ring-2 ring-brand-500{% endif %}">
+              <input type="radio" name="mode" value="CBT_MOCK" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'CBT_MOCK' %}checked{% endif %}>
+              <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-950/80 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                <i data-lucide="monitor" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
+                  <span class="font-bold text-sm text-slate-900 dark:text-white">Single-Subject CBT</span>
+                  <span class="text-[11px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-200 dark:border-purple-800">Authentic CBT UI</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  CBT simulation for 1 subject with on-screen calculator, question grid, and flag for review.
+                </p>
+              </div>
+            </label>
+
+            <!-- Official JAMB UTME Standard Full Mock -->
+            <label class="relative flex items-start gap-3.5 p-4 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 cursor-pointer hover:border-emerald-500 transition-all mode-radio-card {% if pre_mode == 'JAMB_FULL_MOCK' %}border-emerald-600 bg-emerald-50/40 dark:bg-emerald-950/20 ring-2 ring-emerald-500{% endif %}">
+              <input type="radio" name="mode" value="JAMB_FULL_MOCK" class="sr-only" onchange="highlightMode(this)" {% if pre_mode == 'JAMB_FULL_MOCK' %}checked{% endif %}>
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <i data-lucide="award" class="w-5 h-5"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-1.5">
+                  <span class="font-bold text-sm sm:text-base text-slate-900 dark:text-white">Official JAMB Standard UTME Mock (180 Questions • 2 Hours • 400 Marks)</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shrink-0 self-start sm:self-auto">Official UTME Format</span>
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Real JAMB UTME examination simulation: <strong>Use of English</strong> (60 Qs, mandatory) + <strong>3 elective subjects</strong> (40 Qs each) = <strong>180 questions</strong> in <strong>120 minutes (2 hours)</strong>. Graded on standard <strong>400 marks</strong> scale with multi-subject navigation tabs.
+                </p>
+              </div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- JAMB Full Mock 4-Subject Combination Configuration Panel -->
+        <div id="jamb-mock-config-section" class="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-navy-950 border-2 border-emerald-500/40 space-y-5 {% if pre_mode != 'JAMB_FULL_MOCK' %}hidden{% endif %}">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 dark:border-navy-800 gap-2">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+              </span>
+              <div>
+                <h4 class="text-sm font-bold text-slate-900 dark:text-white">JAMB UTME 4-Subject Combination</h4>
+                <p class="text-xs text-slate-500 dark:text-slate-400">180 Multiple-Choice Questions &bull; 2 Hours (120 Mins) &bull; 400 Marks Total</p>
+              </div>
+            </div>
+            <span class="px-3 py-1 rounded-md bg-emerald-600 text-white font-mono text-xs font-bold self-start sm:self-auto">
+              400 MARKS
             </span>
           </div>
-          <span id="submit-btn-subtitle" class="text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-md bg-white/20 text-white font-mono {% if pre_mode != 'JAMB_FULL_MOCK' %}hidden{% endif %}">
-            2 Hours &bull; 400 Marks
-          </span>
-        </button>
+
+          <div class="flex flex-col gap-3.5">
+            <!-- Mandatory: Use of English -->
+            <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-emerald-500/40 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject 1 (Compulsory)</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-mono border border-emerald-300 dark:border-emerald-800">60 Questions</span>
+              </div>
+              <div class="flex items-center gap-2.5 text-base font-bold text-slate-900 dark:text-white">
+                <div class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <i data-lucide="book-check" class="w-4 h-4"></i>
+                </div>
+                <span>Use of English</span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1.5 pl-9.5">Compulsory for every candidate across all Nigerian universities and courses.</p>
+            </div>
+
+            <!-- Elective 1 -->
+            <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject 2 (Elective)</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 font-mono border border-slate-300 dark:border-navy-700">40 Questions</span>
+              </div>
+              <select name="electives" class="w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-800 text-slate-900 dark:text-white focus:ring-brand-500 focus:border-brand-500 transition-all">
+                {% for subj in subjects %}
+                  {% if subj.slug != 'english-language' and subj.slug != 'english' %}
+                  <option value="{{ subj.id }}" {% if subj.slug == 'mathematics' %}selected{% endif %}>{{ subj.name }} ({{ subj.question_count }} questions available)</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Elective 2 -->
+            <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject 3 (Elective)</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 font-mono border border-slate-300 dark:border-navy-700">40 Questions</span>
+              </div>
+              <select name="electives" class="w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-800 text-slate-900 dark:text-white focus:ring-brand-500 focus:border-brand-500 transition-all">
+                {% for subj in subjects %}
+                  {% if subj.slug != 'english-language' and subj.slug != 'english' %}
+                  <option value="{{ subj.id }}" {% if subj.slug == 'physics' %}selected{% endif %}>{{ subj.name }} ({{ subj.question_count }} questions available)</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Elective 3 -->
+            <div class="p-4 rounded-xl bg-white dark:bg-navy-900 border border-slate-200 dark:border-navy-800 shadow-xs">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subject 4 (Elective)</span>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-navy-800 text-slate-700 dark:text-slate-300 font-mono border border-slate-300 dark:border-navy-700">40 Questions</span>
+              </div>
+              <select name="electives" class="w-full px-3.5 py-2.5 text-sm font-semibold rounded-xl border border-slate-300 dark:border-navy-700 bg-slate-50 dark:bg-navy-800 text-slate-900 dark:text-white focus:ring-brand-500 focus:border-brand-500 transition-all">
+                {% for subj in subjects %}
+                  {% if subj.slug != 'english-language' and subj.slug != 'english' %}
+                  <option value="{{ subj.id }}" {% if subj.slug == 'chemistry' %}selected{% endif %}>{{ subj.name }} ({{ subj.question_count }} questions available)</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2 font-bold text-xs sm:text-sm">
+                <i data-lucide="clock" class="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400"></i>
+                <span>Countdown Duration: <strong>120 Minutes (2 Hours)</strong></span>
+              </div>
+              <div class="text-[11px] text-emerald-700/80 dark:text-emerald-300/80 pl-6">
+                ~40 seconds per question &bull; 400 Marks official UTME standard
+              </div>
+            </div>
+            <div class="self-start sm:self-auto pl-6 sm:pl-0">
+              <span class="inline-flex items-center px-3 py-1 rounded-lg font-bold font-mono text-xs bg-emerald-600 text-white shadow-xs">
+                180 Questions Total
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3b: Test Duration & Time Limit (Visible when Timed Test or CBT Mock is selected) -->
+        <div id="time-limit-section" class="p-5 rounded-2xl bg-slate-50 dark:bg-navy-950 border border-brand-500/30 dark:border-brand-500/40 space-y-3 transition-all {% if pre_mode == 'TOPIC_PRACTICE' or not pre_mode %}hidden{% endif %}">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-white">
+              <i data-lucide="clock" class="w-4 h-4 text-brand-600 dark:text-brand-400"></i>
+              <span>Test Duration & Countdown Time Limit</span>
+            </div>
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 border border-brand-300 dark:border-brand-700">
+              Timed Mode Active
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            Choose a countdown duration or enter custom minutes for your assessment.
+          </p>
+
+          <!-- Hidden input submitted with the form -->
+          <input type="hidden" name="time_limit_minutes" id="time-limit-minutes-input" value="15">
+
+          <!-- Time Presets Grid -->
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-1" id="time-presets-container">
+            <button type="button" onclick="selectTimePreset(10, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center">
+              <span class="block text-sm font-mono font-extrabold">10</span>
+              <span class="text-[10px] text-slate-500">Mins</span>
+            </button>
+            <button type="button" onclick="selectTimePreset(15, this)" class="time-preset-btn p-2.5 rounded-xl border-brand-600 bg-brand-50/60 dark:bg-brand-950/40 ring-2 ring-brand-500 text-xs font-bold text-brand-700 dark:text-brand-300 transition-all text-center">
+              <span class="block text-sm font-mono font-extrabold">15</span>
+              <span class="text-[10px] text-brand-600 dark:text-brand-400 font-bold">Mins</span>
+            </button>
+            <button type="button" onclick="selectTimePreset(25, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center">
+              <span class="block text-sm font-mono font-extrabold">25</span>
+              <span class="text-[10px] text-slate-500">Mins</span>
+            </button>
+            <button type="button" onclick="selectTimePreset(30, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center">
+              <span class="block text-sm font-mono font-extrabold">30</span>
+              <span class="text-[10px] text-slate-500">Mins</span>
+            </button>
+            <button type="button" onclick="selectTimePreset(40, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center" title="Real JAMB UTME Subject Time Allocation">
+              <span class="block text-sm font-mono font-extrabold text-brand-600 dark:text-brand-400">40</span>
+              <span class="text-[10px] text-slate-500 font-medium">JAMB Pace</span>
+            </button>
+            <button type="button" onclick="selectTimePreset(60, this)" class="time-preset-btn p-2.5 rounded-xl border border-slate-200 dark:border-navy-700 bg-white dark:bg-navy-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all text-center">
+              <span class="block text-sm font-mono font-extrabold">60</span>
+              <span class="text-[10px] text-slate-500">1 Hour</span>
+            </button>
+          </div>
+
+          <!-- Custom Duration Input Field -->
+          <div class="pt-2 flex items-center gap-3">
+            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Or custom time:</span>
+            <div class="relative w-36">
+              <input type="number" 
+                     id="custom-minutes-input" 
+                     min="1" 
+                     max="180" 
+                     placeholder="e.g. 35" 
+                     oninput="onCustomTimeInput(this.value)"
+                     class="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white text-xs font-mono font-bold focus:ring-brand-500">
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">mins</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4: Questions Count & Exam Format -->
+        <div id="question-count-step" class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+          <div>
+            <label class="block text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center justify-between">
+              <span>4. Number of Questions</span>
+              <span class="text-[11px] font-mono text-slate-500">JAMB standard: 40 Qs</span>
+            </label>
+            <div class="grid grid-cols-4 gap-2">
+              <label class="text-center p-2 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card min-h-[48px] flex flex-col justify-center">
+                <input type="radio" name="question_count" value="10" class="sr-only" onchange="highlightCount(this)">
+                <span class="block text-base font-extrabold font-mono leading-none">10</span>
+                <span class="block text-[9px] text-slate-500 font-medium mt-0.5">Quick</span>
+              </label>
+              <label class="text-center p-2 rounded-xl border border-brand-600 bg-brand-50/50 dark:bg-brand-950/20 ring-2 ring-brand-500 cursor-pointer text-slate-800 dark:text-slate-200 count-radio-card min-h-[48px] flex flex-col justify-center">
+                <input type="radio" name="question_count" value="20" class="sr-only" onchange="highlightCount(this)" checked>
+                <span class="block text-base font-extrabold font-mono leading-none text-brand-700 dark:text-brand-300">20</span>
+                <span class="block text-[9px] text-brand-600 dark:text-brand-400 font-bold mt-0.5">Standard</span>
+              </label>
+              <label class="text-center p-2 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card min-h-[48px] flex flex-col justify-center" title="Official JAMB UTME Subject Count">
+                <input type="radio" name="question_count" value="40" class="sr-only" onchange="highlightCount(this)">
+                <span class="block text-base font-extrabold font-mono leading-none text-brand-600 dark:text-brand-400">40</span>
+                <span class="block text-[9px] text-brand-600 dark:text-brand-400 font-bold mt-0.5">JAMB Qs</span>
+              </label>
+              <label class="text-center p-2 rounded-xl border border-slate-200 dark:border-navy-700 cursor-pointer text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-navy-800 count-radio-card min-h-[48px] flex flex-col justify-center">
+                <input type="radio" name="question_count" value="60" class="sr-only" onchange="highlightCount(this)">
+                <span class="block text-base font-extrabold font-mono leading-none">60</span>
+                <span class="block text-[9px] text-slate-500 font-medium mt-0.5">Mock</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold text-slate-900 dark:text-white mb-2">
+              5. Target Exam Format
+            </label>
+            <select name="exam_type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-navy-700 bg-white dark:bg-navy-900 text-slate-900 dark:text-white text-sm focus:ring-brand-500">
+              <option value="">All Formats (UTME & WAEC Combined)</option>
+              <option value="UTME">UTME / JAMB CBT (4 Options standard)</option>
+              <option value="WAEC">WAEC WASSCE (5 Options standard)</option>
+              <option value="NECO">NECO SSCE</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Mobile-Only Launch Button (inline at the bottom of form on screens < lg) -->
+        <div class="pt-6 border-t border-slate-200 dark:border-navy-800 lg:hidden">
+          <button type="submit" class="w-full btn-primary py-3.5 px-4 rounded-xl font-bold flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 shadow-lg shadow-brand-600/25 transition-all text-center practice-submit-btn-sync {% if pre_mode == 'JAMB_FULL_MOCK' %}!bg-emerald-600 hover:!bg-emerald-700 !shadow-emerald-600/25{% endif %}">
+            <div class="flex items-center gap-2">
+              <i data-lucide="play" class="w-5 h-5 shrink-0 fill-current"></i>
+              <span class="submit-btn-title text-sm sm:text-base font-extrabold text-white">
+                {% if pre_mode == 'JAMB_FULL_MOCK' %}Launch 180-Question JAMB Standard Mock{% else %}Launch Practice Session{% endif %}
+              </span>
+            </div>
+            <span class="submit-btn-subtitle text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-md bg-white/20 text-white font-mono {% if pre_mode != 'JAMB_FULL_MOCK' %}hidden{% endif %}">
+              2 Hours &bull; 400 Marks
+            </span>
+          </button>
+        </div>
+
       </div>
 
-    </form>
+      <!-- Right Column: Session Overview & Sticky Launch Dock (4 cols) -->
+      <div class="lg:col-span-4 space-y-5 lg:sticky lg:top-24">
+        
+        <div class="card-premium p-5 sm:p-6 bg-white dark:bg-navy-900 shadow-elevated space-y-5">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-navy-800">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-brand-100 dark:bg-brand-950 text-brand-600 dark:text-brand-400 flex items-center justify-center">
+                <i data-lucide="sliders" class="w-4 h-4"></i>
+              </div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white">Session Overview</h3>
+            </div>
+            <span class="text-[10px] font-mono uppercase font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-2 py-0.5 rounded-md border border-brand-200 dark:border-brand-800">
+              Ready
+            </span>
+          </div>
 
-  </div>
+          <!-- Configuration Live Summary Checklist -->
+          <div class="space-y-2.5 text-xs">
+            <!-- Subject Summary -->
+            <div class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-100 dark:border-navy-800">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Subject</span>
+              <span id="summary-subject" class="font-bold text-slate-800 dark:text-slate-100 text-right">
+                {% if pre_mode == 'JAMB_FULL_MOCK' %}JAMB 4-Subject Combination{% else %}{{ subjects.0.name }}{% endif %}
+              </span>
+            </div>
+
+            <!-- Mode Summary -->
+            <div class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-100 dark:border-navy-800">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Mode</span>
+              <span id="summary-mode" class="font-bold text-brand-600 dark:text-brand-400 text-right">
+                {% if pre_mode == 'JAMB_FULL_MOCK' %}JAMB UTME Mock{% elif pre_mode == 'TIMED_TEST' %}Timed Test{% elif pre_mode == 'CBT_MOCK' %}Single-Subject CBT{% else %}Instant Practice{% endif %}
+              </span>
+            </div>
+
+            <!-- Questions Summary -->
+            <div class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-100 dark:border-navy-800">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Questions</span>
+              <span id="summary-questions" class="font-mono font-bold text-slate-800 dark:text-slate-100 text-right">
+                {% if pre_mode == 'JAMB_FULL_MOCK' %}180 Questions{% else %}20 Questions{% endif %}
+              </span>
+            </div>
+
+            <!-- Duration Summary -->
+            <div class="flex items-start justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-navy-950 border border-slate-100 dark:border-navy-800">
+              <span class="text-slate-500 dark:text-slate-400 font-medium">Duration</span>
+              <span id="summary-duration" class="font-mono font-bold text-slate-800 dark:text-slate-100 text-right">
+                {% if pre_mode == 'JAMB_FULL_MOCK' %}120 Minutes (2 Hrs){% elif pre_mode == 'TIMED_TEST' or pre_mode == 'CBT_MOCK' %}15 Minutes{% else %}Untimed (Self-Paced){% endif %}
+              </span>
+            </div>
+          </div>
+
+          <!-- Desktop Sticky Launch Button -->
+          <div class="pt-2">
+            <button type="submit" id="practice-submit-btn" class="w-full btn-primary py-3.5 px-4 rounded-xl font-bold flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 shadow-lg shadow-brand-600/25 transition-all text-center practice-submit-btn-sync {% if pre_mode == 'JAMB_FULL_MOCK' %}!bg-emerald-600 hover:!bg-emerald-700 !shadow-emerald-600/25{% endif %}">
+              <div class="flex items-center gap-2">
+                <i data-lucide="play" class="w-5 h-5 shrink-0 fill-current"></i>
+                <span class="submit-btn-title text-sm sm:text-base font-extrabold text-white">
+                  {% if pre_mode == 'JAMB_FULL_MOCK' %}Launch 180-Question JAMB Standard Mock{% else %}Launch Practice Session{% endif %}
+                </span>
+              </div>
+              <span class="submit-btn-subtitle text-[11px] font-semibold px-2 py-0.5 rounded-md bg-white/20 text-white font-mono {% if pre_mode != 'JAMB_FULL_MOCK' %}hidden{% endif %}">
+                2 Hours &bull; 400 Marks
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Helpful Assessment Tips Banner -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-slate-100/80 dark:bg-navy-900/60 border border-slate-200/80 dark:border-navy-800 text-xs text-slate-600 dark:text-slate-400 space-y-2.5">
+          <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-500 shrink-0"></i>
+            <span>Assessment Tips</span>
+          </div>
+          <ul class="space-y-1.5 list-disc list-inside text-[11px] leading-relaxed">
+            <li>Instant feedback shows KaTeX step-by-step calculations.</li>
+            <li>Timed CBT models authentic Nigerian UTME exam interface.</li>
+            <li>All attempts sync directly to your learning dashboard.</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+
+  </form>
 
 </div>
 {% endblock %}
@@ -426,6 +513,59 @@
     });
   }
 
+  function updateSummaryPanel() {
+    const summarySubject = document.getElementById('summary-subject');
+    const summaryMode = document.getElementById('summary-mode');
+    const summaryQuestions = document.getElementById('summary-questions');
+    const summaryDuration = document.getElementById('summary-duration');
+
+    const activeMode = document.querySelector('input[name="mode"]:checked');
+    const modeVal = activeMode ? activeMode.value : 'TOPIC_PRACTICE';
+    const isJambMock = modeVal === 'JAMB_FULL_MOCK';
+
+    if (summarySubject) {
+      if (isJambMock) {
+        summarySubject.textContent = "JAMB 4-Subject Combination";
+      } else {
+        const activeSubj = document.querySelector('input[name="subject"]:checked');
+        summarySubject.textContent = activeSubj ? (activeSubj.getAttribute('data-name') || 'Selected Subject') : 'Selected Subject';
+      }
+    }
+
+    if (summaryMode) {
+      if (isJambMock) {
+        summaryMode.textContent = "JAMB UTME Mock";
+      } else if (modeVal === 'TIMED_TEST') {
+        summaryMode.textContent = "Timed Test";
+      } else if (modeVal === 'CBT_MOCK') {
+        summaryMode.textContent = "Single-Subject CBT";
+      } else {
+        summaryMode.textContent = "Instant Practice";
+      }
+    }
+
+    if (summaryQuestions) {
+      if (isJambMock) {
+        summaryQuestions.textContent = "180 Questions";
+      } else {
+        const activeCount = document.querySelector('input[name="question_count"]:checked');
+        summaryQuestions.textContent = activeCount ? `${activeCount.value} Questions` : "20 Questions";
+      }
+    }
+
+    if (summaryDuration) {
+      if (isJambMock) {
+        summaryDuration.textContent = "120 Mins (2 Hours)";
+      } else if (modeVal === 'TIMED_TEST' || modeVal === 'CBT_MOCK') {
+        const timeInput = document.getElementById('time-limit-minutes-input');
+        const mins = timeInput && timeInput.value ? timeInput.value : 15;
+        summaryDuration.textContent = `${mins} Minutes`;
+      } else {
+        summaryDuration.textContent = "Untimed (Self-Paced)";
+      }
+    }
+  }
+
   function onSubjectChange(subjId, subjSlug, subjName) {
     document.querySelectorAll('.subject-radio-card').forEach(el => {
       el.classList.remove('border-brand-600', 'bg-brand-50/40', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
@@ -437,6 +577,7 @@
 
     // Instantly filter the topic focus dropdown
     populateTopics(subjId, subjName);
+    updateSummaryPanel();
   }
 
   function highlightMode(radio) {
@@ -457,9 +598,6 @@
     const subjectStep = document.getElementById('single-subject-step');
     const topicStep = document.getElementById('single-topic-step');
     const countStep = document.getElementById('question-count-step');
-    const submitBtn = document.getElementById('practice-submit-btn');
-    const submitBtnTitle = document.getElementById('submit-btn-title');
-    const submitBtnSubtitle = document.getElementById('submit-btn-subtitle');
 
     if (isJambMock) {
       if (jambSection) jambSection.classList.remove('hidden');
@@ -468,28 +606,32 @@
       if (timeSection) timeSection.classList.add('hidden');
       if (countStep) countStep.classList.add('hidden');
       
-      if (submitBtnTitle) submitBtnTitle.innerText = "Launch 180-Question JAMB Standard Mock";
-      if (submitBtnSubtitle) {
-        submitBtnSubtitle.innerText = "2 Hours • 400 Marks";
-        submitBtnSubtitle.classList.remove('hidden');
-      }
-      if (submitBtn) {
-        submitBtn.classList.add('!bg-emerald-600', 'hover:!bg-emerald-700', '!shadow-emerald-600/25');
-      }
+      document.querySelectorAll('.practice-submit-btn-sync').forEach(btn => {
+        btn.classList.add('!bg-emerald-600', 'hover:!bg-emerald-700', '!shadow-emerald-600/25');
+      });
+      document.querySelectorAll('.submit-btn-title').forEach(el => {
+        el.innerText = "Launch 180-Question JAMB Standard Mock";
+      });
+      document.querySelectorAll('.submit-btn-subtitle').forEach(el => {
+        el.innerText = "2 Hours • 400 Marks";
+        el.classList.remove('hidden');
+      });
     } else {
       if (jambSection) jambSection.classList.add('hidden');
       if (subjectStep) subjectStep.classList.remove('hidden');
       if (topicStep) topicStep.classList.remove('hidden');
       if (countStep) countStep.classList.remove('hidden');
       
-      if (submitBtnTitle) submitBtnTitle.innerText = "Launch Practice Session";
-      if (submitBtnSubtitle) {
-        submitBtnSubtitle.innerText = "";
-        submitBtnSubtitle.classList.add('hidden');
-      }
-      if (submitBtn) {
-        submitBtn.classList.remove('!bg-emerald-600', 'hover:!bg-emerald-700', '!shadow-emerald-600/25');
-      }
+      document.querySelectorAll('.practice-submit-btn-sync').forEach(btn => {
+        btn.classList.remove('!bg-emerald-600', 'hover:!bg-emerald-700', '!shadow-emerald-600/25');
+      });
+      document.querySelectorAll('.submit-btn-title').forEach(el => {
+        el.innerText = "Launch Practice Session";
+      });
+      document.querySelectorAll('.submit-btn-subtitle').forEach(el => {
+        el.innerText = "";
+        el.classList.add('hidden');
+      });
 
       if (timeSection) {
         if (radio.value === 'TIMED_TEST' || radio.value === 'CBT_MOCK') {
@@ -502,6 +644,8 @@
         }
       }
     }
+
+    updateSummaryPanel();
   }
 
   function highlightCount(radio) {
@@ -509,6 +653,7 @@
       el.classList.remove('border-brand-600', 'bg-brand-50/50', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
     });
     radio.closest('.count-radio-card').classList.add('border-brand-600', 'bg-brand-50/50', 'dark:bg-brand-950/20', 'ring-2', 'ring-brand-500');
+    updateSummaryPanel();
   }
 
   function selectTimePreset(mins, btn) {
@@ -529,6 +674,8 @@
     if (window.gsap) {
       gsap.fromTo(btn, { scale: 0.94 }, { scale: 1, duration: 0.2, ease: "back.out(2)" });
     }
+
+    updateSummaryPanel();
   }
 
   function onCustomTimeInput(val) {
@@ -546,6 +693,8 @@
       const lbl = b.querySelector('span:last-child');
       if (lbl) lbl.className = "text-[10px] text-slate-500";
     });
+
+    updateSummaryPanel();
   }
 
   // Initialize on page load
@@ -558,6 +707,7 @@
         initialPreTopic
       );
     }
+    updateSummaryPanel();
   });
 
   // Also support HTMX content swap initialization
@@ -570,6 +720,7 @@
         initialPreTopic
       );
     }
+    updateSummaryPanel();
   });
 </script>
 {% endblock %}
